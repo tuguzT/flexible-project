@@ -9,4 +9,4 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
-flexible-project-core = { path = "../flexible-project-core" }
+flexible-project-core = { path = "../flexible-project-core", version = "0.0.0" }
