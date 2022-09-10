@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "flexible-project-core",
+    "flexible-project",
+]
