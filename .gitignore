@@ -1,1 +1,5 @@
+# IDE settings
+/.vscode
+
+# Rust specific stuff
 /target
