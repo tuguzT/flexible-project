@@ -5,4 +5,5 @@ description = "Flexible Project core library"
 authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
 readme = "../README.md"
+repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
