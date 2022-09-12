@@ -1,8 +1,12 @@
 //! Definitions and utilities for data sources of the Flexible Project system.
 
+pub use crud::CrudDataSource;
+
 use fp_core::model::Identifiable;
 
 pub mod ops;
+
+mod crud;
 
 /// Marker trait for data sources of the Flexible Project system.
 ///
