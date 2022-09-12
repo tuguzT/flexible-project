@@ -9,5 +9,5 @@ pub trait Clear: DataSource {
     ///
     /// Data source will contain no data of type [`Item`](DataSource::Item)
     /// after performing this operation.
-    async fn clear(&self);
+    async fn clear(&mut self);
 }

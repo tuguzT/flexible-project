@@ -8,5 +8,5 @@ pub trait Save: DataSource {
     /// Saves the provided item into the storage.
     ///
     /// Returns the new instance of item as a result of saving provided item.
-    async fn save(&self, item: Self::Item) -> Self::Item;
+    async fn save(&mut self, item: Self::Item) -> Self::Item;
 }

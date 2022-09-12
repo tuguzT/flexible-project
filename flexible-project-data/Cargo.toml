@@ -11,3 +11,4 @@ edition = "2021"
 [dependencies]
 fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
 async-trait = "0.1.57"
+serde = { version = "1.0.144", features = ["derive"] }

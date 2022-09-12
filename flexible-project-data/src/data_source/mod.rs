@@ -4,7 +4,9 @@ pub use crud::CrudDataSource;
 
 use fp_core::model::Identifiable;
 
+pub mod mock;
 pub mod ops;
+pub mod user;
 
 mod crud;
 

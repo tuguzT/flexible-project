@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 /// Trait for types of identifiers
 /// which can be used to identify objects of owner type.
-pub trait Id<Owner>: Eq + Ord + Hash + Clone + 'static
+pub trait Id<Owner>: Eq + Hash + Clone + 'static
 where
     Owner: ?Sized + Identifiable,
 {
