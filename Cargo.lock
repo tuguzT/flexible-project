@@ -407,6 +407,10 @@ name = "flexible-project-core"
 version = "0.0.0"
 
 [[package]]
+name = "flexible-project-data"
+version = "0.0.0"
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
