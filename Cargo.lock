@@ -410,6 +410,9 @@ version = "0.0.0"
 [[package]]
 name = "flexible-project-data"
 version = "0.0.0"
+dependencies = [
+ "flexible-project-core",
+]
 
 [[package]]
 name = "fnv"
