@@ -9,7 +9,7 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
-flexible-project-core = { path = "../flexible-project-core", version = "0.0.0" }
-flexible-project-data = { path = "../flexible-project-data", version = "0.0.0" }
+fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
+fp-data = { path = "../flexible-project-data", package = "flexible-project-data", version = "0.0.0" }
 actix-web = "4.1.0"
 tokio = { version = "1.21.0", features = ["full"] }

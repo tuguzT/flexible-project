@@ -2,3 +2,6 @@
 #![warn(clippy::all)]
 
 //! Flexible Project data layer library.
+
+pub mod data_source;
+pub mod repository;

@@ -8,7 +8,7 @@ where
 {
 }
 
-/// Trait for types which can be identified by [`Id`][Identifiable::Id] associated type.
+/// Trait for types which can be identified by [`Id`](Identifiable::Id) associated type.
 pub trait Identifiable {
     /// Type of identifier used to identify the instance of identifiable.
     type Id: Id<Self>;

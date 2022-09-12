@@ -9,4 +9,5 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
-flexible-project-core = { path = "../flexible-project-core", version = "0.0.0" }
+fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
+async-trait = "0.1.57"
