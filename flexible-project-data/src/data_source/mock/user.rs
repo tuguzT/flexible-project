@@ -5,15 +5,15 @@ use fp_core::model::Identifiable;
 
 use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
 use crate::data_source::user::UserDataSource;
-use crate::data_source::{CrudDataSource, DataSource};
-use crate::model::User;
+use crate::data_source::DataSource;
+use crate::model::UserData;
 
 /// Mock user data source which stores users inside of [`Vec`].
 #[derive(Default)]
-pub struct MockUserDataSource(Vec<User>);
+pub struct MockUserDataSource(Vec<UserData>);
 
 impl DataSource for MockUserDataSource {
-    type Item = User;
+    type Item = UserData;
 }
 
 #[async_trait]
@@ -64,7 +64,5 @@ impl Save for MockUserDataSource {
         item
     }
 }
-
-impl CrudDataSource for MockUserDataSource {}
 
 impl UserDataSource for MockUserDataSource {}
