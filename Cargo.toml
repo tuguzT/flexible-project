@@ -1,6 +1,2 @@
 [workspace]
-members = [
-    "flexible-project-core",
-    "flexible-project-data",
-    "flexible-project",
-]
+members = ["crates/*"]
