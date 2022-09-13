@@ -1,6 +1,13 @@
 //! Definitions and utilities for repositories of the Flexible Project system.
 
+pub use crud::CrudRepository;
+
 use fp_core::model::Identifiable;
+
+pub mod ops;
+pub mod user;
+
+mod crud;
 
 /// Marker trait for repositories of the Flexible Project system.
 ///
