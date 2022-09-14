@@ -7,11 +7,13 @@ use serde::{Deserialize, Serialize};
 
 /// Serializable identifier of the owner object.
 #[derive(Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct IdData<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
     id: String,
+    #[serde(skip)]
     _ph: PhantomData<Owner>,
 }
 

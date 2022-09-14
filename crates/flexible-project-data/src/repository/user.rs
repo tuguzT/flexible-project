@@ -16,6 +16,17 @@ where
     data_source: S,
 }
 
+impl<S> UserRepository<S>
+where
+    S: UserDataSource,
+    S::Item: User,
+{
+    /// Creates new repository from provided data source.
+    pub fn new(data_source: S) -> Self {
+        Self { data_source }
+    }
+}
+
 impl<S> Repository for UserRepository<S>
 where
     S: UserDataSource,
