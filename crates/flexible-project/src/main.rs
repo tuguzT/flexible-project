@@ -3,44 +3,26 @@
 
 //! Flexible Project server.
 
-use actix_web::{get, post, web, App, HttpServer, Responder};
-use fp_data::data_source::mock::user::MockUserDataSource;
-use fp_data::model::UserData;
-use fp_data::repository::ops::{ReadAll, Save};
-use fp_data::repository::user::UserRepository;
-use tokio::sync::RwLock;
-
-type MockUserRepository = UserRepository<MockUserDataSource>;
-
-/// Get all users of the Flexible Project system.
-#[get("/users")]
-async fn all_users(repository: web::Data<RwLock<MockUserRepository>>) -> impl Responder {
-    let repository = repository.read().await;
-    let all_users = repository.read_all().await;
-    web::Json(all_users)
-}
-
-/// Save user data in the Flexible Project system.
-#[post("/users")]
-async fn save_user(
-    user: web::Json<UserData>,
-    repository: web::Data<RwLock<MockUserRepository>>,
-) -> impl Responder {
-    let mut repository = repository.write().await;
-    let user = repository.save(user.into_inner()).await;
-    web::Json(user)
-}
+use actix_web::middleware::Logger;
+use actix_web::{web, App, HttpServer};
+use flexible_project::routes::{all_users, save_user};
+use flexible_project::user_repository;
 
 /// Entry point of the server.
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let data_source = MockUserDataSource::default();
-    let repository = MockUserRepository::new(data_source);
-    let repository = web::Data::new(RwLock::new(repository));
+    dotenv::dotenv().expect(".env file parsing failure");
+    pretty_env_logger::init();
+
+    let user_repository = web::Data::new(user_repository());
 
     HttpServer::new(move || {
+        let user_repository = user_repository.clone();
+        let logger = Logger::default();
+
         App::new()
-            .app_data(repository.clone())
+            .wrap(logger)
+            .app_data(user_repository)
             .service(all_users)
             .service(save_user)
     })
