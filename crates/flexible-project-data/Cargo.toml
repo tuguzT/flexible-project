@@ -4,7 +4,7 @@ version = "0.0.0"
 description = "Flexible Project data layer library"
 authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
-readme = "../README.md"
+readme = "../../README.md"
 repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
