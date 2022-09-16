@@ -11,13 +11,13 @@ use tokio::sync::RwLock;
 
 pub mod routes;
 
-type MockUserRepository = UserRepository<MockUserDataSource>;
+type UserRepositoryImpl = UserRepository<MockUserDataSource>;
 
 /// Creates user repository and wraps it with [`RwLock`].
 ///
 /// Created repository uses inner data source which is not visible from the outside.
 pub fn user_repository() -> RwLock<UserRepository<impl UserDataSource<Item = impl User>>> {
     let data_source = MockUserDataSource::default();
-    let repository: MockUserRepository = UserRepository::new(data_source);
+    let repository = UserRepository::new(data_source);
     RwLock::new(repository)
 }
