@@ -5,7 +5,7 @@
 
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use flexible_project::routes::{all_users, save_user};
+use flexible_project::routes::{all_users, save_user, user_by_id};
 use flexible_project::user_repository;
 
 /// Entry point of the server.
@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(logger)
             .app_data(user_repository)
             .service(all_users)
+            .service(user_by_id)
             .service(save_user)
     })
     .bind(("127.0.0.1", 8080))?
