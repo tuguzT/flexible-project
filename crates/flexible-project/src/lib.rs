@@ -3,21 +3,21 @@
 
 //! Flexible Project server library.
 
-use fp_core::model::User;
+use actix_web::web;
 use fp_data::data_source::mock::user::MockUserDataSource;
 use fp_data::data_source::user::UserDataSource;
+use fp_data::model::UserData;
 use fp_data::repository::user::UserRepository;
 use tokio::sync::RwLock;
 
-pub mod routes;
+pub mod config;
 
-type UserRepositoryImpl = UserRepository<MockUserDataSource>;
+type RwData<T> = web::Data<RwLock<T>>;
 
-/// Creates user repository and wraps it with [`RwLock`].
-///
-/// Created repository uses inner data source which is not visible from the outside.
-pub fn user_repository() -> RwLock<UserRepository<impl UserDataSource<Item = impl User>>> {
+/// Creates user repository of the Flexible Project system
+/// which uses inner data source implementation.
+pub fn user_repository() -> RwData<UserRepository<impl UserDataSource<Item = UserData>>> {
     let data_source = MockUserDataSource::default();
     let repository = UserRepository::new(data_source);
-    RwLock::new(repository)
+    web::Data::new(RwLock::new(repository))
 }

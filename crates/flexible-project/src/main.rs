@@ -4,8 +4,8 @@
 //! Flexible Project server.
 
 use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpServer};
-use flexible_project::routes::{all_users, delete_user, save_user, user_by_id};
+use actix_web::{App, HttpServer};
+use flexible_project::config::user_config;
 use flexible_project::user_repository;
 
 /// Entry point of the server.
@@ -14,19 +14,13 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().expect(".env file parsing failure");
     pretty_env_logger::init();
 
-    let user_repository = web::Data::new(user_repository());
+    let user_repository = user_repository();
+    let user_config = user_config(user_repository);
 
     HttpServer::new(move || {
-        let user_repository = user_repository.clone();
         let logger = Logger::default();
-
-        App::new()
-            .wrap(logger)
-            .app_data(user_repository)
-            .service(all_users)
-            .service(user_by_id)
-            .service(save_user)
-            .service(delete_user)
+        let user_config = user_config.clone();
+        App::new().wrap(logger).configure(user_config)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
