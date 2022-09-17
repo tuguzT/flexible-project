@@ -1,3 +1,5 @@
 //! Mock implementations of data sources.
 
-pub mod user;
+pub use user::MockUserDataSource;
+
+mod user;

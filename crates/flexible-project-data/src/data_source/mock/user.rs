@@ -1,5 +1,3 @@
-//! Mock implementations of user data sources.
-
 use async_trait::async_trait;
 use fp_core::model::Identifiable;
 
