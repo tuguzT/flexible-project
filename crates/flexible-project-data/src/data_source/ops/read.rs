@@ -14,7 +14,10 @@ pub trait ReadAll: DataSource {
 /// Trait for data source which can retrieve the item
 /// by its identifier from the storage.
 #[async_trait]
-pub trait ReadById: DataSource {
+pub trait ReadById: DataSource
+where
+    Self::Item: Identifiable,
+{
     /// Returns [`Some`] with an item found by its identifier in the storage
     /// or [`None`] if there is no item by provided identifier.
     async fn read_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item>;

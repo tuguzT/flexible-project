@@ -13,7 +13,10 @@ pub trait ReadAll: Repository {
 
 /// Trait for repository which can retrieve the item by its identifier.
 #[async_trait]
-pub trait ReadById: Repository {
+pub trait ReadById: Repository
+where
+    Self::Item: Identifiable,
+{
     /// Returns [`Some`] with an item found by its identifier
     /// or [`None`] if there is no item by provided identifier.
     async fn read_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item>;

@@ -2,8 +2,6 @@
 
 pub use crud::CrudRepository;
 
-use fp_core::model::Identifiable;
-
 pub mod ops;
 pub mod user;
 
@@ -15,5 +13,5 @@ mod crud;
 /// to share the same [`Item`](Repository::Item) associated type for dependent traits.
 pub trait Repository {
     /// Type of item stored in this repository.
-    type Item: Identifiable;
+    type Item;
 }

@@ -15,7 +15,10 @@ pub trait Delete: DataSource {
 
 /// Trait for data source which can delete an item by its identifier.
 #[async_trait]
-pub trait DeleteById: DataSource {
+pub trait DeleteById: DataSource
+where
+    Self::Item: Identifiable,
+{
     /// Deletes item from the storage by provided identifier.
     async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id);
 }

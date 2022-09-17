@@ -62,7 +62,7 @@ impl Save for MockUserDataSource {
     async fn save(&mut self, item: Self::Item) -> Self::Item {
         let by_id = self.0.iter().position(|x| x.id() == &item.id);
         match by_id {
-            Some(idx) => self.0.insert(idx, item.clone()),
+            Some(idx) => self.0[idx] = item.clone(),
             None => self.0.push(item.clone()),
         }
         item
