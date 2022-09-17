@@ -6,7 +6,9 @@ use fp_data::repository::user::UserRepository;
 
 use crate::RwData;
 
-/// Configuration for user endpoints of the Flexible Project system.
+/// Provides configuration for user endpoints of the Flexible Project system.
+///
+/// Creates a factory closure for [`actix-web`](actix_web) [application](actix_web::App) configuration.
 pub fn config<S>(repository: RwData<UserRepository<S>>) -> impl Fn(&mut web::ServiceConfig) + Clone
 where
     S: UserDataSource<Item = UserData> + Send + Sync + 'static,
