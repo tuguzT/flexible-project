@@ -2,7 +2,6 @@
 
 pub use crud::CrudRepository;
 
-pub mod mock;
 pub mod ops;
 pub mod user;
 

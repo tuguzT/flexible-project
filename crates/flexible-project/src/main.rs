@@ -9,7 +9,7 @@ use flexible_project::config::user_config;
 use flexible_project::user_repository;
 
 /// Entry point of the server.
-#[tokio::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().expect(".env file parsing failure");
     pretty_env_logger::init();
