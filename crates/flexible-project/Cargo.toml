@@ -9,10 +9,19 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
+# Flexible Project layer libraries
 fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
 fp-data = { path = "../flexible-project-data", package = "flexible-project-data", version = "0.0.0" }
+# Actix project
 actix-web = "4.2.1"
+actix-web-lab = "0.18.2"
+actix-cors = "0.6.2"
+# GraphQL
+async-graphql = "4.0.13"
+async-graphql-actix-web = "4.0.13"
+# Tokio runtime
 tokio = { version = "1.21.1", features = ["rt-multi-thread", "macros", "sync"] }
-dotenv = "0.15.0" # for testing and development, TODO: remove it on releases
+# Miscellaneous
+dotenv = "0.15.0"
 log = "0.4.17"
 pretty_env_logger = "0.4.0"

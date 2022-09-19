@@ -1,3 +1,5 @@
+use std::iter::FromIterator;
+
 use async_trait::async_trait;
 use fp_core::model::Identifiable;
 
@@ -68,3 +70,9 @@ impl Save for MockUserDataSource {
 }
 
 impl UserDataSource for MockUserDataSource {}
+
+impl FromIterator<UserData> for MockUserDataSource {
+    fn from_iter<T: IntoIterator<Item = UserData>>(iter: T) -> Self {
+        Self(FromIterator::from_iter(iter))
+    }
+}
