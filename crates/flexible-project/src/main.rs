@@ -6,10 +6,8 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use async_graphql::{EmptyMutation, EmptySubscription};
 use flexible_project::config::graphql_config;
-use flexible_project::data::user_repository;
-use flexible_project::model::{Query, Schema};
+use flexible_project::model::create_schema;
 
 /// Entry point of the server.
 #[actix_web::main]
@@ -17,13 +15,8 @@ async fn main() -> std::io::Result<()> {
     dotenv::dotenv().expect(".env file should be present and valid");
     pretty_env_logger::init();
 
-    let user_repository = user_repository();
-    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
-        .data(user_repository)
-        .finish();
-    let schema = web::Data::new(schema);
-
-    log::debug!("{}", schema.sdl());
+    let schema = web::Data::new(create_schema());
+    log::debug!("GraphQL schema SDL:\n{}", schema.sdl());
 
     HttpServer::new(move || {
         let schema = schema.clone();

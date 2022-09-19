@@ -3,9 +3,10 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 
 use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
-use fp_core::model::{Id, Identifiable};
+use fp_core::model::Identifiable;
+use fp_data::model::IdData;
 
-pub struct IdData<Owner>
+pub struct Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -13,7 +14,7 @@ where
     _ph: PhantomData<Owner>,
 }
 
-impl<Owner> IdData<Owner>
+impl<Owner> Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -30,14 +31,14 @@ where
 }
 
 #[Scalar]
-impl<Owner> ScalarType for IdData<Owner>
+impl<Owner> ScalarType for Id<Owner>
 where
     Owner: ?Sized + Identifiable + Send + Sync,
 {
     fn parse(value: Value) -> InputValueResult<Self> {
         match value {
             Value::String(id) => Ok(Self::new(id)),
-            _ => Err(InputValueError::custom("expected input type String")),
+            actual => Err(InputValueError::expected_type(actual)),
         }
     }
 
@@ -46,7 +47,7 @@ where
     }
 }
 
-impl<Owner> PartialEq for IdData<Owner>
+impl<Owner> PartialEq for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -55,9 +56,9 @@ where
     }
 }
 
-impl<Owner> Eq for IdData<Owner> where Owner: ?Sized + Identifiable {}
+impl<Owner> Eq for Id<Owner> where Owner: ?Sized + Identifiable {}
 
-impl<Owner> PartialOrd for IdData<Owner>
+impl<Owner> PartialOrd for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -66,7 +67,7 @@ where
     }
 }
 
-impl<Owner> Ord for IdData<Owner>
+impl<Owner> Ord for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -75,7 +76,7 @@ where
     }
 }
 
-impl<Owner> Clone for IdData<Owner>
+impl<Owner> Clone for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -87,7 +88,7 @@ where
     }
 }
 
-impl<Owner> Hash for IdData<Owner>
+impl<Owner> Hash for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -96,9 +97,9 @@ where
     }
 }
 
-impl<Owner> Id<Owner> for IdData<Owner> where Owner: ?Sized + Identifiable + 'static {}
+impl<Owner> fp_core::model::Id<Owner> for Id<Owner> where Owner: ?Sized + Identifiable + 'static {}
 
-impl<Owner> Debug for IdData<Owner>
+impl<Owner> Debug for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -107,7 +108,7 @@ where
     }
 }
 
-impl<Owner> Display for IdData<Owner>
+impl<Owner> Display for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -116,16 +117,16 @@ where
     }
 }
 
-impl<Owner> From<IdData<Owner>> for String
+impl<Owner> From<Id<Owner>> for String
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(data: IdData<Owner>) -> Self {
+    fn from(data: Id<Owner>) -> Self {
         data.id
     }
 }
 
-impl<Owner> From<String> for IdData<Owner>
+impl<Owner> From<String> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -137,7 +138,7 @@ where
     }
 }
 
-impl<Owner> From<&str> for IdData<Owner>
+impl<Owner> From<&str> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -146,5 +147,27 @@ where
             id: id.to_string(),
             _ph: PhantomData,
         }
+    }
+}
+
+impl<Owner> From<IdData<Owner>> for Id<Owner>
+where
+    Owner: ?Sized + Identifiable,
+{
+    fn from(id: IdData<Owner>) -> Self {
+        Self {
+            id: id.into(),
+            _ph: PhantomData,
+        }
+    }
+}
+
+impl<Owner> From<Id<Owner>> for IdData<Owner>
+where
+    Owner: ?Sized + Identifiable,
+{
+    fn from(id: Id<Owner>) -> Self {
+        let id: String = id.into();
+        Self::from(id)
     }
 }
