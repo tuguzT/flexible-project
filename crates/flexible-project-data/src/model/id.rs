@@ -23,7 +23,7 @@ where
     Owner: ?Sized + Identifiable,
 {
     /// Creates a random identifier.
-    pub fn new() -> Self {
+    pub fn random() -> Self {
         Self {
             id: Uuid::new_v4(),
             _ph: PhantomData,
@@ -119,6 +119,10 @@ impl<Owner> From<Uuid> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
+    /// Converts to [`Id`] of the owner type from the raw [`Uuid`].
+    ///
+    /// This conversion is safe, but result of using it when raw [`Uuid`]
+    /// was obtained from another identifier with different owner type is *unspecified*.
     fn from(id: Uuid) -> Self {
         Self {
             id,

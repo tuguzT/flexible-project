@@ -2,7 +2,6 @@
 
 use async_graphql::{Context, Object};
 use fp_data::repository::ops::{DeleteById, ReadAll, ReadById, Save};
-use uuid::Uuid;
 
 use crate::data::UserRepositoryData;
 use crate::model::{Id, NewUser, User, UserRole};
@@ -33,8 +32,7 @@ impl UserQuery {
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
         let repository = repository.read().await;
-        let id = Uuid::from(id).into();
-        let user = repository.read_by_id(id).await;
+        let user = repository.read_by_id(id.into()).await;
         user.map(User::from)
     }
 }
@@ -56,7 +54,7 @@ impl UserMutation {
             .expect("user repository should always exist");
         let mut repository = repository.write().await;
         let user = User {
-            id: Id::new(),
+            id: Id::random(),
             name: user.name,
             email: user.email,
             role: UserRole::User,
@@ -75,8 +73,7 @@ impl UserMutation {
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
         let mut repository = repository.write().await;
-        let id = Uuid::from(id).into();
-        let user = repository.delete_by_id(id).await;
+        let user = repository.delete_by_id(id.into()).await;
         user.map(User::from)
     }
 }

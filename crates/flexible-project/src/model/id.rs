@@ -2,13 +2,15 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
+use async_graphql::{Description, InputValueError, InputValueResult, Scalar, ScalarType, Value};
 use fp_core::model::{Id as CoreId, Identifiable};
-use fp_data::model::Id as DataId;
+use fp_data::model::{Id as DataId, User as DataUser};
 use uuid::Uuid;
 
+use crate::model::User;
+
 /// GraphQL scalar identifier of the object.
-#[derive(Default)]
+#[derive(Description, Default)]
 pub struct Id<Owner>
 where
     Owner: ?Sized + Identifiable,
@@ -22,7 +24,7 @@ where
     Owner: ?Sized + Identifiable,
 {
     /// Creates a random identifier.
-    pub fn new() -> Self {
+    pub fn random() -> Self {
         Self {
             id: Uuid::new_v4(),
             _ph: PhantomData,
@@ -35,7 +37,7 @@ where
     }
 }
 
-#[Scalar]
+#[Scalar(use_type_description)]
 impl<Owner> ScalarType for Id<Owner>
 where
     Owner: ?Sized + Identifiable + Send + Sync,
@@ -141,6 +143,10 @@ impl<Owner> From<Uuid> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
+    /// Converts to [`Id`] of the owner type from the raw [`Uuid`].
+    ///
+    /// This conversion is safe, but result of using it when raw [`Uuid`]
+    /// was obtained from another identifier with different owner type is *unspecified*.
     fn from(id: Uuid) -> Self {
         Self {
             id,
@@ -149,22 +155,14 @@ where
     }
 }
 
-impl<Owner> From<DataId<Owner>> for Id<Owner>
-where
-    Owner: ?Sized + Identifiable,
-{
-    fn from(id: DataId<Owner>) -> Self {
-        let id: Uuid = id.into();
-        Self::from(id)
+impl From<DataId<DataUser>> for Id<User> {
+    fn from(id: DataId<DataUser>) -> Self {
+        Uuid::from(id).into()
     }
 }
 
-impl<Owner> From<Id<Owner>> for DataId<Owner>
-where
-    Owner: ?Sized + Identifiable,
-{
-    fn from(id: Id<Owner>) -> Self {
-        let id: Uuid = id.into();
-        Self::from(id)
+impl From<Id<User>> for DataId<DataUser> {
+    fn from(id: Id<User>) -> Self {
+        Uuid::from(id).into()
     }
 }

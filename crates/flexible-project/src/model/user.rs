@@ -1,7 +1,6 @@
 use async_graphql::{Enum, InputObject, SimpleObject};
 use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
 use fp_data::model::User as DataUser;
-use uuid::Uuid;
 
 use crate::model::Id;
 
@@ -56,7 +55,7 @@ impl CoreUser for User {
 impl From<DataUser> for User {
     fn from(user_data: DataUser) -> Self {
         Self {
-            id: Uuid::from(user_data.id).into(),
+            id: user_data.id.into(),
             name: user_data.name,
             email: user_data.email,
             role: user_data.role.into(),
@@ -67,7 +66,7 @@ impl From<DataUser> for User {
 impl From<User> for DataUser {
     fn from(user_data: User) -> Self {
         Self {
-            id: Uuid::from(user_data.id).into(),
+            id: user_data.id.into(),
             name: user_data.name,
             email: user_data.email,
             role: user_data.role.into(),
