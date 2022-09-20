@@ -25,21 +25,19 @@ impl Clear for MockUserDataSource {
 
 #[async_trait]
 impl Delete for MockUserDataSource {
-    async fn delete(&mut self, item: Self::Item) {
-        let index = self.0.iter().position(|x| x == &item);
-        if let Some(index) = index {
-            self.0.swap_remove(index);
-        }
+    async fn delete(&mut self, item: Self::Item) -> Option<Self::Item> {
+        let index = self.0.iter().position(|x| x == &item)?;
+        let user = self.0.swap_remove(index);
+        Some(user)
     }
 }
 
 #[async_trait]
 impl DeleteById for MockUserDataSource {
-    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) {
-        let index = self.0.iter().position(|x| x.id() == &id);
-        if let Some(index) = index {
-            self.0.swap_remove(index);
-        }
+    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
+        let index = self.0.iter().position(|x| x.id() == &id)?;
+        let user = self.0.swap_remove(index);
+        Some(user)
     }
 }
 

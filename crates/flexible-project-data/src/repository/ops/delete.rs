@@ -10,7 +10,7 @@ pub trait Delete: Repository {
     ///
     /// Item will be deleted only if it is equal
     /// to the item stored in the repository.
-    async fn delete(&mut self, item: Self::Item);
+    async fn delete(&mut self, item: Self::Item) -> Option<Self::Item>;
 }
 
 /// Trait for repository which can delete an item by its identifier.
@@ -20,5 +20,5 @@ where
     Self::Item: Identifiable,
 {
     /// Deletes an item by provided identifier.
-    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id);
+    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item>;
 }

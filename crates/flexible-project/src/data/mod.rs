@@ -12,13 +12,19 @@ pub type UserRepositoryData = RwLock<UserRepository<MockUserDataSource>>;
 /// Creates user repository of the Flexible Project system
 /// which uses inner data source implementation.
 pub fn create_user_repository() -> UserRepositoryData {
-    let user = UserData {
+    let admin = UserData {
         id: "Hello World".into(),
         name: "tuguzT".to_string(),
         email: Some("timurka.tugushev@gmail.com".to_string()),
         role: UserRole::Administrator,
     };
-    let data_source = [user].into_iter().collect();
+    let moderator = UserData {
+        id: "example_user".into(),
+        name: "dr3amb3ast".to_string(),
+        email: None,
+        role: UserRole::Moderator,
+    };
+    let data_source = [admin, moderator].into_iter().collect();
     let repository = UserRepository::new(data_source);
     RwLock::new(repository)
 }

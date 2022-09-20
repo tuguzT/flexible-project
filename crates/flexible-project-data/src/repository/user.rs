@@ -44,7 +44,7 @@ impl<S> Delete for UserRepository<S>
 where
     S: UserDataSource + Send,
 {
-    async fn delete(&mut self, item: Self::Item) {
+    async fn delete(&mut self, item: Self::Item) -> Option<Self::Item> {
         self.0.delete(item).await
     }
 }
@@ -54,7 +54,7 @@ impl<S> DeleteById for UserRepository<S>
 where
     S: UserDataSource + Send,
 {
-    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) {
+    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
         self.0.delete_by_id(id).await
     }
 }

@@ -1,4 +1,4 @@
-use async_graphql::{Enum, SimpleObject};
+use async_graphql::{Enum, InputObject, SimpleObject};
 use fp_core::model::Identifiable;
 
 use crate::model::Id;
@@ -53,9 +53,8 @@ impl fp_core::model::User for User {
 
 impl From<fp_data::model::UserData> for User {
     fn from(user_data: fp_data::model::UserData) -> Self {
-        let id: String = user_data.id.into();
         Self {
-            id: id.into(),
+            id: String::from(user_data.id).into(),
             name: user_data.name,
             email: user_data.email,
             role: user_data.role.into(),
@@ -65,12 +64,20 @@ impl From<fp_data::model::UserData> for User {
 
 impl From<User> for fp_data::model::UserData {
     fn from(user_data: User) -> Self {
-        let id: String = user_data.id.into();
         Self {
-            id: id.into(),
+            id: String::from(user_data.id).into(),
             name: user_data.name,
             email: user_data.email,
             role: user_data.role.into(),
         }
     }
+}
+
+/// GraphQL input object with necessary data for creating new user.
+#[derive(InputObject)]
+pub struct NewUser {
+    /// Unique name of the user.
+    pub name: String,
+    /// Unique email of the user, if exists.
+    pub email: Option<String>,
 }
