@@ -6,14 +6,14 @@ use fp_core::model::Identifiable;
 use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
 use crate::data_source::user::UserDataSource;
 use crate::data_source::DataSource;
-use crate::model::UserData;
+use crate::model::User;
 
 /// Mock user data source which stores users inside of [`Vec`].
 #[derive(Default)]
-pub struct MockUserDataSource(Vec<UserData>);
+pub struct MockUserDataSource(Vec<User>);
 
 impl DataSource for MockUserDataSource {
-    type Item = UserData;
+    type Item = User;
 }
 
 #[async_trait]
@@ -69,8 +69,8 @@ impl Save for MockUserDataSource {
 
 impl UserDataSource for MockUserDataSource {}
 
-impl FromIterator<UserData> for MockUserDataSource {
-    fn from_iter<T: IntoIterator<Item = UserData>>(iter: T) -> Self {
+impl FromIterator<User> for MockUserDataSource {
+    fn from_iter<T: IntoIterator<Item = User>>(iter: T) -> Self {
         Self(FromIterator::from_iter(iter))
     }
 }

@@ -1,25 +1,25 @@
-use fp_core::model::{Identifiable, User, UserRole};
+use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
 use serde::{Deserialize, Serialize};
 
-use crate::model::IdData;
+use crate::model::Id;
 
 /// Serializable data of user.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct UserData {
+pub struct User {
     /// Identifier of the user.
-    pub id: IdData<Self>,
+    pub id: Id<Self>,
     /// Unique name of the user.
     pub name: String,
     /// Unique email of the user, if exists.
     pub email: Option<String>,
     /// Role of the user in the system.
-    #[serde(with = "UserRoleData")]
-    pub role: UserRole,
+    #[serde(with = "UserRole")]
+    pub role: CoreUserRole,
 }
 
-impl UserData {
+impl User {
     /// Creates new user with provided id, name, email and role.
-    pub fn new(id: IdData<Self>, name: String, email: Option<String>, role: UserRole) -> Self {
+    pub fn new(id: Id<Self>, name: String, email: Option<String>, role: CoreUserRole) -> Self {
         Self {
             id,
             name,
@@ -29,15 +29,15 @@ impl UserData {
     }
 }
 
-impl Identifiable for UserData {
-    type Id = IdData<Self>;
+impl Identifiable for User {
+    type Id = Id<Self>;
 
     fn id(&self) -> &Self::Id {
         &self.id
     }
 }
 
-impl User for UserData {
+impl CoreUser for User {
     fn name(&self) -> &str {
         &self.name
     }
@@ -46,7 +46,7 @@ impl User for UserData {
         self.email.as_deref()
     }
 
-    fn role(&self) -> UserRole {
+    fn role(&self) -> CoreUserRole {
         self.role
     }
 }
@@ -55,8 +55,8 @@ impl User for UserData {
 #[derive(
     Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize,
 )]
-#[serde(remote = "UserRole")]
-pub enum UserRoleData {
+#[serde(remote = "CoreUserRole")]
+pub enum UserRole {
     /// An ordinary user of the system.
     #[default]
     User,

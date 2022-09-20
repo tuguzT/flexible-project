@@ -3,8 +3,8 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 
 use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
-use fp_core::model::Identifiable;
-use fp_data::model::IdData;
+use fp_core::model::{Id as CoreId, Identifiable};
+use fp_data::model::Id as DataId;
 use uuid::Uuid;
 
 /// GraphQL scalar identifier of the object.
@@ -108,7 +108,7 @@ where
     }
 }
 
-impl<Owner> fp_core::model::Id<Owner> for Id<Owner> where Owner: ?Sized + Identifiable + 'static {}
+impl<Owner> CoreId<Owner> for Id<Owner> where Owner: ?Sized + Identifiable + 'static {}
 
 impl<Owner> Debug for Id<Owner>
 where
@@ -149,17 +149,17 @@ where
     }
 }
 
-impl<Owner> From<IdData<Owner>> for Id<Owner>
+impl<Owner> From<DataId<Owner>> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(id: IdData<Owner>) -> Self {
+    fn from(id: DataId<Owner>) -> Self {
         let id: Uuid = id.into();
         Self::from(id)
     }
 }
 
-impl<Owner> From<Id<Owner>> for IdData<Owner>
+impl<Owner> From<Id<Owner>> for DataId<Owner>
 where
     Owner: ?Sized + Identifiable,
 {

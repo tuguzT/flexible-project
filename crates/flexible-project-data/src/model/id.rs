@@ -2,14 +2,14 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::marker::PhantomData;
 
-use fp_core::model::{Id, Identifiable};
+use fp_core::model::{Id as CoreId, Identifiable};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Serializable identifier of the owner object.
 #[derive(Serialize, Deserialize, Default)]
 #[serde(transparent)]
-pub struct IdData<Owner>
+pub struct Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -18,7 +18,7 @@ where
     _ph: PhantomData<Owner>,
 }
 
-impl<Owner> IdData<Owner>
+impl<Owner> Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -36,7 +36,7 @@ where
     }
 }
 
-impl<Owner> PartialEq for IdData<Owner>
+impl<Owner> PartialEq for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -45,9 +45,9 @@ where
     }
 }
 
-impl<Owner> Eq for IdData<Owner> where Owner: ?Sized + Identifiable {}
+impl<Owner> Eq for Id<Owner> where Owner: ?Sized + Identifiable {}
 
-impl<Owner> PartialOrd for IdData<Owner>
+impl<Owner> PartialOrd for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -56,7 +56,7 @@ where
     }
 }
 
-impl<Owner> Ord for IdData<Owner>
+impl<Owner> Ord for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<Owner> Clone for IdData<Owner>
+impl<Owner> Clone for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -77,7 +77,7 @@ where
     }
 }
 
-impl<Owner> Hash for IdData<Owner>
+impl<Owner> Hash for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
@@ -86,36 +86,36 @@ where
     }
 }
 
-impl<Owner> Id<Owner> for IdData<Owner> where Owner: ?Sized + Identifiable + 'static {}
+impl<Owner> CoreId<Owner> for Id<Owner> where Owner: ?Sized + Identifiable + 'static {}
 
-impl<Owner> Debug for IdData<Owner>
+impl<Owner> Debug for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("IdData").field(&self.id).finish()
+        f.debug_tuple("Id").field(&self.id).finish()
     }
 }
 
-impl<Owner> Display for IdData<Owner>
+impl<Owner> Display for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.id)
+        Display::fmt(&self.id, f)
     }
 }
 
-impl<Owner> From<IdData<Owner>> for Uuid
+impl<Owner> From<Id<Owner>> for Uuid
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(data: IdData<Owner>) -> Self {
+    fn from(data: Id<Owner>) -> Self {
         data.id
     }
 }
 
-impl<Owner> From<Uuid> for IdData<Owner>
+impl<Owner> From<Uuid> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {

@@ -1,12 +1,13 @@
 use async_graphql::{Enum, InputObject, SimpleObject};
-use fp_core::model::Identifiable;
+use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
+use fp_data::model::User as DataUser;
 use uuid::Uuid;
 
 use crate::model::Id;
 
 /// GraphQL enumeration which represents role of user in the Flexible Project system.
 #[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-#[graphql(remote = "fp_core::model::UserRole")]
+#[graphql(remote = "CoreUserRole")]
 pub enum UserRole {
     /// An ordinary user of the system.
     #[default]
@@ -38,7 +39,7 @@ impl Identifiable for User {
     }
 }
 
-impl fp_core::model::User for User {
+impl CoreUser for User {
     fn name(&self) -> &str {
         &self.name
     }
@@ -47,13 +48,13 @@ impl fp_core::model::User for User {
         self.email.as_deref()
     }
 
-    fn role(&self) -> fp_core::model::UserRole {
+    fn role(&self) -> CoreUserRole {
         self.role.into()
     }
 }
 
-impl From<fp_data::model::UserData> for User {
-    fn from(user_data: fp_data::model::UserData) -> Self {
+impl From<DataUser> for User {
+    fn from(user_data: DataUser) -> Self {
         Self {
             id: Uuid::from(user_data.id).into(),
             name: user_data.name,
@@ -63,7 +64,7 @@ impl From<fp_data::model::UserData> for User {
     }
 }
 
-impl From<User> for fp_data::model::UserData {
+impl From<User> for DataUser {
     fn from(user_data: User) -> Self {
         Self {
             id: Uuid::from(user_data.id).into(),
