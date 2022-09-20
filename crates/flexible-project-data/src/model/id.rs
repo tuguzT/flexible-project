@@ -4,15 +4,16 @@ use std::marker::PhantomData;
 
 use fp_core::model::{Id, Identifiable};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// Serializable identifier of the owner object.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 #[serde(transparent)]
 pub struct IdData<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    id: String,
+    id: Uuid,
     #[serde(skip)]
     _ph: PhantomData<Owner>,
 }
@@ -21,8 +22,16 @@ impl<Owner> IdData<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    /// Get a string representation of this identifier.
-    pub fn as_str(&self) -> &str {
+    /// Creates a random identifier.
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            _ph: PhantomData,
+        }
+    }
+
+    /// Get inner representation of this identifier.
+    pub fn as_inner(&self) -> &Uuid {
         &self.id
     }
 }
@@ -62,7 +71,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            id: self.id.clone(),
+            id: self.id,
             _ph: self._ph,
         }
     }
@@ -93,11 +102,11 @@ where
     Owner: ?Sized + Identifiable,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.id)
+        write!(f, "{}", &self.id)
     }
 }
 
-impl<Owner> From<IdData<Owner>> for String
+impl<Owner> From<IdData<Owner>> for Uuid
 where
     Owner: ?Sized + Identifiable,
 {
@@ -106,25 +115,13 @@ where
     }
 }
 
-impl<Owner> From<String> for IdData<Owner>
+impl<Owner> From<Uuid> for IdData<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(id: String) -> Self {
+    fn from(id: Uuid) -> Self {
         Self {
             id,
-            _ph: PhantomData,
-        }
-    }
-}
-
-impl<Owner> From<&str> for IdData<Owner>
-where
-    Owner: ?Sized + Identifiable,
-{
-    fn from(id: &str) -> Self {
-        Self {
-            id: id.to_string(),
             _ph: PhantomData,
         }
     }

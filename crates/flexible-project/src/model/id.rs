@@ -5,13 +5,15 @@ use std::marker::PhantomData;
 use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value};
 use fp_core::model::Identifiable;
 use fp_data::model::IdData;
+use uuid::Uuid;
 
 /// GraphQL scalar identifier of the object.
+#[derive(Default)]
 pub struct Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    id: String,
+    id: Uuid,
     _ph: PhantomData<Owner>,
 }
 
@@ -19,8 +21,16 @@ impl<Owner> Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    /// Get a string representation of this identifier.
-    pub fn as_str(&self) -> &str {
+    /// Creates a random identifier.
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            _ph: PhantomData,
+        }
+    }
+
+    /// Get inner representation of this identifier.
+    pub fn as_inner(&self) -> &Uuid {
         &self.id
     }
 }
@@ -32,16 +42,19 @@ where
 {
     fn parse(value: Value) -> InputValueResult<Self> {
         match value {
-            Value::String(id) => Ok(Self {
-                id,
-                _ph: PhantomData,
-            }),
+            Value::String(id) => {
+                let id = match id.parse::<Uuid>() {
+                    Ok(id) => id,
+                    Err(err) => return Err(InputValueError::custom(err)),
+                };
+                Ok(Self::from(id))
+            }
             actual => Err(InputValueError::expected_type(actual)),
         }
     }
 
     fn to_value(&self) -> Value {
-        Value::String(self.id.clone())
+        Value::String(self.id.to_string())
     }
 }
 
@@ -80,7 +93,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            id: self.id.clone(),
+            id: self.id,
             _ph: self._ph,
         }
     }
@@ -102,7 +115,7 @@ where
     Owner: ?Sized + Identifiable,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("IdData").field(&self.id).finish()
+        f.debug_tuple("Id").field(&self.id).finish()
     }
 }
 
@@ -111,11 +124,11 @@ where
     Owner: ?Sized + Identifiable,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.id)
+        Display::fmt(&self.id, f)
     }
 }
 
-impl<Owner> From<Id<Owner>> for String
+impl<Owner> From<Id<Owner>> for Uuid
 where
     Owner: ?Sized + Identifiable,
 {
@@ -124,25 +137,13 @@ where
     }
 }
 
-impl<Owner> From<String> for Id<Owner>
+impl<Owner> From<Uuid> for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(id: String) -> Self {
+    fn from(id: Uuid) -> Self {
         Self {
             id,
-            _ph: PhantomData,
-        }
-    }
-}
-
-impl<Owner> From<&str> for Id<Owner>
-where
-    Owner: ?Sized + Identifiable,
-{
-    fn from(id: &str) -> Self {
-        Self {
-            id: id.to_string(),
             _ph: PhantomData,
         }
     }
@@ -153,10 +154,8 @@ where
     Owner: ?Sized + Identifiable,
 {
     fn from(id: IdData<Owner>) -> Self {
-        Self {
-            id: id.into(),
-            _ph: PhantomData,
-        }
+        let id: Uuid = id.into();
+        Self::from(id)
     }
 }
 
@@ -165,7 +164,7 @@ where
     Owner: ?Sized + Identifiable,
 {
     fn from(id: Id<Owner>) -> Self {
-        let id: String = id.into();
+        let id: Uuid = id.into();
         Self::from(id)
     }
 }

@@ -2,7 +2,7 @@
 
 use fp_core::model::UserRole;
 use fp_data::data_source::mock::MockUserDataSource;
-use fp_data::model::UserData;
+use fp_data::model::{IdData, UserData};
 use fp_data::repository::user::UserRepository;
 use tokio::sync::RwLock;
 
@@ -13,13 +13,13 @@ pub type UserRepositoryData = RwLock<UserRepository<MockUserDataSource>>;
 /// which uses inner data source implementation.
 pub fn create_user_repository() -> UserRepositoryData {
     let admin = UserData {
-        id: "Hello World".into(),
+        id: IdData::new(),
         name: "tuguzT".to_string(),
         email: Some("timurka.tugushev@gmail.com".to_string()),
         role: UserRole::Administrator,
     };
     let moderator = UserData {
-        id: "example_user".into(),
+        id: IdData::new(),
         name: "dr3amb3ast".to_string(),
         email: None,
         role: UserRole::Moderator,
