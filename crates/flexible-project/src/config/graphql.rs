@@ -3,14 +3,14 @@ use actix_web_lab::respond::Html;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 
-use crate::model::Schema;
+use crate::schema::Schema;
 
 /// Provides configuration for GraphQL endpoints of the Flexible Project system.
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(playground).service(graphql);
 }
 
-/// GraphQL endpoint
+/// The main GraphQL endpoint of the Flexible Project system.
 #[route("/graphql", method = "GET", method = "POST")]
 async fn graphql(schema: web::Data<Schema>, request: GraphQLRequest) -> GraphQLResponse {
     let request = request.into_inner();
@@ -18,7 +18,7 @@ async fn graphql(schema: web::Data<Schema>, request: GraphQLRequest) -> GraphQLR
     response.into()
 }
 
-/// GraphiQL playground UI
+/// GraphiQL playground UI of the Flexible Project system.
 #[get("/graphiql")]
 async fn playground() -> impl Responder {
     let config = GraphQLPlaygroundConfig::new("/graphql").subscription_endpoint("/graphql");

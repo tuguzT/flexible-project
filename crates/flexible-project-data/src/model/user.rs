@@ -10,7 +10,7 @@ pub struct UserData {
     pub id: IdData<Self>,
     /// Unique name of the user.
     pub name: String,
-    /// Unique email opf the user, if exists.
+    /// Unique email of the user, if exists.
     pub email: Option<String>,
     /// Role of the user in the system.
     #[serde(with = "UserRoleData")]

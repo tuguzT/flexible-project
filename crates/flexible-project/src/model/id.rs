@@ -6,6 +6,7 @@ use async_graphql::{InputValueError, InputValueResult, Scalar, ScalarType, Value
 use fp_core::model::Identifiable;
 use fp_data::model::IdData;
 
+/// GraphQL scalar identifier of the object.
 pub struct Id<Owner>
 where
     Owner: ?Sized + Identifiable,
@@ -18,13 +19,7 @@ impl<Owner> Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    pub fn new(id: String) -> Self {
-        Self {
-            id,
-            _ph: PhantomData,
-        }
-    }
-
+    /// Get a string representation of this identifier.
     pub fn as_str(&self) -> &str {
         &self.id
     }
@@ -37,7 +32,10 @@ where
 {
     fn parse(value: Value) -> InputValueResult<Self> {
         match value {
-            Value::String(id) => Ok(Self::new(id)),
+            Value::String(id) => Ok(Self {
+                id,
+                _ph: PhantomData,
+            }),
             actual => Err(InputValueError::expected_type(actual)),
         }
     }

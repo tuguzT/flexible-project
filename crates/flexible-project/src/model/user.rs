@@ -1,46 +1,31 @@
-use async_graphql::{Context, Enum, Object, SimpleObject};
+use async_graphql::{Enum, SimpleObject};
 use fp_core::model::Identifiable;
-use fp_data::repository::ops::{ReadAll, ReadById};
 
-use crate::data::UserRepositoryData;
-use crate::model::id::Id;
+use crate::model::Id;
 
-#[derive(Default)]
-pub struct UserQuery;
-
-#[Object]
-impl UserQuery {
-    async fn users(&self, ctx: &Context<'_>) -> Vec<User> {
-        let repository = ctx.data_unchecked::<UserRepositoryData>();
-        let repository = repository.read().await;
-        let users = repository.read_all().await;
-        users.into_iter().map(Into::into).collect()
-    }
-
-    async fn user(&self, ctx: &Context<'_>, id: Id<User>) -> Option<User> {
-        let repository = ctx.data_unchecked::<UserRepositoryData>();
-        let repository = repository.read().await;
-        let id: String = id.into();
-        let id = id.into();
-        let user = repository.read_by_id(id).await;
-        user.map(Into::into)
-    }
-}
-
+/// GraphQL enumeration which represents role of user in the Flexible Project system.
 #[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[graphql(remote = "fp_core::model::UserRole")]
 pub enum UserRole {
+    /// An ordinary user of the system.
     #[default]
     User,
+    /// Role of a moderator of the system.
     Moderator,
+    /// Role of an administrator of the system.
     Administrator,
 }
 
+/// GraphQL output object which represents data of user in the Flexible Project system.
 #[derive(SimpleObject)]
 pub struct User {
+    /// Identifier of the user.
     pub id: Id<Self>,
+    /// Unique name of the user.
     pub name: String,
+    /// Unique email of the user, if exists.
     pub email: Option<String>,
+    /// Role of the user in the system.
     pub role: UserRole,
 }
 
