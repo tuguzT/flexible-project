@@ -32,8 +32,8 @@ impl User {
 impl Identifiable for User {
     type Id = Id<Self>;
 
-    fn id(&self) -> &Self::Id {
-        &self.id
+    fn id(&self) -> Self::Id {
+        self.id.clone()
     }
 }
 

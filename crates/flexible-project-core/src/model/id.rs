@@ -14,5 +14,5 @@ pub trait Identifiable {
     type Id: Id<Self>;
 
     /// Get an identifier of the object.
-    fn id(&self) -> &Self::Id;
+    fn id(&self) -> Self::Id;
 }

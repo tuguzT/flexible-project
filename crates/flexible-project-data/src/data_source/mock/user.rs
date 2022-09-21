@@ -35,7 +35,7 @@ impl Delete for MockUserDataSource {
 #[async_trait]
 impl DeleteById for MockUserDataSource {
     async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
-        let index = self.0.iter().position(|x| x.id() == &id)?;
+        let index = self.0.iter().position(|x| x.id() == id)?;
         let user = self.0.swap_remove(index);
         Some(user)
     }
@@ -51,14 +51,14 @@ impl ReadAll for MockUserDataSource {
 #[async_trait]
 impl ReadById for MockUserDataSource {
     async fn read_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
-        self.0.iter().find(|x| x.id() == &id).cloned()
+        self.0.iter().find(|x| x.id() == id).cloned()
     }
 }
 
 #[async_trait]
 impl Save for MockUserDataSource {
     async fn save(&mut self, item: Self::Item) -> Self::Item {
-        let by_id = self.0.iter().position(|x| x.id() == &item.id);
+        let by_id = self.0.iter().position(|x| x.id() == item.id);
         match by_id {
             Some(idx) => self.0[idx] = item.clone(),
             None => self.0.push(item.clone()),

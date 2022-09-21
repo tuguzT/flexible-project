@@ -25,10 +25,10 @@ pub fn build_schema() -> SchemaBuilder {
     .data(user_repository)
 }
 
-/// GraphQL root query object of the Flexible Project system.
+/// Root query object of the Flexible Project system.
 #[derive(MergedObject, Default)]
 pub struct Query(user::UserQuery);
 
-/// GraphQL root mutation object of the Flexible Project system.
+/// Root mutation object of the Flexible Project system.
 #[derive(MergedObject, Default)]
 pub struct Mutation(user::UserMutation);

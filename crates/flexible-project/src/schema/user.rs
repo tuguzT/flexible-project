@@ -1,12 +1,14 @@
 //! Definitions of user queries, mutations and subscriptions of the Flexible Project system.
 
-use async_graphql::{Context, Object};
+use async_graphql::{Context, Object, ID};
+use fp_data::model::Id;
 use fp_data::repository::ops::{DeleteById, ReadAll, ReadById, Save};
+use uuid::Uuid;
 
 use crate::data::UserRepositoryData;
-use crate::model::{Id, NewUser, User, UserRole};
+use crate::model::{NewUser, User, UserRole};
 
-/// GraphQL user query object of the Flexible Project system.
+/// User query object of the Flexible Project system.
 #[derive(Default)]
 pub struct UserQuery;
 
@@ -26,18 +28,19 @@ impl UserQuery {
     async fn user(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "Unique identifier of the user.")] id: Id<User>,
-    ) -> Option<User> {
+        #[graphql(desc = "Unique identifier of the user.")] id: ID,
+    ) -> Result<Option<User>, uuid::Error> {
+        let id = Uuid::try_from(id)?.into();
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
         let repository = repository.read().await;
-        let user = repository.read_by_id(id.into()).await;
-        user.map(User::from)
+        let user = repository.read_by_id(id).await.map(User::from);
+        Ok(user)
     }
 }
 
-/// GraphQL user mutation object of the Flexible Project system.
+/// User mutation object of the Flexible Project system.
 #[derive(Default)]
 pub struct UserMutation;
 
@@ -67,13 +70,14 @@ impl UserMutation {
     async fn delete_user(
         &self,
         ctx: &Context<'_>,
-        #[graphql(desc = "Unique identifier of the user.")] id: Id<User>,
-    ) -> Option<User> {
+        #[graphql(desc = "Unique identifier of the user.")] id: ID,
+    ) -> Result<Option<User>, uuid::Error> {
+        let id = Uuid::try_from(id)?.into();
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
         let mut repository = repository.write().await;
-        let user = repository.delete_by_id(id.into()).await;
-        user.map(User::from)
+        let user = repository.delete_by_id(id).await.map(User::from);
+        Ok(user)
     }
 }

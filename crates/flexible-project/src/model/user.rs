@@ -1,10 +1,9 @@
-use async_graphql::{Enum, InputObject, SimpleObject};
+use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
 use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
-use fp_data::model::User as DataUser;
+use fp_data::model::{Id, User as DataUser};
+use uuid::Uuid;
 
-use crate::model::Id;
-
-/// GraphQL enumeration which represents role of user in the Flexible Project system.
+/// Role of user in the Flexible Project system.
 #[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 #[graphql(remote = "CoreUserRole")]
 pub enum UserRole {
@@ -17,10 +16,12 @@ pub enum UserRole {
     Administrator,
 }
 
-/// GraphQL output object which represents data of user in the Flexible Project system.
+/// User data in the Flexible Project system.
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct User {
-    /// Identifier of the user.
+    /// Unique identifier of the user.
+    #[graphql(skip)]
     pub id: Id<Self>,
     /// Unique name of the user.
     pub name: String,
@@ -30,11 +31,19 @@ pub struct User {
     pub role: UserRole,
 }
 
+#[ComplexObject]
+impl User {
+    /// Unique identifier of the user.
+    async fn id(&self) -> ID {
+        self.id.clone().into()
+    }
+}
+
 impl Identifiable for User {
     type Id = Id<Self>;
 
-    fn id(&self) -> &Self::Id {
-        &self.id
+    fn id(&self) -> Self::Id {
+        self.id.clone()
     }
 }
 
@@ -53,28 +62,28 @@ impl CoreUser for User {
 }
 
 impl From<DataUser> for User {
-    fn from(user_data: DataUser) -> Self {
+    fn from(user: DataUser) -> Self {
         Self {
-            id: user_data.id.into(),
-            name: user_data.name,
-            email: user_data.email,
-            role: user_data.role.into(),
+            id: Uuid::from(user.id).into(),
+            name: user.name,
+            email: user.email,
+            role: user.role.into(),
         }
     }
 }
 
 impl From<User> for DataUser {
-    fn from(user_data: User) -> Self {
+    fn from(user: User) -> Self {
         Self {
-            id: user_data.id.into(),
-            name: user_data.name,
-            email: user_data.email,
-            role: user_data.role.into(),
+            id: Uuid::from(user.id).into(),
+            name: user.name,
+            email: user.email,
+            role: user.role.into(),
         }
     }
 }
 
-/// GraphQL input object with necessary data for creating new user.
+/// Necessary data for creating new user in the Flexible Project system.
 #[derive(InputObject)]
 pub struct NewUser {
     /// Unique name of the user.
