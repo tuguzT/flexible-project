@@ -33,3 +33,7 @@ pub trait UserCredentials {
     /// Get a password provided by the user.
     fn password(&self) -> &str;
 }
+
+/// Filters to be applied on user filtering.
+#[derive(Default)]
+pub struct UserFilters;

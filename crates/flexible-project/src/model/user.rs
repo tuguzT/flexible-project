@@ -1,7 +1,6 @@
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
 use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
 use fp_data::model::{Id, User as DataUser};
-use uuid::Uuid;
 
 /// Role of user in the Flexible Project system.
 #[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -64,7 +63,7 @@ impl CoreUser for User {
 impl From<DataUser> for User {
     fn from(user: DataUser) -> Self {
         Self {
-            id: Uuid::from(user.id).into(),
+            id: user.id.to_string().parse().expect("id should be valid"),
             name: user.name,
             email: user.email,
             role: user.role.into(),
@@ -75,7 +74,7 @@ impl From<DataUser> for User {
 impl From<User> for DataUser {
     fn from(user: User) -> Self {
         Self {
-            id: Uuid::from(user.id).into(),
+            id: user.id.to_string().parse().expect("id should be valid"),
             name: user.name,
             email: user.email,
             role: user.role.into(),

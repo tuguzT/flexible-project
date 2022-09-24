@@ -9,5 +9,5 @@ pub trait Clear: Repository {
     ///
     /// Repository will contain no data of type [`Item`](Repository::Item)
     /// after performing this operation.
-    async fn clear(&mut self);
+    async fn clear(&self);
 }

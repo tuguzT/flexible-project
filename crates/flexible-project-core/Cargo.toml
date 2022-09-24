@@ -6,3 +6,6 @@ authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
+
+[dependencies]
+async-trait = "0.1.57"

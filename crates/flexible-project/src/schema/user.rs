@@ -1,9 +1,8 @@
 //! Definitions of user queries, mutations and subscriptions of the Flexible Project system.
 
-use async_graphql::{Context, Object, ID};
+use async_graphql::{Context, Error, Object, ID};
 use fp_data::model::Id;
 use fp_data::repository::ops::{DeleteById, ReadAll, ReadById, Save};
-use uuid::Uuid;
 
 use crate::data::UserRepositoryData;
 use crate::model::{NewUser, User, UserRole};
@@ -19,7 +18,6 @@ impl UserQuery {
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let repository = repository.read().await;
         let users = repository.read_all().await;
         users.into_iter().map(User::from).collect()
     }
@@ -29,12 +27,11 @@ impl UserQuery {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
-    ) -> Result<Option<User>, uuid::Error> {
-        let id = Uuid::try_from(id)?.into();
+    ) -> Result<Option<User>, Error> {
+        let id = id.parse()?;
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let repository = repository.read().await;
         let user = repository.read_by_id(id).await.map(User::from);
         Ok(user)
     }
@@ -55,7 +52,6 @@ impl UserMutation {
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let mut repository = repository.write().await;
         let user = User {
             id: Id::random(),
             name: user.name,
@@ -71,12 +67,11 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
-    ) -> Result<Option<User>, uuid::Error> {
-        let id = Uuid::try_from(id)?.into();
+    ) -> Result<Option<User>, Error> {
+        let id = id.parse()?;
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let mut repository = repository.write().await;
         let user = repository.delete_by_id(id).await.map(User::from);
         Ok(user)
     }

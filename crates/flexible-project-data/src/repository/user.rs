@@ -32,9 +32,9 @@ where
 #[async_trait]
 impl<S> Clear for UserRepository<S>
 where
-    S: UserDataSource + Send,
+    S: UserDataSource + Send + Sync,
 {
-    async fn clear(&mut self) {
+    async fn clear(&self) {
         self.0.clear().await
     }
 }
@@ -42,9 +42,9 @@ where
 #[async_trait]
 impl<S> Delete for UserRepository<S>
 where
-    S: UserDataSource + Send,
+    S: UserDataSource + Send + Sync,
 {
-    async fn delete(&mut self, item: Self::Item) -> Option<Self::Item> {
+    async fn delete(&self, item: Self::Item) -> Option<Self::Item> {
         self.0.delete(item).await
     }
 }
@@ -52,9 +52,9 @@ where
 #[async_trait]
 impl<S> DeleteById for UserRepository<S>
 where
-    S: UserDataSource + Send,
+    S: UserDataSource + Send + Sync,
 {
-    async fn delete_by_id(&mut self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
+    async fn delete_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
         self.0.delete_by_id(id).await
     }
 }
@@ -82,9 +82,9 @@ where
 #[async_trait]
 impl<S> Save for UserRepository<S>
 where
-    S: UserDataSource + Send,
+    S: UserDataSource + Send + Sync,
 {
-    async fn save(&mut self, item: Self::Item) -> Self::Item {
+    async fn save(&self, item: Self::Item) -> Self::Item {
         self.0.save(item).await
     }
 }

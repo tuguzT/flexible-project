@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::marker::PhantomData;
+use std::str::FromStr;
 
 use fp_core::model::{Id as CoreId, Identifiable};
 use serde::{Deserialize, Serialize};
@@ -28,11 +29,6 @@ where
             id: Uuid::new_v4(),
             _ph: PhantomData,
         }
-    }
-
-    /// Get inner representation of this identifier.
-    pub fn as_inner(&self) -> &Uuid {
-        &self.id
     }
 }
 
@@ -106,27 +102,17 @@ where
     }
 }
 
-impl<Owner> From<Id<Owner>> for Uuid
+impl<Owner> FromStr for Id<Owner>
 where
     Owner: ?Sized + Identifiable,
 {
-    fn from(data: Id<Owner>) -> Self {
-        data.id
-    }
-}
+    type Err = uuid::Error;
 
-impl<Owner> From<Uuid> for Id<Owner>
-where
-    Owner: ?Sized + Identifiable,
-{
-    /// Converts to [`Id`] of the owner type from the raw [`Uuid`].
-    ///
-    /// This conversion is safe, but result of using it when raw [`Uuid`]
-    /// was obtained from another identifier with different owner type is *unspecified*.
-    fn from(id: Uuid) -> Self {
-        Self {
-            id,
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        let this = Self {
+            id: Uuid::parse_str(str)?,
             _ph: PhantomData,
-        }
+        };
+        Ok(this)
     }
 }

@@ -17,18 +17,6 @@ pub struct User {
     pub role: CoreUserRole,
 }
 
-impl User {
-    /// Creates new user with provided id, name, email and role.
-    pub fn new(id: Id<Self>, name: String, email: Option<String>, role: CoreUserRole) -> Self {
-        Self {
-            id,
-            name,
-            email,
-            role,
-        }
-    }
-}
-
 impl Identifiable for User {
     type Id = Id<Self>;
 
