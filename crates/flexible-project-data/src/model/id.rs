@@ -108,9 +108,9 @@ where
 {
     type Err = uuid::Error;
 
-    fn from_str(str: &str) -> Result<Self, Self::Err> {
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         let this = Self {
-            id: Uuid::parse_str(str)?,
+            id: Uuid::parse_str(input)?,
             _ph: PhantomData,
         };
         Ok(this)
