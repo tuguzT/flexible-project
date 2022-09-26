@@ -5,7 +5,7 @@ use fp_core::use_case::PasswordHasher as CorePasswordHasher;
 use ouroboros::self_referencing;
 
 /// Interactor for password hashing with Argon2 algorithm.
-#[self_referencing(no_doc)]
+#[self_referencing]
 pub struct PasswordHasher {
     secret: Option<String>,
     #[borrows(secret)]
@@ -14,29 +14,30 @@ pub struct PasswordHasher {
 }
 
 impl PasswordHasher {
-    /// Creates new password hasher interactor without any secret.
-    pub fn new_without_secret(algorithm: Algorithm, version: Version, params: Params) -> Self {
-        Self::new(None, |_| Argon2::new(algorithm, version, params))
-    }
-
     /// Creates new password hasher interactor with some secret.
-    pub fn new_with_secret(
-        secret: String,
-        algorithm: Algorithm,
-        version: Version,
-        params: Params,
-    ) -> Result<Self> {
-        Self::try_new(Some(secret), |secret| {
-            let secret = secret.as_ref().map(String::as_bytes).unwrap_or_default();
-            Argon2::new_with_secret(secret, algorithm, version, params)
-        })
+    pub fn new_with_secret(secret: String) -> Result<Self> {
+        PasswordHasherTryBuilder {
+            secret: Some(secret),
+            hasher_builder: |secret| {
+                let secret = secret.as_ref().map(String::as_bytes).unwrap_or_default();
+                let algorithm = Algorithm::default();
+                let version = Version::default();
+                let params = Params::default();
+                Argon2::new_with_secret(secret, algorithm, version, params)
+            },
+        }
+        .try_build()
     }
 }
 
 impl Default for PasswordHasher {
-    /// Creates default password hasher without any secret.
+    /// Creates new password hasher interactor without any secret.
     fn default() -> Self {
-        Self::new(Default::default(), |_| Default::default())
+        PasswordHasherBuilder {
+            secret: None,
+            hasher_builder: |_| Argon2::default(),
+        }
+        .build()
     }
 }
 
