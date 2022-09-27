@@ -14,12 +14,12 @@ pub struct UserQuery;
 #[Object]
 impl UserQuery {
     /// Data of all users of the Flexible Project system.
-    async fn users(&self, ctx: &Context<'_>) -> Vec<User> {
+    async fn users(&self, ctx: &Context<'_>) -> Result<Vec<User>, Error> {
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let users = repository.read_all().await;
-        users.into_iter().map(User::from).collect()
+        let users = repository.read_all().await?;
+        Ok(users.into_iter().map(User::from).collect())
     }
 
     /// Data of user by its identifier of the Flexible Project system.
@@ -32,7 +32,7 @@ impl UserQuery {
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let user = repository.read_by_id(id).await.map(User::from);
+        let user = repository.read_by_id(id).await?.map(User::from);
         Ok(user)
     }
 }
@@ -48,7 +48,7 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Data of new user.")] user: NewUser,
-    ) -> User {
+    ) -> Result<User, Error> {
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
@@ -58,8 +58,8 @@ impl UserMutation {
             email: user.email,
             role: UserRole::User,
         };
-        let user = repository.save(user.into()).await;
-        User::from(user)
+        let user = repository.save(user.into()).await?;
+        Ok(user.into())
     }
 
     /// Deletes user by its identifier from the Flexible Project system.
@@ -67,12 +67,12 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
-    ) -> Result<Option<User>, Error> {
+    ) -> Result<User, Error> {
         let id = id.parse()?;
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let user = repository.delete_by_id(id).await.map(User::from);
-        Ok(user)
+        let user = repository.delete_by_id(id).await?;
+        Ok(user.into())
     }
 }

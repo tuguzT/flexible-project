@@ -1,6 +1,8 @@
+use std::convert::Infallible;
 use std::iter::FromIterator;
 
 use async_trait::async_trait;
+use derive_more::{Display, Error};
 use fp_core::model::Identifiable;
 use tokio::sync::RwLock;
 
@@ -19,58 +21,91 @@ impl DataSource for MockUserDataSource {
 
 #[async_trait]
 impl Clear for MockUserDataSource {
-    async fn clear(&self) {
+    type Error = Infallible;
+
+    async fn clear(&self) -> Result<(), Self::Error> {
         let mut vec = self.0.write().await;
-        vec.clear()
+        vec.clear();
+        Ok(())
     }
+}
+
+/// Error that can occur when deleting some user from the system.
+#[derive(Error, Debug, Display)]
+pub enum DeleteUserError {
+    /// User was not found.
+    #[display(fmt = "user not found")]
+    NotFound,
 }
 
 #[async_trait]
 impl Delete for MockUserDataSource {
-    async fn delete(&self, item: Self::Item) -> Option<Self::Item> {
+    type Error = DeleteUserError;
+
+    async fn delete(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
         let mut vec = self.0.write().await;
-        let index = vec.iter().position(|x| x == &item)?;
+        let index = vec
+            .iter()
+            .position(|x| x == &item)
+            .ok_or(DeleteUserError::NotFound)?;
         let user = vec.swap_remove(index);
-        Some(user)
+        Ok(user)
     }
 }
 
 #[async_trait]
 impl DeleteById for MockUserDataSource {
-    async fn delete_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
+    type Error = DeleteUserError;
+
+    async fn delete_by_id(
+        &self,
+        id: <Self::Item as Identifiable>::Id,
+    ) -> Result<Self::Item, Self::Error> {
         let mut vec = self.0.write().await;
-        let index = vec.iter().position(|x| x.id() == id)?;
+        let index = vec
+            .iter()
+            .position(|x| x.id() == id)
+            .ok_or(DeleteUserError::NotFound)?;
         let user = vec.swap_remove(index);
-        Some(user)
+        Ok(user)
     }
 }
 
 #[async_trait]
 impl ReadAll for MockUserDataSource {
-    async fn read_all(&self) -> Vec<Self::Item> {
+    type Error = Infallible;
+
+    async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error> {
         let vec = self.0.read().await;
-        vec.clone()
+        Ok(vec.clone())
     }
 }
 
 #[async_trait]
 impl ReadById for MockUserDataSource {
-    async fn read_by_id(&self, id: <Self::Item as Identifiable>::Id) -> Option<Self::Item> {
+    type Error = Infallible;
+
+    async fn read_by_id(
+        &self,
+        id: <Self::Item as Identifiable>::Id,
+    ) -> Result<Option<Self::Item>, Self::Error> {
         let vec = self.0.read().await;
-        vec.iter().find(|x| x.id() == id).cloned()
+        Ok(vec.iter().find(|x| x.id() == id).cloned())
     }
 }
 
 #[async_trait]
 impl Save for MockUserDataSource {
-    async fn save(&self, item: Self::Item) -> Self::Item {
+    type Error = Infallible;
+
+    async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
         let mut vec = self.0.write().await;
         let by_id = vec.iter().position(|x| x.id() == item.id);
         match by_id {
             Some(idx) => vec[idx] = item.clone(),
             None => vec.push(item.clone()),
         }
-        item
+        Ok(item)
     }
 }
 
