@@ -1,7 +1,7 @@
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
-use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier, Result, Version};
-use fp_core::use_case::PasswordHasher as CorePasswordHasher;
+use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as _, Version};
+use fp_core::use_case::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
 use ouroboros::self_referencing;
 
 /// Interactor for password hashing with Argon2 algorithm.
@@ -15,7 +15,7 @@ pub struct PasswordHasher {
 
 impl PasswordHasher {
     /// Creates new password hasher interactor with some secret.
-    pub fn new_with_secret(secret: String) -> Result<Self> {
+    pub fn new_with_secret(secret: String) -> argon2::Result<Self> {
         PasswordHasherTryBuilder {
             secret: Some(secret),
             hasher_builder: |secret| {
@@ -48,7 +48,9 @@ impl CorePasswordHasher for PasswordHasher {
         let password_hash = self.borrow_hasher().hash_password(password, &salt).unwrap();
         password_hash.to_string()
     }
+}
 
+impl PasswordHashVerifier for PasswordHasher {
     fn verify(&self, password: &str, password_hash: &str) -> bool {
         let password = password.as_bytes();
         let password_hash = password_hash.try_into().unwrap();
