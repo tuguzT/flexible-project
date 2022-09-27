@@ -958,6 +958,7 @@ version = "0.0.0"
 dependencies = [
  "argon2",
  "async-trait",
+ "derive_more",
  "fancy-regex",
  "flexible-project-core",
  "once_cell",

@@ -1,6 +1,7 @@
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as _, Version};
+use derive_more::{Display, Error, From};
 use fp_core::use_case::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
 use ouroboros::self_referencing;
 
@@ -13,9 +14,14 @@ pub struct PasswordHasher {
     hasher: Argon2<'this>,
 }
 
+/// Error that may occur when creating new password hasher interactor with some secret.
+#[derive(Error, Debug, Display, From)]
+#[display(fmt = "invalid secret provided: {}", _0)]
+pub struct WithSecretError(#[error(source)] argon2::Error);
+
 impl PasswordHasher {
     /// Creates new password hasher interactor with some secret.
-    pub fn new_with_secret(secret: String) -> argon2::Result<Self> {
+    pub fn new_with_secret(secret: String) -> Result<Self, WithSecretError> {
         PasswordHasherTryBuilder {
             secret: Some(secret),
             hasher_builder: |secret| {
@@ -23,7 +29,8 @@ impl PasswordHasher {
                 let algorithm = Algorithm::default();
                 let version = Version::default();
                 let params = Params::default();
-                Argon2::new_with_secret(secret, algorithm, version, params)
+                let argon2 = Argon2::new_with_secret(secret, algorithm, version, params)?;
+                Ok(argon2)
             },
         }
         .try_build()
@@ -41,21 +48,42 @@ impl Default for PasswordHasher {
     }
 }
 
+/// Error that may occur when password is being hashed by some algorithm.
+#[derive(Error, Debug, Display, From)]
+#[display(fmt = "password hashing failed: {}", _0)]
+pub struct PasswordHashError(#[error(source)] argon2::password_hash::Error);
+
 impl CorePasswordHasher for PasswordHasher {
-    fn hash(&self, password: &str) -> String {
+    type Error = PasswordHashError;
+
+    fn hash(&self, password: &str) -> Result<String, Self::Error> {
         let password = password.as_bytes();
         let salt = SaltString::generate(&mut OsRng);
-        let password_hash = self.borrow_hasher().hash_password(password, &salt).unwrap();
-        password_hash.to_string()
+        let password_hash = self.borrow_hasher().hash_password(password, &salt)?;
+        Ok(password_hash.to_string())
     }
 }
 
+/// Error that may occur when verifying password with its hash.
+#[derive(Error, Debug, Display, From)]
+#[display(fmt = "password hash verification failed: {}", _0)]
+pub struct PasswordHashVerifyError(#[error(source)] argon2::password_hash::Error);
+
 impl PasswordHashVerifier for PasswordHasher {
-    fn verify(&self, password: &str, password_hash: &str) -> bool {
+    type Error = PasswordHashVerifyError;
+
+    fn verify(&self, password: &str, password_hash: &str) -> Result<bool, Self::Error> {
         let password = password.as_bytes();
-        let password_hash = password_hash.try_into().unwrap();
-        self.borrow_hasher()
-            .verify_password(password, &password_hash)
-            .is_ok()
+        let password_hash = password_hash.try_into()?;
+        let result = self
+            .borrow_hasher()
+            .verify_password(password, &password_hash);
+        match result {
+            Ok(_) => Ok(true),
+            Err(error) => match error {
+                argon2::password_hash::Error::Password => Ok(false),
+                error => Err(error.into()),
+            },
+        }
     }
 }

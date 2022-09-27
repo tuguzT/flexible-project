@@ -1,6 +1,8 @@
+use std::convert::Infallible;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use derive_more::{Display, Error};
 use fp_core::model::{Identifiable, UserCredentials, UserFilters, UserRole};
 use fp_core::use_case::{
     CreateUser as CoreCreateUser, DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
@@ -40,9 +42,11 @@ impl<S> CoreCreateUser for CreateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
+    type Error = Infallible;
+
     type User = User;
 
-    async fn create<C>(&self, credentials: &C) -> Self::User
+    async fn create<C>(&self, credentials: &C) -> Result<Self::User, Self::Error>
     where
         C: UserCredentials + Sync,
     {
@@ -53,7 +57,8 @@ where
             email: None,
             role: UserRole::User,
         };
-        repository.save(user).await
+        let user = repository.save(user).await;
+        Ok(user)
     }
 }
 
@@ -75,16 +80,27 @@ where
     }
 }
 
+/// Error that can occur when deleting some user from the system.
+#[derive(Error, Debug, Display)]
+pub enum DeleteUserError {
+    /// User was not found.
+    #[display(fmt = "user not found")]
+    NotFound,
+}
+
 #[async_trait]
 impl<S> CoreDeleteUser for DeleteUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
+    type Error = DeleteUserError;
+
     type User = User;
 
-    async fn delete(&self, id: <User as Identifiable>::Id) -> Self::User {
+    async fn delete(&self, id: <User as Identifiable>::Id) -> Result<Self::User, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.delete_by_id(id).await.unwrap()
+        let delete_by_id = repository.delete_by_id(id).await;
+        delete_by_id.ok_or(DeleteUserError::NotFound)
     }
 }
 
@@ -111,11 +127,13 @@ impl<S> CoreFilterUsers for FilterUsers<S>
 where
     S: UserDataSource + Send + Sync,
 {
+    type Error = Infallible;
+
     type User = User;
 
-    async fn filter(&self, _filters: UserFilters) -> Vec<Self::User> {
+    async fn filter(&self, _filters: UserFilters) -> Result<Vec<Self::User>, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.read_all().await
+        Ok(repository.read_all().await)
     }
 }
 
@@ -142,10 +160,12 @@ impl<S> CoreUpdateUser for UpdateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
+    type Error = Infallible;
+
     type User = User;
 
-    async fn update(&self, user: Self::User) -> Self::User {
+    async fn update(&self, user: Self::User) -> Result<Self::User, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.save(user).await
+        Ok(repository.save(user).await)
     }
 }

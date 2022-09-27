@@ -1,13 +1,23 @@
-/// Trait for objects which can hash password with some algorithm.
+/// Trait for interactors which can hash password with some algorithm.
 pub trait PasswordHasher {
+    /// The type returned when any error occurs.
+    type Error;
+
     /// Hashes provided password with some algorithm.
     ///
-    /// Returns string with hashed password.
-    fn hash(&self, password: &str) -> String;
+    /// Returns [`String`] with hashed password, or [error](PasswordHasher::Error) if any.
+    fn hash(&self, password: &str) -> Result<String, Self::Error>;
 }
 
-/// Trait for objects which can verify password by its hash.
+/// Trait for interactors which can verify password by its hash.
 pub trait PasswordHashVerifier {
+    /// The type returned when any error occurs.
+    type Error;
+
     /// Verifies provided password with its hash.
-    fn verify(&self, password: &str, password_hash: &str) -> bool;
+    ///
+    /// Returns `true` if the hash of provided password and
+    /// provided password hash are equal, `false otherwise`,
+    /// or [error](PasswordHashVerifier::Error) if any.
+    fn verify(&self, password: &str, password_hash: &str) -> Result<bool, Self::Error>;
 }
