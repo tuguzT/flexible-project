@@ -15,12 +15,12 @@ fp-data = { path = "../flexible-project-data", package = "flexible-project-data"
 # Actix project
 actix-web = "4.2.1"
 actix-web-lab = "0.18.2"
-actix-cors = "0.6.2"
+actix-cors = "0.6.3"
 # GraphQL
-async-graphql = { version = "4.0.13", features = ["log", "uuid"] }
-async-graphql-actix-web = "4.0.13"
+async-graphql = { version = "4.0.14", features = ["log", "uuid"] }
+async-graphql-actix-web = "4.0.14"
 # Tokio runtime
-tokio = { version = "1.21.1", features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.21.2", features = ["rt-multi-thread", "macros", "sync"] }
 # Miscellaneous
 dotenv = "0.15.0"
 log = "0.4.17"
