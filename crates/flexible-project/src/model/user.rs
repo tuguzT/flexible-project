@@ -1,5 +1,5 @@
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
-use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
+use fp_core::model::{Node, User as CoreUser, UserRole as CoreUserRole};
 use fp_data::model::{Id, User as DataUser};
 
 /// Role of user in the Flexible Project system.
@@ -38,7 +38,7 @@ impl User {
     }
 }
 
-impl Identifiable for User {
+impl Node for User {
     type Id = Id<Self>;
 
     fn id(&self) -> Self::Id {

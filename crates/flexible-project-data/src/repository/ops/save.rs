@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::repository::Repository;
 
-/// Trait for repository which can save an item.
+/// Repository type which can save an item.
 #[async_trait]
 pub trait Save: Repository {
     /// The type returned when any error occurs.

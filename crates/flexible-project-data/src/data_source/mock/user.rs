@@ -3,7 +3,7 @@ use std::iter::FromIterator;
 
 use async_trait::async_trait;
 use derive_more::{Display, Error};
-use fp_core::model::Identifiable;
+use fp_core::model::Node;
 use tokio::sync::RwLock;
 
 use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
@@ -57,10 +57,7 @@ impl Delete for MockUserDataSource {
 impl DeleteById for MockUserDataSource {
     type Error = DeleteUserError;
 
-    async fn delete_by_id(
-        &self,
-        id: <Self::Item as Identifiable>::Id,
-    ) -> Result<Self::Item, Self::Error> {
+    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
         let mut vec = self.0.write().await;
         let index = vec
             .iter()
@@ -87,7 +84,7 @@ impl ReadById for MockUserDataSource {
 
     async fn read_by_id(
         &self,
-        id: <Self::Item as Identifiable>::Id,
+        id: <Self::Item as Node>::Id,
     ) -> Result<Option<Self::Item>, Self::Error> {
         let vec = self.0.read().await;
         Ok(vec.iter().find(|x| x.id() == id).cloned())

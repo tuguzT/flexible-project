@@ -1,4 +1,4 @@
-use fp_core::model::{Identifiable, User as CoreUser, UserRole as CoreUserRole};
+use fp_core::model::{Node, User as CoreUser, UserRole as CoreUserRole};
 use serde::{Deserialize, Serialize};
 
 use crate::model::Id;
@@ -17,7 +17,7 @@ pub struct User {
     pub role: CoreUserRole,
 }
 
-impl Identifiable for User {
+impl Node for User {
     type Id = Id<Self>;
 
     fn id(&self) -> Self::Id {

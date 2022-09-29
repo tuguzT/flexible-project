@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::repository::Repository;
 
-/// Trait for repository which can remove all its data.
+/// Repository type which can remove all its data.
 #[async_trait]
 pub trait Clear: Repository {
     /// The type returned when any error occurs.
@@ -10,7 +10,6 @@ pub trait Clear: Repository {
 
     /// Clears this repository.
     ///
-    /// Repository will contain no data of type [`Item`](Repository::Item)
-    /// after performing this operation.
+    /// Repository will contain no data after performing this operation.
     async fn clear(&self) -> Result<(), Self::Error>;
 }

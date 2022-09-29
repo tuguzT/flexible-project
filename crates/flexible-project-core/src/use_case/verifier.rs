@@ -1,6 +1,6 @@
 use crate::model::UserCredentials;
 
-/// Trait for interactors which verify username provided by user.
+/// Interactor type which can verify username provided by user.
 pub trait UsernameVerifier {
     /// Verifies username provided by user.
     ///
@@ -8,7 +8,7 @@ pub trait UsernameVerifier {
     fn verify(&self, username: &str) -> bool;
 }
 
-/// Trait for interactors which verify password provided by user.
+/// Interactor type which can verify password provided by user.
 pub trait PasswordVerifier {
     /// Verifies password provided by user.
     ///
@@ -16,7 +16,7 @@ pub trait PasswordVerifier {
     fn verify(&self, password: &str) -> bool;
 }
 
-/// Trait for interactors which verify credentials provided by user.
+/// Interactor type which can verify credentials provided by user.
 pub trait UserCredentialsVerifier {
     /// Verifies credentials provided by user.
     ///

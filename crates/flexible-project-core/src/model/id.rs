@@ -1,18 +1,17 @@
 use std::hash::Hash;
 
-/// Trait for types of identifiers
-/// which can be used to identify objects of owner type.
+/// Type of identifier which are used to identify objects of the owner type.
 pub trait Id<Owner>: Eq + Hash + Clone + 'static
 where
-    Owner: ?Sized + Identifiable,
+    Owner: ?Sized + Node,
 {
 }
 
-/// Trait for types which can be identified by [`Id`](Identifiable::Id) associated type.
-pub trait Identifiable {
-    /// Type of identifier used to identify the instance of identifiable.
+/// Type which can be identified by its [identifier](Node::Id).
+pub trait Node {
+    /// Type of identifier used to identify this object.
     type Id: Id<Self>;
 
-    /// Get an identifier of the object.
+    /// Returns an identifier of the object.
     fn id(&self) -> Self::Id;
 }

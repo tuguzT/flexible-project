@@ -1,7 +1,7 @@
 //! Repositories for users of the Flexible Project system.
 
 use async_trait::async_trait;
-use fp_core::model::Identifiable;
+use fp_core::model::Node;
 
 use crate::data_source::{self, user::UserDataSource};
 use crate::repository::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
@@ -60,10 +60,7 @@ where
 {
     type Error = <S as data_source::ops::DeleteById>::Error;
 
-    async fn delete_by_id(
-        &self,
-        id: <Self::Item as Identifiable>::Id,
-    ) -> Result<Self::Item, Self::Error> {
+    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
         self.0.delete_by_id(id).await
     }
 }
@@ -89,7 +86,7 @@ where
 
     async fn read_by_id(
         &self,
-        id: <Self::Item as Identifiable>::Id,
+        id: <Self::Item as Node>::Id,
     ) -> Result<Option<Self::Item>, Self::Error> {
         self.0.read_by_id(id).await
     }

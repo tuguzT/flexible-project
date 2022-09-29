@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::data_source::DataSource;
 
-/// Trait for data source which can save an item.
+/// Data source type which can save an item.
 #[async_trait]
 pub trait Save: DataSource {
     /// The type returned when any error occurs.

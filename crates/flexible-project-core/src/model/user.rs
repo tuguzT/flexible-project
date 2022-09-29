@@ -1,7 +1,7 @@
-use super::Identifiable;
+use crate::model::Node;
 
 /// Trait for the users of the Flexible Project system.
-pub trait User: Identifiable {
+pub trait User: Node {
     /// Get a unique user name.
     fn name(&self) -> &str;
 

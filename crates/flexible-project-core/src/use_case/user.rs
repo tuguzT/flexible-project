@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
-use crate::model::{Identifiable, User, UserCredentials, UserFilters};
+use crate::model::{Node, User, UserCredentials, UserFilters};
 
-/// Trait for interactors which create new user from provided user credentials.
+/// Interactor type which can create new user from provided user credentials.
 #[async_trait]
 pub trait CreateUser {
     /// Output user data.
@@ -19,7 +19,7 @@ pub trait CreateUser {
         C: UserCredentials + Sync;
 }
 
-/// Trait for interactors which filter all the users.
+/// Interactor type which can filter all the users.
 #[async_trait]
 pub trait FilterUsers {
     /// User data type of the implementation.
@@ -34,7 +34,7 @@ pub trait FilterUsers {
     async fn filter(&self, filters: UserFilters) -> Result<Vec<Self::User>, Self::Error>;
 }
 
-/// Trait for interactors which update user state.
+/// Interactor type which can update user state.
 #[async_trait]
 pub trait UpdateUser {
     /// User data type of the implementation.
@@ -49,7 +49,7 @@ pub trait UpdateUser {
     async fn update(&self, user: Self::User) -> Result<Self::User, Self::Error>;
 }
 
-/// Trait for interactors which delete user from the system.
+/// Interactor type which can delete user from the system.
 #[async_trait]
 pub trait DeleteUser {
     /// User data type of the implementation.
@@ -61,6 +61,5 @@ pub trait DeleteUser {
     /// Deletes the user with provided identifier.
     ///
     /// Returns data of the deleted user.
-    async fn delete(&self, id: <Self::User as Identifiable>::Id)
-        -> Result<Self::User, Self::Error>;
+    async fn delete(&self, id: <Self::User as Node>::Id) -> Result<Self::User, Self::Error>;
 }

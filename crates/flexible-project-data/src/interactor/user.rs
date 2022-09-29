@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fp_core::model::{Identifiable, UserCredentials, UserFilters, UserRole};
+use fp_core::model::{Node, UserCredentials, UserFilters, UserRole};
 use fp_core::use_case::{
     CreateUser as CoreCreateUser, DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
     UpdateUser as CoreUpdateUser,
@@ -86,7 +86,7 @@ where
 
     type User = User;
 
-    async fn delete(&self, id: <User as Identifiable>::Id) -> Result<Self::User, Self::Error> {
+    async fn delete(&self, id: <User as Node>::Id) -> Result<Self::User, Self::Error> {
         let repository = self.repository.as_ref();
         repository.delete_by_id(id).await
     }

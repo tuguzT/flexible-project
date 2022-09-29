@@ -1,4 +1,4 @@
-/// Trait for interactors which can hash password with some algorithm.
+/// Interactor type which can hash password with some algorithm.
 pub trait PasswordHasher {
     /// The type returned when any error occurs.
     type Error;
@@ -9,7 +9,7 @@ pub trait PasswordHasher {
     fn hash(&self, password: &str) -> Result<String, Self::Error>;
 }
 
-/// Trait for interactors which can verify password by its hash.
+/// Interactor type which can verify password by its hash.
 pub trait PasswordHashVerifier {
     /// The type returned when any error occurs.
     type Error;
