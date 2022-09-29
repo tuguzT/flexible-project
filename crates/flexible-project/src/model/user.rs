@@ -33,7 +33,7 @@ pub struct User {
 #[ComplexObject]
 impl User {
     /// Unique identifier of the user.
-    async fn id(&self) -> ID {
+    pub async fn id(&self) -> ID {
         self.id.clone().into()
     }
 }
