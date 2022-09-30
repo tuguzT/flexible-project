@@ -2,6 +2,7 @@
 
 pub use crud::CrudDataSource;
 
+pub mod local;
 pub mod mock;
 pub mod ops;
 pub mod user;

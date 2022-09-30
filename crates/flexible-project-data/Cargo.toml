@@ -8,14 +8,26 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
+# Flexible Project layer libraries
 fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
-async-trait = "0.1.57"
+# Tokio runtime
 tokio = { version = "1.21.2", features = ["sync"] }
+# Serialization & deserialization
 serde = { version = "1.0.145", features = ["derive"] }
+# Password hashing
+argon2 = { version = "0.4.1", features = ["std"] }
+rand_core = { version = "0.6.4", features = ["std"] }
+# Database
+mongodb = "2.3.0"
+# Dependency injection
+shaku = "0.6.1"
+# Mocking
+mockall = "0.11.2"
+# Miscellaneous
+async-trait = "0.1.57"
+futures = "0.3.24"
+ouroboros = "0.15.5"
+derive_more = "0.99.17"
 uuid = { version = "1.1.2", features = ["serde", "v4"] }
 fancy-regex = "0.10.0"
 once_cell = "1.15.0"
-argon2 = { version = "0.4.1", features = ["std"] }
-rand_core = { version = "0.6.4", features = ["std"] }
-ouroboros = "0.15.5"
-derive_more = "0.99.17"
