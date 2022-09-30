@@ -937,6 +937,7 @@ dependencies = [
  "actix-web-lab",
  "async-graphql",
  "async-graphql-actix-web",
+ "derive_more",
  "dotenv",
  "flexible-project-core",
  "flexible-project-data",
