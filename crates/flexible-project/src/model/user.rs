@@ -16,7 +16,7 @@ pub enum UserRole {
 }
 
 /// User data in the Flexible Project system.
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 #[graphql(complex)]
 pub struct User {
     /// Unique identifier of the user.
@@ -83,7 +83,7 @@ impl From<User> for DataUser {
 }
 
 /// Necessary data for creating new user in the Flexible Project system.
-#[derive(InputObject)]
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct NewUser {
     /// Unique name of the user.
     pub name: String,

@@ -2,11 +2,25 @@
 
 use derive_more::{From, IsVariant, Unwrap};
 use fp_core::model::Node as CoreNode;
+use serde::{Deserialize, Serialize};
 
 use crate::model::{Id, User};
 
 /// Enum that combines all variants of the node of the Flexible Project system.
-#[derive(Debug, From, IsVariant, Unwrap)]
+#[derive(
+    Debug,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    From,
+    IsVariant,
+    Unwrap,
+    Serialize,
+    Deserialize,
+)]
 pub enum Node {
     /// User variant of the node.
     User(User),

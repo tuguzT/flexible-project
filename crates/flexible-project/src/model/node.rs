@@ -8,7 +8,7 @@ use fp_data::model::{Id, Node as DataNode};
 use crate::model::User;
 
 /// Global Object Identification interface of the Flexible Project system.
-#[derive(Interface, IsVariant, Unwrap)]
+#[derive(Interface, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, IsVariant, Unwrap)]
 #[graphql(field(name = "id", type = "ID", desc = "The ID of the object."))]
 pub enum Node {
     /// User variant of the interface object.
