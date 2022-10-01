@@ -63,7 +63,7 @@ impl CoreUser for User {
 impl From<DataUser> for User {
     fn from(user: DataUser) -> Self {
         Self {
-            id: user.id.to_string().parse().expect("id should be valid"),
+            id: user.id.change_owner(),
             name: user.name,
             email: user.email,
             role: user.role.into(),
@@ -74,7 +74,7 @@ impl From<DataUser> for User {
 impl From<User> for DataUser {
     fn from(user: User) -> Self {
         Self {
-            id: user.id.to_string().parse().expect("id should be valid"),
+            id: user.id.change_owner(),
             name: user.name,
             email: user.email,
             role: user.role.into(),

@@ -21,12 +21,19 @@ impl LocalUserDataSource {
     pub async fn new(database: Database) -> Result<Self, LocalError> {
         let collection = database.collection("users");
         let indexes = [
-            IndexModel::builder().keys(doc! { "id": 1 }).build(),
-            IndexModel::builder().keys(doc! { "name": 1 }).build(),
+            IndexModel::builder()
+                .keys(doc! { "id": 1 })
+                .options(IndexOptions::builder().unique(true).build())
+                .build(),
+            IndexModel::builder()
+                .keys(doc! { "name": 1 })
+                .options(IndexOptions::builder().unique(true).build())
+                .build(),
             IndexModel::builder()
                 .keys(doc! { "email": 1 })
                 .options(
                     IndexOptions::builder()
+                        .unique(true)
                         .partial_filter_expression(
                             doc! { "email": { "$exists": true, "$ne": null } },
                         )
@@ -54,7 +61,7 @@ impl Clear for LocalUserDataSource {
     type Error = LocalError;
 
     async fn clear(&self) -> Result<(), Self::Error> {
-        self.collection.drop(None).await?;
+        self.collection.delete_many(doc! {}, None).await?;
         Ok(())
     }
 }
@@ -78,7 +85,7 @@ impl ReadById for LocalUserDataSource {
         &self,
         id: <Self::Item as Node>::Id,
     ) -> Result<Option<Self::Item>, Self::Error> {
-        let filter = doc! { "id": id.to_string() };
+        let filter = doc! { "id": id };
         let user = self.collection.find_one(filter, None).await?;
         Ok(user)
     }
@@ -114,7 +121,7 @@ impl DeleteById for LocalUserDataSource {
     type Error = DeleteUserError;
 
     async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
-        let query = doc! { "id": id.to_string() };
+        let query = doc! { "id": id };
         let user = self.collection.find_one_and_delete(query, None).await?;
         match user {
             None => Err(DeleteUserError::NotFound),
@@ -128,7 +135,7 @@ impl Save for LocalUserDataSource {
     type Error = LocalError;
 
     async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
-        let filter = doc! { "id": item.id.to_string() };
+        let filter = doc! { "id": &item.id };
         let options = FindOneAndReplaceOptions::builder()
             .return_document(ReturnDocument::After)
             .build();

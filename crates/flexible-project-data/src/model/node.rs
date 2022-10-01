@@ -31,11 +31,7 @@ impl CoreNode for Node {
 
     fn id(&self) -> Self::Id {
         match self {
-            Node::User(user) => user
-                .id()
-                .to_string()
-                .parse()
-                .expect("string from another ID is always valid ID"),
+            Node::User(user) => user.id().change_owner(),
         }
     }
 }

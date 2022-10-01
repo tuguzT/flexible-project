@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::str::FromStr;
 
+use derive_more::{Display, Error, From};
 use fp_core::model::{Id as CoreId, Node};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -27,6 +28,17 @@ where
     pub fn random() -> Self {
         Self {
             id: Uuid::new_v4(),
+            _ph: PhantomData,
+        }
+    }
+
+    /// Changes the owner of this identifier explicitly.
+    pub fn change_owner<Other>(self) -> Id<Other>
+    where
+        Other: ?Sized + Node,
+    {
+        Id {
+            id: self.id,
             _ph: PhantomData,
         }
     }
@@ -82,7 +94,7 @@ where
     }
 }
 
-impl<Owner> CoreId<Owner> for Id<Owner> where Owner: ?Sized + Node + 'static {}
+impl<Owner> CoreId<Owner> for Id<Owner> where Owner: ?Sized + Node {}
 
 impl<Owner> Debug for Id<Owner>
 where
@@ -102,11 +114,16 @@ where
     }
 }
 
+/// Error that occurs when parsing [`Id`] from the [string](str).
+#[derive(Debug, Display, Error, From)]
+#[display(fmt = "failed to parse Id from the string: {}", _0)]
+pub struct ParseError(#[error(source)] uuid::Error);
+
 impl<Owner> FromStr for Id<Owner>
 where
     Owner: ?Sized + Node,
 {
-    type Err = uuid::Error;
+    type Err = ParseError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let this = Self {

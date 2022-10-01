@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
 /// Type of identifier which are used to identify objects of the owner type.
-pub trait Id<Owner>: Eq + Hash + Clone + 'static
+pub trait Id<Owner>: Eq + Hash + Clone
 where
     Owner: ?Sized + Node,
 {

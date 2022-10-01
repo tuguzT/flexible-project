@@ -19,8 +19,6 @@ argon2 = { version = "0.4.1", features = ["std"] }
 rand_core = { version = "0.6.4", features = ["std"] }
 # Database
 mongodb = "2.3.0"
-# Dependency injection
-shaku = "0.6.1"
 # Mocking
 mockall = "0.11.2"
 # Miscellaneous
