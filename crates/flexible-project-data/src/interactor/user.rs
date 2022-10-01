@@ -86,7 +86,7 @@ where
 
     type User = User;
 
-    async fn delete(&self, id: <User as Node>::Id) -> Result<Self::User, Self::Error> {
+    async fn delete(&self, id: <User as Node>::Id) -> Result<Option<Self::User>, Self::Error> {
         let repository = self.repository.as_ref();
         repository.delete_by_id(id).await
     }

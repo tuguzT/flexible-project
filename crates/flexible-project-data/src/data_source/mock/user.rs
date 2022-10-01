@@ -2,7 +2,6 @@ use std::convert::Infallible;
 use std::iter::FromIterator;
 
 use async_trait::async_trait;
-use derive_more::{Display, Error};
 use fp_core::model::Node;
 use tokio::sync::RwLock;
 
@@ -30,40 +29,29 @@ impl Clear for MockUserDataSource {
     }
 }
 
-/// Error that can occur when deleting some user from the system.
-#[derive(Error, Debug, Display)]
-pub enum DeleteUserError {
-    /// User was not found.
-    #[display(fmt = "user not found")]
-    NotFound,
-}
-
 #[async_trait]
 impl Delete for MockUserDataSource {
-    type Error = DeleteUserError;
+    type Error = Infallible;
 
-    async fn delete(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
+    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
         let mut vec = self.0.write().await;
-        let index = vec
-            .iter()
-            .position(|x| x == &item)
-            .ok_or(DeleteUserError::NotFound)?;
-        let user = vec.swap_remove(index);
+        let index = vec.iter().position(|x| x == &item);
+        let user = index.map(|index| vec.swap_remove(index));
         Ok(user)
     }
 }
 
 #[async_trait]
 impl DeleteById for MockUserDataSource {
-    type Error = DeleteUserError;
+    type Error = Infallible;
 
-    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
+    async fn delete_by_id(
+        &self,
+        id: <Self::Item as Node>::Id,
+    ) -> Result<Option<Self::Item>, Self::Error> {
         let mut vec = self.0.write().await;
-        let index = vec
-            .iter()
-            .position(|x| x.id() == id)
-            .ok_or(DeleteUserError::NotFound)?;
-        let user = vec.swap_remove(index);
+        let index = vec.iter().position(|x| x.id() == id);
+        let user = index.map(|index| vec.swap_remove(index));
         Ok(user)
     }
 }

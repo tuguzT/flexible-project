@@ -11,6 +11,8 @@ use crate::data_source::user::UserDataSource;
 use crate::data_source::DataSource;
 use crate::model::User;
 
+use super::utils::UserCollection;
+
 /// Local user data source implementation.
 pub struct LocalUserDataSource {
     collection: Collection<User>,
@@ -19,7 +21,7 @@ pub struct LocalUserDataSource {
 impl LocalUserDataSource {
     /// Creates new local user data source.
     pub async fn new(database: Database) -> Result<Self, LocalError> {
-        let collection = database.collection("users");
+        let collection = database.user_collection();
         let indexes = [
             IndexModel::builder()
                 .keys(doc! { "id": 1 })
@@ -91,42 +93,28 @@ impl ReadById for LocalUserDataSource {
     }
 }
 
-/// Error that can occur when deleting some user from the system.
-#[derive(Error, Debug, Display, From)]
-pub enum DeleteUserError {
-    /// User was not found.
-    #[display(fmt = "user not found")]
-    NotFound,
-    /// Other kind of error.
-    #[from(types(mongodb::error::Error))]
-    Other(#[error(source)] LocalError),
-}
-
 #[async_trait]
 impl Delete for LocalUserDataSource {
-    type Error = DeleteUserError;
+    type Error = LocalError;
 
-    async fn delete(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
+    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
         let query = to_document(&item).expect("should be valid");
         let user = self.collection.find_one_and_delete(query, None).await?;
-        match user {
-            None => Err(DeleteUserError::NotFound),
-            Some(user) => Ok(user),
-        }
+        Ok(user)
     }
 }
 
 #[async_trait]
 impl DeleteById for LocalUserDataSource {
-    type Error = DeleteUserError;
+    type Error = LocalError;
 
-    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
+    async fn delete_by_id(
+        &self,
+        id: <Self::Item as Node>::Id,
+    ) -> Result<Option<Self::Item>, Self::Error> {
         let query = doc! { "id": id };
         let user = self.collection.find_one_and_delete(query, None).await?;
-        match user {
-            None => Err(DeleteUserError::NotFound),
-            Some(user) => Ok(user),
-        }
+        Ok(user)
     }
 }
 

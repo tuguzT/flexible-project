@@ -67,12 +67,12 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
-    ) -> Result<User, Error> {
+    ) -> Result<Option<User>, Error> {
         let id = id.parse()?;
         let repository = ctx
             .data::<UserRepositoryData>()
             .expect("user repository should always exist");
-        let user = repository.delete_by_id(id).await?;
-        Ok(user.into())
+        let user = repository.delete_by_id(id).await?.map(User::from);
+        Ok(user)
     }
 }

@@ -48,7 +48,7 @@ where
 {
     type Error = <S as data_source::ops::Delete>::Error;
 
-    async fn delete(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
+    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
         self.0.delete(item).await
     }
 }
@@ -60,7 +60,10 @@ where
 {
     type Error = <S as data_source::ops::DeleteById>::Error;
 
-    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error> {
+    async fn delete_by_id(
+        &self,
+        id: <Self::Item as Node>::Id,
+    ) -> Result<Option<Self::Item>, Self::Error> {
         self.0.delete_by_id(id).await
     }
 }

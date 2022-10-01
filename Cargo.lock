@@ -401,6 +401,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
+
+[[package]]
+name = "anymap"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33954243bd79057c2de7338850b85983a44588021f8a5fee574a8888c6de4344"
+
+[[package]]
 name = "arc-swap"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1094,6 +1106,7 @@ dependencies = [
 name = "flexible-project-data"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "argon2",
  "async-trait",
  "derive_more",
@@ -1106,6 +1119,7 @@ dependencies = [
  "ouroboros",
  "rand_core",
  "serde",
+ "shaku",
  "tokio",
  "uuid 1.1.2",
 ]
@@ -2268,6 +2282,28 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "shaku"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "334da76925a094e2c72802ce17433cba4b5d8661d66ef36e1f899efab17192a5"
+dependencies = [
+ "anymap",
+ "once_cell",
+ "shaku_derive",
+]
+
+[[package]]
+name = "shaku_derive"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "524f791f1f958b9c1825c1e48657d3bc485ee9ac4a1c7c226ab7fc7010afa7dc"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

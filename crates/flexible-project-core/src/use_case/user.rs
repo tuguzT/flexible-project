@@ -60,6 +60,7 @@ pub trait DeleteUser {
 
     /// Deletes the user with provided identifier.
     ///
-    /// Returns data of the deleted user.
-    async fn delete(&self, id: <Self::User as Node>::Id) -> Result<Self::User, Self::Error>;
+    /// Returns data of the deleted user if present.
+    async fn delete(&self, id: <Self::User as Node>::Id)
+        -> Result<Option<Self::User>, Self::Error>;
 }

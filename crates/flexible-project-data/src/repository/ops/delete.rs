@@ -13,7 +13,7 @@ pub trait Delete: Repository {
     ///
     /// Item will be deleted only if it is equal
     /// to the item stored in the repository.
-    async fn delete(&self, item: Self::Item) -> Result<Self::Item, Self::Error>;
+    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error>;
 }
 
 /// Repository type which can delete an item by its identifier.
@@ -26,5 +26,8 @@ where
     type Error;
 
     /// Deletes an item by provided identifier.
-    async fn delete_by_id(&self, id: <Self::Item as Node>::Id) -> Result<Self::Item, Self::Error>;
+    async fn delete_by_id(
+        &self,
+        id: <Self::Item as Node>::Id,
+    ) -> Result<Option<Self::Item>, Self::Error>;
 }
