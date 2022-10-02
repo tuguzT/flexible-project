@@ -14,4 +14,7 @@ mod crud;
 pub trait Repository {
     /// Type of item stored in this repository.
     type Item;
+
+    /// Type returned when any error occurs.
+    type Error;
 }

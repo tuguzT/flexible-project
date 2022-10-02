@@ -16,12 +16,11 @@ pub struct MockUserDataSource(RwLock<Vec<User>>);
 
 impl DataSource for MockUserDataSource {
     type Item = User;
+    type Error = Infallible;
 }
 
 #[async_trait]
 impl Clear for MockUserDataSource {
-    type Error = Infallible;
-
     async fn clear(&self) -> Result<(), Self::Error> {
         let mut vec = self.0.write().await;
         vec.clear();
@@ -31,8 +30,6 @@ impl Clear for MockUserDataSource {
 
 #[async_trait]
 impl Delete for MockUserDataSource {
-    type Error = Infallible;
-
     async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
         let mut vec = self.0.write().await;
         let index = vec.iter().position(|x| x == &item);
@@ -43,8 +40,6 @@ impl Delete for MockUserDataSource {
 
 #[async_trait]
 impl DeleteById for MockUserDataSource {
-    type Error = Infallible;
-
     async fn delete_by_id(
         &self,
         id: <Self::Item as Node>::Id,
@@ -58,8 +53,6 @@ impl DeleteById for MockUserDataSource {
 
 #[async_trait]
 impl ReadAll for MockUserDataSource {
-    type Error = Infallible;
-
     async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error> {
         let vec = self.0.read().await;
         Ok(vec.clone())
@@ -68,8 +61,6 @@ impl ReadAll for MockUserDataSource {
 
 #[async_trait]
 impl ReadById for MockUserDataSource {
-    type Error = Infallible;
-
     async fn read_by_id(
         &self,
         id: <Self::Item as Node>::Id,
@@ -81,8 +72,6 @@ impl ReadById for MockUserDataSource {
 
 #[async_trait]
 impl Save for MockUserDataSource {
-    type Error = Infallible;
-
     async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
         let mut vec = self.0.write().await;
         let by_id = vec.iter().position(|x| x.id() == item.id);

@@ -7,7 +7,7 @@ use fp_core::use_case::{
     UpdateUser as CoreUpdateUser,
 };
 
-use crate::data_source::{self, user::UserDataSource};
+use crate::data_source::user::UserDataSource;
 use crate::interactor::UserCredentialsVerifier;
 use crate::model::{Id, User};
 use crate::repository::ops::{DeleteById, ReadAll, Save};
@@ -40,7 +40,7 @@ impl<S> CoreCreateUser for CreateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = <S as data_source::ops::Save>::Error;
+    type Error = S::Error;
 
     type User = User;
 
@@ -82,7 +82,7 @@ impl<S> CoreDeleteUser for DeleteUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = <S as data_source::ops::DeleteById>::Error;
+    type Error = S::Error;
 
     type User = User;
 
@@ -115,7 +115,7 @@ impl<S> CoreFilterUsers for FilterUsers<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = <S as data_source::ops::ReadAll>::Error;
+    type Error = S::Error;
 
     type User = User;
 
@@ -148,7 +148,7 @@ impl<S> CoreUpdateUser for UpdateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = <S as data_source::ops::Save>::Error;
+    type Error = S::Error;
 
     type User = User;
 

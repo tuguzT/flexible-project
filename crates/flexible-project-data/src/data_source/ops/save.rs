@@ -5,9 +5,6 @@ use crate::data_source::DataSource;
 /// Data source type which can save an item.
 #[async_trait]
 pub trait Save: DataSource {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Saves the provided item into the storage.
     ///
     /// Returns the new instance of item as a result of saving provided item.

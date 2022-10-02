@@ -52,6 +52,7 @@ impl UserDataSource for LocalUserDataSource {}
 
 impl DataSource for LocalUserDataSource {
     type Item = User;
+    type Error = LocalError;
 }
 
 #[derive(Debug, Display, From, Error)]
@@ -60,8 +61,6 @@ pub struct LocalError(#[error(source)] mongodb::error::Error);
 
 #[async_trait]
 impl Clear for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn clear(&self) -> Result<(), Self::Error> {
         self.collection.delete_many(doc! {}, None).await?;
         Ok(())
@@ -70,8 +69,6 @@ impl Clear for LocalUserDataSource {
 
 #[async_trait]
 impl ReadAll for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error> {
         let cursor = self.collection.find(None, None).await?;
         let vec = cursor.try_collect().await?;
@@ -81,8 +78,6 @@ impl ReadAll for LocalUserDataSource {
 
 #[async_trait]
 impl ReadById for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn read_by_id(
         &self,
         id: <Self::Item as Node>::Id,
@@ -95,8 +90,6 @@ impl ReadById for LocalUserDataSource {
 
 #[async_trait]
 impl Delete for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
         let query = to_document(&item).expect("should be valid");
         let user = self.collection.find_one_and_delete(query, None).await?;
@@ -106,8 +99,6 @@ impl Delete for LocalUserDataSource {
 
 #[async_trait]
 impl DeleteById for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn delete_by_id(
         &self,
         id: <Self::Item as Node>::Id,
@@ -120,8 +111,6 @@ impl DeleteById for LocalUserDataSource {
 
 #[async_trait]
 impl Save for LocalUserDataSource {
-    type Error = LocalError;
-
     async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
         let filter = doc! { "id": &item.id };
         let options = FindOneAndReplaceOptions::builder()

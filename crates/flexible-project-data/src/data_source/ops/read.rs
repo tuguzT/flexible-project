@@ -7,9 +7,6 @@ use crate::data_source::DataSource;
 /// of stored [type](DataSource::Item) from the storage.
 #[async_trait]
 pub trait ReadAll: DataSource {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Returns all the data of stored [type](DataSource::Item) from the storage.
     async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error>;
 }
@@ -21,9 +18,6 @@ pub trait ReadById: DataSource
 where
     Self::Item: Node,
 {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Returns [`Some`] with an item found by its identifier in the storage
     /// or [`None`] if there is no item by provided identifier.
     async fn read_by_id(

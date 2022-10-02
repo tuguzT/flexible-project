@@ -7,9 +7,6 @@ use crate::repository::Repository;
 /// of stored [type](Repository::Item).
 #[async_trait]
 pub trait ReadAll: Repository {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Returns all the data of stored [type](Repository::Item).
     async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error>;
 }
@@ -20,9 +17,6 @@ pub trait ReadById: Repository
 where
     Self::Item: Node,
 {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Returns [`Some`] with an item found by its identifier
     /// or [`None`] if there is no item by provided identifier.
     async fn read_by_id(

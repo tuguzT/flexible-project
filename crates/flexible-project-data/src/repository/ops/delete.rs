@@ -6,9 +6,6 @@ use crate::repository::Repository;
 /// Repository type which can delete an item by its value.
 #[async_trait]
 pub trait Delete: Repository {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Deletes provided item.
     ///
     /// Item will be deleted only if it is equal
@@ -22,9 +19,6 @@ pub trait DeleteById: Repository
 where
     Self::Item: Node,
 {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Deletes an item by provided identifier.
     async fn delete_by_id(
         &self,

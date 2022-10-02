@@ -5,9 +5,6 @@ use crate::repository::Repository;
 /// Repository type which can save an item.
 #[async_trait]
 pub trait Save: Repository {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Saves the provided item.
     ///
     /// Returns the new instance of item as a result of saving provided item.

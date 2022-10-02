@@ -16,4 +16,7 @@ mod crud;
 pub trait DataSource {
     /// Type of item stored in this data source.
     type Item;
+
+    /// Type returned when any error occurs.
+    type Error;
 }

@@ -6,9 +6,6 @@ use crate::data_source::DataSource;
 /// Data source type which can delete an item by its value.
 #[async_trait]
 pub trait Delete: DataSource {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Deletes provided item from the storage.
     ///
     /// Item will be deleted only if it is equal
@@ -22,9 +19,6 @@ pub trait DeleteById: DataSource
 where
     Self::Item: Node,
 {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Deletes item from the storage by provided identifier.
     async fn delete_by_id(
         &self,
