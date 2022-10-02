@@ -1,4 +1,3 @@
-use std::convert::Infallible;
 use std::iter::FromIterator;
 
 use async_trait::async_trait;
@@ -9,6 +8,7 @@ use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save
 use crate::data_source::user::UserDataSource;
 use crate::data_source::DataSource;
 use crate::model::User;
+use crate::Error;
 
 /// Mock user data source which stores users inside of [`Vec`].
 #[derive(Default)]
@@ -16,7 +16,7 @@ pub struct MockUserDataSource(RwLock<Vec<User>>);
 
 impl DataSource for MockUserDataSource {
     type Item = User;
-    type Error = Infallible;
+    type Error = Error;
 }
 
 #[async_trait]
