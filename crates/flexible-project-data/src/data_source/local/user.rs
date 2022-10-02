@@ -1,15 +1,16 @@
 use async_trait::async_trait;
-use derive_more::{Display, Error, From};
 use fp_core::model::Node;
 use futures::stream::TryStreamExt;
 use mongodb::bson::{doc, to_document};
 use mongodb::options::{FindOneAndReplaceOptions, IndexOptions, ReturnDocument};
 use mongodb::{Collection, Database, IndexModel};
 
+use crate::data_source::local::LocalError;
 use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
 use crate::data_source::user::UserDataSource;
 use crate::data_source::DataSource;
 use crate::model::User;
+use crate::Error;
 
 use super::utils::UserCollection;
 
@@ -52,12 +53,8 @@ impl UserDataSource for LocalUserDataSource {}
 
 impl DataSource for LocalUserDataSource {
     type Item = User;
-    type Error = LocalError;
+    type Error = Error;
 }
-
-#[derive(Debug, Display, From, Error)]
-#[display(fmt = "local data source error: {}", _0)]
-pub struct LocalError(#[error(source)] mongodb::error::Error);
 
 #[async_trait]
 impl Clear for LocalUserDataSource {
