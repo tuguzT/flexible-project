@@ -2,6 +2,7 @@
 
 use async_graphql::{Context, Error, Object, ID};
 use fp_core::use_case::FindNode as _;
+use fp_data::data_source::local::LocalUserDataSource;
 use fp_data::interactor::FindNode;
 
 use crate::model::Node;
@@ -19,7 +20,7 @@ impl NodeQuery {
         #[graphql(desc = "The ID of the object.")] id: ID,
     ) -> Result<Option<Node>, Error> {
         let interactor = ctx
-            .data::<FindNode>()
+            .data::<FindNode<LocalUserDataSource>>()
             .expect("find node interactor should always exist");
         let id = id.to_string().into();
         let node = interactor.find(id).await?.map(Node::from);

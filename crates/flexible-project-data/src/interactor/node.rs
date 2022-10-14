@@ -1,18 +1,44 @@
-use std::convert::Infallible;
+use std::sync::Arc;
 
 use async_trait::async_trait;
-use fp_core::model::{ErasedId, Node};
+use fp_core::model::{ErasedId, Node, UserFilters};
 use fp_core::use_case::FindNode as CoreFindNode;
 
+use crate::data_source::user::UserDataSource;
+use crate::repository::user::UserRepository;
+use crate::repository::Error;
+
 /// Interactor used to find any node of the system by its identifier.
-#[derive(Default)]
-pub struct FindNode;
+pub struct FindNode<S>
+where
+    S: UserDataSource,
+{
+    user_repository: Arc<UserRepository<S>>,
+}
+
+impl<S> FindNode<S>
+where
+    S: UserDataSource,
+{
+    /// Creates new find node interactor.
+    pub fn new(user_repository: Arc<UserRepository<S>>) -> Self {
+        Self { user_repository }
+    }
+}
 
 #[async_trait]
-impl CoreFindNode for FindNode {
-    type Error = Infallible;
+impl<S> CoreFindNode for FindNode<S>
+where
+    S: UserDataSource + Send + Sync,
+{
+    type Error = Error;
 
     async fn find(&self, id: ErasedId) -> Result<Option<Node>, Self::Error> {
-        todo!("find by id: {}", id) // todo find in each repository
+        let filter = UserFilters {
+            ids: vec![id.set_owner()],
+        };
+        let user = self.user_repository.read(filter).await?.first().cloned();
+        let user = user.map(Node::from);
+        Ok(user)
     }
 }

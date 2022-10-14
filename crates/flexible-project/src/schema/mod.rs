@@ -34,7 +34,7 @@ pub async fn build_schema() -> Result<SchemaBuilder, Error> {
         .map_err(RepositoryError::from)?;
     let user_repository = Arc::new(UserRepository::new(user_data_source));
 
-    let find_node = FindNode::default();
+    let find_node = FindNode::new(user_repository.clone());
     let filter_users = FilterUsers::new(user_repository.clone());
     let user_credentials_verifier = UserCredentialsVerifier::default();
     let id_generator = GUIDGenerator::default();

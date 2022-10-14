@@ -141,6 +141,14 @@ impl ErasedId {
     pub fn new(id: String) -> Self {
         Self { id }
     }
+
+    /// Sets the owner type for this identifier.
+    pub fn set_owner<Owner>(self) -> Id<Owner>
+    where
+        Owner: ?Sized,
+    {
+        Id::new(self.id)
+    }
 }
 
 impl From<String> for ErasedId {
