@@ -1,13 +1,11 @@
 //! Definitions and utilities for data sources of the Flexible Project system.
 
-pub use crud::CrudDataSource;
+pub use error::{Error, Result};
 
 pub mod local;
-pub mod mock;
-pub mod ops;
 pub mod user;
 
-mod crud;
+mod error;
 
 /// Marker trait for data sources of the Flexible Project system.
 ///
@@ -16,7 +14,4 @@ mod crud;
 pub trait DataSource {
     /// Type of item stored in this data source.
     type Item;
-
-    /// Type returned when any error occurs.
-    type Error;
 }

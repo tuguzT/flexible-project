@@ -1,6 +1,7 @@
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
-use fp_core::model::{Node, User as CoreUser, UserRole as CoreUserRole};
-use fp_data::model::{Id, User as DataUser};
+use fp_core::model::{
+    Id, User as CoreUser, UserCredentials as CoreUserCredentials, UserRole as CoreUserRole,
+};
 
 /// Role of user in the Flexible Project system.
 #[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -38,30 +39,8 @@ impl User {
     }
 }
 
-impl Node for User {
-    type Id = Id<Self>;
-
-    fn id(&self) -> Self::Id {
-        self.id.clone()
-    }
-}
-
-impl CoreUser for User {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn email(&self) -> Option<&str> {
-        self.email.as_deref()
-    }
-
-    fn role(&self) -> CoreUserRole {
-        self.role.into()
-    }
-}
-
-impl From<DataUser> for User {
-    fn from(user: DataUser) -> Self {
+impl From<CoreUser> for User {
+    fn from(user: CoreUser) -> Self {
         Self {
             id: user.id.change_owner(),
             name: user.name,
@@ -71,7 +50,7 @@ impl From<DataUser> for User {
     }
 }
 
-impl From<User> for DataUser {
+impl From<User> for CoreUser {
     fn from(user: User) -> Self {
         Self {
             id: user.id.change_owner(),
@@ -82,11 +61,65 @@ impl From<User> for DataUser {
     }
 }
 
-/// Necessary data for creating new user in the Flexible Project system.
+/// User credentials in the Flexible Project system.
 #[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct NewUser {
+pub struct UserCredentials {
+    /// Name of the user.
+    pub name: String,
+    /// Password of the user.
+    #[graphql(secret)]
+    pub password: String,
+}
+
+impl From<CoreUserCredentials> for UserCredentials {
+    fn from(credentials: CoreUserCredentials) -> Self {
+        Self {
+            name: credentials.name,
+            password: credentials.password,
+        }
+    }
+}
+
+impl From<UserCredentials> for CoreUserCredentials {
+    fn from(credentials: UserCredentials) -> Self {
+        Self {
+            name: credentials.name,
+            password: credentials.password,
+        }
+    }
+}
+
+/// User input data in the Flexible Project system.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UpdateUser {
+    /// Unique identifier of the user.
+    pub id: ID,
     /// Unique name of the user.
     pub name: String,
     /// Unique email of the user, if exists.
     pub email: Option<String>,
+    /// Role of the user in the system.
+    pub role: UserRole,
+}
+
+impl From<CoreUser> for UpdateUser {
+    fn from(user: CoreUser) -> Self {
+        Self {
+            id: user.id.into(),
+            name: user.name,
+            email: user.email,
+            role: user.role.into(),
+        }
+    }
+}
+
+impl From<UpdateUser> for CoreUser {
+    fn from(user: UpdateUser) -> Self {
+        Self {
+            id: user.id.to_string().into(),
+            name: user.name,
+            email: user.email,
+            role: user.role.into(),
+        }
+    }
 }

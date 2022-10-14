@@ -1,15 +1,16 @@
-use crate::model::Node;
+use crate::model::Id;
 
-/// Trait for the users of the Flexible Project system.
-pub trait User: Node {
-    /// Get a unique user name.
-    fn name(&self) -> &str;
-
-    /// Get a unique email of the user.
-    fn email(&self) -> Option<&str>;
-
-    /// Get a role of the user in the system.
-    fn role(&self) -> UserRole;
+/// Data of user of the Flexible Project system.
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct User {
+    /// Identifier of the user.
+    pub id: Id<Self>,
+    /// Unique name of the user.
+    pub name: String,
+    /// Unique email of the user, if exists.
+    pub email: Option<String>,
+    /// Role of the user in the system.
+    pub role: UserRole,
 }
 
 /// Represents role of the user in the Flexible Project system.
@@ -26,14 +27,24 @@ pub enum UserRole {
 
 /// Credentials of the user such as username and password
 /// used to authenticate a user.
-pub trait UserCredentials {
-    /// Get a user name provided by the user.
-    fn name(&self) -> &str;
-
-    /// Get a password provided by the user.
-    fn password(&self) -> &str;
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UserCredentials {
+    /// Name of the user.
+    pub name: String,
+    /// Password of the user.
+    pub password: String,
 }
 
 /// Filters to be applied on user filtering.
-#[derive(Default)]
-pub struct UserFilters;
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UserFilters {
+    /// Identifiers to be filtered in search query.
+    pub ids: Vec<Id<User>>,
+}
+
+impl UserFilters {
+    /// Checks if user filters are completely empty.
+    pub fn is_empty(&self) -> bool {
+        self.ids.is_empty()
+    }
+}

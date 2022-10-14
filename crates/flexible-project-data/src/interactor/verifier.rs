@@ -1,3 +1,4 @@
+use derive_more::{Display, Error, From};
 use fancy_regex::Regex;
 use fp_core::model::UserCredentials;
 use fp_core::use_case::{
@@ -6,6 +7,9 @@ use fp_core::use_case::{
     UsernameVerifier as CoreUsernameVerifier,
 };
 use once_cell::sync::Lazy;
+
+#[derive(Debug, Display, Error, From)]
+pub struct RegexError(#[error(source)] fancy_regex::Error);
 
 /// Checks if username meets all the requirements.
 ///
@@ -19,12 +23,16 @@ use once_cell::sync::Lazy;
 pub struct UsernameVerifier;
 
 impl CoreUsernameVerifier for UsernameVerifier {
-    fn verify(&self, username: &str) -> bool {
-        USERNAME_REGEX.is_match(username).unwrap_or_default()
+    type Error = RegexError;
+
+    fn verify(&self, _username: &str) -> Result<bool, Self::Error> {
+        // let is_match = USERNAME_REGEX.is_match(username)?;
+        // Ok(is_match)
+        Ok(true) // todo fix code above
     }
 }
 
-static USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+static _USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"/^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
 });
 
@@ -40,12 +48,16 @@ static USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
 pub struct PasswordVerifier;
 
 impl CorePasswordVerifier for PasswordVerifier {
-    fn verify(&self, password: &str) -> bool {
-        PASSWORD_REGEX.is_match(password).unwrap_or_default()
+    type Error = RegexError;
+
+    fn verify(&self, _password: &str) -> Result<bool, Self::Error> {
+        // let is_match = PASSWORD_REGEX.is_match(password)?;
+        // Ok(is_match)
+        Ok(true) // todo fix code above
     }
 }
 
-static PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
+static _PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)(?=.*?[()#?!@$%^&*_-]).{8,}$").unwrap()
 });
 
@@ -57,13 +69,13 @@ static PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
 pub struct UserCredentialsVerifier(UsernameVerifier, PasswordVerifier);
 
 impl CoreUserCredentialsVerifier for UserCredentialsVerifier {
-    fn verify<C>(&self, credentials: &C) -> bool
-    where
-        C: UserCredentials,
-    {
+    type Error = RegexError;
+
+    fn verify(&self, credentials: &UserCredentials) -> Result<bool, Self::Error> {
         let UserCredentialsVerifier(uv, pv) = self;
-        let username = credentials.name();
-        let password = credentials.password();
-        uv.verify(username) && pv.verify(password)
+        let username = &credentials.name;
+        let password = &credentials.password;
+        let is_match = uv.verify(username)? && pv.verify(password)?;
+        Ok(is_match)
     }
 }

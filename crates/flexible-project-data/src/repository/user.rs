@@ -1,11 +1,9 @@
 //! Repositories for users of the Flexible Project system.
 
-use async_trait::async_trait;
-use fp_core::model::Node;
+use fp_core::model::{User, UserFilters};
 
 use crate::data_source::user::UserDataSource;
-use crate::repository::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
-use crate::repository::Repository;
+use crate::repository::{Repository, Result};
 
 /// User repository of the Flexible Project system.
 pub struct UserRepository<S>(S)
@@ -20,6 +18,32 @@ where
     pub fn new(data_source: S) -> Self {
         Self(data_source)
     }
+
+    /// Create new user from [user data](User) and password hash
+    /// which will be saved for this user.
+    pub async fn create(&self, user: User, password_hash: String) -> Result<User> {
+        let user = self.0.create(user, password_hash).await?;
+        Ok(user)
+    }
+
+    /// Find users by provided [filters](UserFilters).
+    pub async fn read(&self, filter: UserFilters) -> Result<Vec<User>> {
+        let users = self.0.read(filter).await?;
+        Ok(users)
+    }
+
+    /// Update user which has the same [identifier](fp_core::model::Id)
+    /// from the user parameter with provided [user data](User).
+    pub async fn update(&self, user: User) -> Result<Option<User>> {
+        let user = self.0.update(user).await?;
+        Ok(user)
+    }
+
+    /// Delete user with the same data as in the user parameter.
+    pub async fn delete(&self, user: User) -> Result<Option<User>> {
+        let user = self.0.delete(user).await?;
+        Ok(user)
+    }
 }
 
 impl<S> Repository for UserRepository<S>
@@ -27,71 +51,4 @@ where
     S: UserDataSource,
 {
     type Item = S::Item;
-    type Error = S::Error;
-}
-
-#[async_trait]
-impl<S> Clear for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn clear(&self) -> Result<(), Self::Error> {
-        self.0.clear().await
-    }
-}
-
-#[async_trait]
-impl<S> Delete for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
-        self.0.delete(item).await
-    }
-}
-
-#[async_trait]
-impl<S> DeleteById for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn delete_by_id(
-        &self,
-        id: <Self::Item as Node>::Id,
-    ) -> Result<Option<Self::Item>, Self::Error> {
-        self.0.delete_by_id(id).await
-    }
-}
-
-#[async_trait]
-impl<S> ReadAll for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error> {
-        self.0.read_all().await
-    }
-}
-
-#[async_trait]
-impl<S> ReadById for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn read_by_id(
-        &self,
-        id: <Self::Item as Node>::Id,
-    ) -> Result<Option<Self::Item>, Self::Error> {
-        self.0.read_by_id(id).await
-    }
-}
-
-#[async_trait]
-impl<S> Save for UserRepository<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
-        self.0.save(item).await
-    }
 }

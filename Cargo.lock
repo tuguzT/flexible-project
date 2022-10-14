@@ -273,9 +273,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web-lab"
-version = "0.18.2"
+version = "0.18.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb6e701cf87d1d862fc47c2c1daecc774e47c3651db7a9514707dcc6b8b23eb6"
+checksum = "b11277c9258b28bb2189b10c8910b729384d32afc7839d63568e0931d6a5493e"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -297,6 +297,7 @@ dependencies = [
  "generic-array",
  "hmac",
  "http",
+ "itertools",
  "local-channel",
  "mime",
  "once_cell",
@@ -407,12 +408,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 
 [[package]]
-name = "anymap"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33954243bd79057c2de7338850b85983a44588021f8a5fee574a8888c6de4344"
-
-[[package]]
 name = "arc-swap"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -454,9 +449,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql"
-version = "4.0.14"
+version = "4.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af82ca20bc5a205231a504a0ca6dccd9d71665edcf73eaf14f2232da851cfb8b"
+checksum = "12f25ef01a96d5180e8deadca87b041bed49edd1f932dd7d4b1eaa1db443a3a0"
 dependencies = [
  "async-graphql-derive",
  "async-graphql-parser",
@@ -483,14 +478,14 @@ dependencies = [
  "static_assertions",
  "tempfile",
  "thiserror",
- "uuid 1.1.2",
+ "uuid 1.2.1",
 ]
 
 [[package]]
 name = "async-graphql-actix-web"
-version = "4.0.14"
+version = "4.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41c68bf0c5477ae068a6304d7d3e3c5e260a6e13f79ed318ec38b65f1bbefe22"
+checksum = "8794e38e3cfeca54914e34fef28d73d6bba56826ad1d3857e466860690a0241f"
 dependencies = [
  "actix",
  "actix-http",
@@ -506,9 +501,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-derive"
-version = "4.0.14"
+version = "4.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66d47689c206c6234d3987b0ec406945ce832f45647d29f91054490ecc98a804"
+checksum = "798bcf08b169c7589cdaed2e297b6180657165a001efb4b5ba7a87f3a5406622"
 dependencies = [
  "Inflector",
  "async-graphql-parser",
@@ -522,9 +517,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-parser"
-version = "4.0.14"
+version = "4.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e1c7ef6924b3a7b056df47c44c000d18f53be84805354aed3682ae7cca5271a"
+checksum = "b599d684b30ed8ede2600507ceb2ba60214ffb2cfc55088c4c0dd33f7656acfd"
 dependencies = [
  "async-graphql-value",
  "pest",
@@ -534,9 +529,9 @@ dependencies = [
 
 [[package]]
 name = "async-graphql-value"
-version = "4.0.14"
+version = "4.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89f16b1bfce66e9551ddc1d0c97f060b870b51a3aa5b7a7510f773c34f38b504"
+checksum = "a81662a313c523f2b55c3735e20a5162fe7f42c0d4b0b64f6d73568dfde316ee"
 dependencies = [
  "bytes",
  "indexmap",
@@ -681,7 +676,7 @@ dependencies = [
  "serde_bytes",
  "serde_json",
  "time 0.3.14",
- "uuid 1.1.2",
+ "uuid 1.2.1",
 ]
 
 [[package]]
@@ -1084,6 +1079,7 @@ dependencies = [
  "actix-cors",
  "actix-web",
  "actix-web-lab",
+ "anyhow",
  "async-graphql",
  "async-graphql-actix-web",
  "derive_more",
@@ -1091,6 +1087,7 @@ dependencies = [
  "flexible-project-core",
  "flexible-project-data",
  "log",
+ "log-panics",
  "pretty_env_logger",
  "tokio",
 ]
@@ -1100,13 +1097,13 @@ name = "flexible-project-core"
 version = "0.0.0"
 dependencies = [
  "async-trait",
+ "derive_more",
 ]
 
 [[package]]
 name = "flexible-project-data"
 version = "0.0.0"
 dependencies = [
- "anyhow",
  "argon2",
  "async-trait",
  "derive_more",
@@ -1119,9 +1116,8 @@ dependencies = [
  "ouroboros",
  "rand_core",
  "serde",
- "shaku",
  "tokio",
- "uuid 1.1.2",
+ "uuid 1.2.1",
 ]
 
 [[package]]
@@ -1547,6 +1543,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "log-panics"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68f9dd8546191c1850ecf67d22f5ff00a935b890d0e84713159a55495cc2ac5f"
+dependencies = [
+ "log",
+]
+
+[[package]]
 name = "lru-cache"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1648,9 +1653,9 @@ dependencies = [
 
 [[package]]
 name = "mongodb"
-version = "2.3.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b95afe97b0c799fdf69cd960272a2cb9662d077bd6efd84eb722bb9805d47554"
+checksum = "b5a1df476ac9541b0e4fdc8e2cc48884e66c92c933cd17a1fd75e68caf75752e"
 dependencies = [
  "async-trait",
  "base64",
@@ -2285,28 +2290,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shaku"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "334da76925a094e2c72802ce17433cba4b5d8661d66ef36e1f899efab17192a5"
-dependencies = [
- "anymap",
- "once_cell",
- "shaku_derive",
-]
-
-[[package]]
-name = "shaku_derive"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "524f791f1f958b9c1825c1e48657d3bc485ee9ac4a1c7c226ab7fc7010afa7dc"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "signal-hook-registry"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2714,9 +2697,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.1.2"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd6469f4314d5f1ffec476e05f17cc9a78bc7a27a6a857842170bdf8d6f98d2f"
+checksum = "feb41e78f93363bb2df8b0e86a2ca30eed7806ea16ea0c790d757cf93f79be83"
 dependencies = [
  "getrandom",
  "serde",

@@ -4,11 +4,10 @@
 
 //! Flexible Project data layer library.
 
-pub use error::Error;
+pub use error::{Error, Result};
 
 pub mod data_source;
 pub mod interactor;
-pub mod model;
 pub mod repository;
 
 mod error;

@@ -3,7 +3,6 @@
 use async_graphql::{Interface, ID};
 use derive_more::{IsVariant, Unwrap};
 use fp_core::model::Node as CoreNode;
-use fp_data::model::{Id, Node as DataNode};
 
 use crate::model::User;
 
@@ -15,28 +14,18 @@ pub enum Node {
     User(User),
 }
 
-impl From<Node> for DataNode {
+impl From<Node> for CoreNode {
     fn from(node: Node) -> Self {
         match node {
-            Node::User(user) => DataNode::User(user.into()),
+            Node::User(user) => CoreNode::User(user.into()),
         }
     }
 }
 
-impl From<DataNode> for Node {
-    fn from(node: DataNode) -> Self {
+impl From<CoreNode> for Node {
+    fn from(node: CoreNode) -> Self {
         match node {
-            DataNode::User(user) => Node::User(user.into()),
-        }
-    }
-}
-
-impl CoreNode for Node {
-    type Id = Id<Self>;
-
-    fn id(&self) -> Self::Id {
-        match self {
-            Self::User(user) => CoreNode::id(user).change_owner(),
+            CoreNode::User(user) => Node::User(user.into()),
         }
     }
 }

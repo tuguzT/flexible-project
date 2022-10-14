@@ -14,11 +14,11 @@ fp-core = { path = "../flexible-project-core", package = "flexible-project-core"
 fp-data = { path = "../flexible-project-data", package = "flexible-project-data", version = "0.0.0" }
 # Actix project
 actix-web = "4.2.1"
-actix-web-lab = "0.18.2"
+actix-web-lab = "0.18.5"
 actix-cors = "0.6.3"
 # GraphQL
-async-graphql = { version = "4.0.14", features = ["log", "uuid"] }
-async-graphql-actix-web = "4.0.14"
+async-graphql = { version = "4.0.15", features = ["log", "uuid"] }
+async-graphql-actix-web = "4.0.15"
 # Tokio runtime
 tokio = { version = "1.21.2", features = ["rt-multi-thread", "macros", "sync"] }
 # Miscellaneous
@@ -26,3 +26,5 @@ dotenv = "0.15.0"
 log = "0.4.17"
 pretty_env_logger = "0.4.0"
 derive_more = "0.99.17"
+anyhow = "1.0.65"
+log-panics = "2.1.0"

@@ -1,17 +1,19 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fp_core::model::{Node, UserCredentials, UserFilters, UserRole};
+use derive_more::{Display, Error, From};
+use fp_core::model::{Id, User, UserCredentials, UserFilters, UserRole};
 use fp_core::use_case::{
     CreateUser as CoreCreateUser, DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
-    UpdateUser as CoreUpdateUser,
+    GUIDGenerator as CoreGUIDGenerator, UpdateUser as CoreUpdateUser,
+    UserCredentialsVerifier as CoreUserCredentialsVerifier,
 };
 
 use crate::data_source::user::UserDataSource;
-use crate::interactor::UserCredentialsVerifier;
-use crate::model::{Id, User};
-use crate::repository::ops::{DeleteById, ReadAll, Save};
+use crate::interactor::verifier::RegexError;
+use crate::interactor::{GUIDGenerator, UserCredentialsVerifier};
 use crate::repository::user::UserRepository;
+use crate::repository::Error;
 
 /// Interactor used to create new user in the system.
 pub struct CreateUser<S>
@@ -19,7 +21,8 @@ where
     S: UserDataSource,
 {
     repository: Arc<UserRepository<S>>,
-    _verifier: UserCredentialsVerifier,
+    verifier: UserCredentialsVerifier,
+    id_generator: GUIDGenerator,
 }
 
 impl<S> CreateUser<S>
@@ -27,12 +30,29 @@ where
     S: UserDataSource,
 {
     /// Creates new create user interactor.
-    pub fn new(repository: Arc<UserRepository<S>>, verifier: UserCredentialsVerifier) -> Self {
+    pub fn new(
+        repository: Arc<UserRepository<S>>,
+        verifier: UserCredentialsVerifier,
+        id_generator: GUIDGenerator,
+    ) -> Self {
         Self {
             repository,
-            _verifier: verifier,
+            verifier,
+            id_generator,
         }
     }
+}
+
+#[derive(Debug, Display, Error, From)]
+#[from(forward)]
+pub struct CreateUserError(#[error(source)] CreateUserErrorKind);
+
+#[derive(Debug, Display, Error, From)]
+enum CreateUserErrorKind {
+    Repository(#[error(source)] Error),
+    Regex(#[error(source)] RegexError),
+    #[display(fmt = "user credentials does not match requirements")]
+    UserCredentials,
 }
 
 #[async_trait]
@@ -40,22 +60,23 @@ impl<S> CoreCreateUser for CreateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = S::Error;
+    type Error = CreateUserError;
 
-    type User = User;
-
-    async fn create<C>(&self, credentials: &C) -> Result<Self::User, Self::Error>
-    where
-        C: UserCredentials + Sync,
-    {
+    async fn create(&self, credentials: UserCredentials) -> Result<User, Self::Error> {
+        self.verifier
+            .verify(&credentials)?
+            .then_some(())
+            .ok_or(CreateUserErrorKind::UserCredentials)?;
         let repository = self.repository.as_ref();
+        let id = self.id_generator.generate();
         let user = User {
-            id: Id::random(),
-            name: credentials.name().to_string(),
+            id: id.to_string().into(),
+            name: credentials.name,
             email: None,
             role: UserRole::User,
         };
-        repository.save(user).await
+        let user = repository.create(user, credentials.password).await?;
+        Ok(user)
     }
 }
 
@@ -82,13 +103,18 @@ impl<S> CoreDeleteUser for DeleteUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = S::Error;
+    type Error = Error;
 
-    type User = User;
-
-    async fn delete(&self, id: <User as Node>::Id) -> Result<Option<Self::User>, Self::Error> {
+    async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.delete_by_id(id).await
+        let filters = UserFilters { ids: vec![id] };
+        let user = repository.read(filters).await?.first().cloned();
+        let user = match user {
+            Some(user) => user,
+            None => return Ok(None),
+        };
+        let user = repository.delete(user).await?;
+        Ok(user)
     }
 }
 
@@ -115,13 +141,12 @@ impl<S> CoreFilterUsers for FilterUsers<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = S::Error;
+    type Error = Error;
 
-    type User = User;
-
-    async fn filter(&self, _filters: UserFilters) -> Result<Vec<Self::User>, Self::Error> {
+    async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.read_all().await
+        let user = repository.read(filters).await?;
+        Ok(user)
     }
 }
 
@@ -148,12 +173,11 @@ impl<S> CoreUpdateUser for UpdateUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = S::Error;
+    type Error = Error;
 
-    type User = User;
-
-    async fn update(&self, user: Self::User) -> Result<Self::User, Self::Error> {
+    async fn update(&self, user: User) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        repository.save(user).await
+        let user = repository.update(user).await?;
+        Ok(user)
     }
 }

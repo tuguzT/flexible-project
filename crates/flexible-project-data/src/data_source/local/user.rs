@@ -1,33 +1,27 @@
 use async_trait::async_trait;
-use fp_core::model::Node;
+use fp_core::model::{User, UserFilters};
+use futures::future;
 use futures::stream::TryStreamExt;
-use mongodb::bson::{doc, to_document};
-use mongodb::options::{FindOneAndReplaceOptions, IndexOptions, ReturnDocument};
+use mongodb::bson::{doc, to_bson, Uuid};
+use mongodb::options::IndexOptions;
 use mongodb::{Collection, Database, IndexModel};
 
-use crate::data_source::local::LocalError;
-use crate::data_source::ops::{Clear, Delete, DeleteById, ReadAll, ReadById, Save};
 use crate::data_source::user::UserDataSource;
-use crate::data_source::DataSource;
-use crate::model::User;
-use crate::Error;
+use crate::data_source::{DataSource, Result};
 
+use super::model::{UserData, UserRoleData};
 use super::utils::UserCollection;
 
 /// Local user data source implementation.
 pub struct LocalUserDataSource {
-    collection: Collection<User>,
+    collection: Collection<UserData>,
 }
 
 impl LocalUserDataSource {
     /// Creates new local user data source.
-    pub async fn new(database: Database) -> Result<Self, LocalError> {
+    pub async fn new(database: Database) -> Result<Self> {
         let collection = database.user_collection();
         let indexes = [
-            IndexModel::builder()
-                .keys(doc! { "id": 1 })
-                .options(IndexOptions::builder().unique(true).build())
-                .build(),
             IndexModel::builder()
                 .keys(doc! { "name": 1 })
                 .options(IndexOptions::builder().unique(true).build())
@@ -38,7 +32,7 @@ impl LocalUserDataSource {
                     IndexOptions::builder()
                         .unique(true)
                         .partial_filter_expression(
-                            doc! { "email": { "$exists": true, "$ne": null } },
+                            doc! { "email": { "$exists": true, "$type": "string" } },
                         )
                         .build(),
                 )
@@ -49,75 +43,70 @@ impl LocalUserDataSource {
     }
 }
 
-impl UserDataSource for LocalUserDataSource {}
+#[async_trait]
+impl UserDataSource for LocalUserDataSource {
+    async fn create(&self, user: Self::Item, password: String) -> Result<Self::Item> {
+        let user = UserData {
+            id: Uuid::parse_str(user.id.to_string())?,
+            name: user.name,
+            email: user.email,
+            password_hash: password,
+            role: user.role.into(),
+        };
+        self.collection.insert_one(&user, None).await?;
+        Ok(user.into())
+    }
+
+    async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
+        let filter = if filter.is_empty() {
+            doc! {}
+        } else {
+            let ids = filter
+                .ids
+                .iter()
+                .map(|id| Uuid::parse_str(&**id).map_err(Into::into))
+                .collect::<Result<Vec<_>>>()?;
+            doc! { "_id": { "$in": ids } }
+        };
+        let cursor = self.collection.find(filter, None).await?;
+        let vec = cursor
+            .and_then(|user| future::ok(User::from(user)))
+            .try_collect()
+            .await?;
+        Ok(vec)
+    }
+
+    async fn update(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        let filter = doc! { "_id": Uuid::parse_str(&*user.id)? };
+        let update = doc! {
+            "name": &user.name,
+            "email": user.email.as_deref(),
+            "role": to_bson(&UserRoleData::from(user.role))?,
+        };
+        let old_user = self
+            .collection
+            .find_one_and_update(filter, update, None)
+            .await?
+            .map(Into::into);
+        Ok(old_user)
+    }
+
+    async fn delete(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        let query = doc! {
+            "_id": Uuid::parse_str(&*user.id)?,
+            "name": &user.name,
+            "email": user.email.as_deref(),
+            "role": to_bson(&UserRoleData::from(user.role))?,
+        };
+        let user = self
+            .collection
+            .find_one_and_delete(query, None)
+            .await?
+            .map(Into::into);
+        Ok(user)
+    }
+}
 
 impl DataSource for LocalUserDataSource {
     type Item = User;
-    type Error = Error;
-}
-
-#[async_trait]
-impl Clear for LocalUserDataSource {
-    async fn clear(&self) -> Result<(), Self::Error> {
-        self.collection.delete_many(doc! {}, None).await?;
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl ReadAll for LocalUserDataSource {
-    async fn read_all(&self) -> Result<Vec<Self::Item>, Self::Error> {
-        let cursor = self.collection.find(None, None).await?;
-        let vec = cursor.try_collect().await?;
-        Ok(vec)
-    }
-}
-
-#[async_trait]
-impl ReadById for LocalUserDataSource {
-    async fn read_by_id(
-        &self,
-        id: <Self::Item as Node>::Id,
-    ) -> Result<Option<Self::Item>, Self::Error> {
-        let filter = doc! { "id": id };
-        let user = self.collection.find_one(filter, None).await?;
-        Ok(user)
-    }
-}
-
-#[async_trait]
-impl Delete for LocalUserDataSource {
-    async fn delete(&self, item: Self::Item) -> Result<Option<Self::Item>, Self::Error> {
-        let query = to_document(&item).expect("should be valid");
-        let user = self.collection.find_one_and_delete(query, None).await?;
-        Ok(user)
-    }
-}
-
-#[async_trait]
-impl DeleteById for LocalUserDataSource {
-    async fn delete_by_id(
-        &self,
-        id: <Self::Item as Node>::Id,
-    ) -> Result<Option<Self::Item>, Self::Error> {
-        let query = doc! { "id": id };
-        let user = self.collection.find_one_and_delete(query, None).await?;
-        Ok(user)
-    }
-}
-
-#[async_trait]
-impl Save for LocalUserDataSource {
-    async fn save(&self, item: Self::Item) -> Result<Self::Item, Self::Error> {
-        let filter = doc! { "id": &item.id };
-        let options = FindOneAndReplaceOptions::builder()
-            .return_document(ReturnDocument::After)
-            .build();
-        let user = self
-            .collection
-            .find_one_and_replace(filter, item, options)
-            .await?
-            .expect("`returnDocument: after` was provided; should return new value which cannot be `None`");
-        Ok(user)
-    }
 }

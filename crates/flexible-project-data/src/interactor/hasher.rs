@@ -15,8 +15,8 @@ pub struct PasswordHasher {
 }
 
 /// Error that may occur when creating new password hasher interactor with some secret.
-#[derive(Error, Debug, Display, From)]
-#[display(fmt = "invalid secret provided: {}", _0)]
+#[derive(Error, Debug, Display, From, Clone)]
+#[display(fmt = "invalid secret provided")]
 pub struct WithSecretError(#[error(source)] argon2::Error);
 
 impl PasswordHasher {
@@ -49,8 +49,8 @@ impl Default for PasswordHasher {
 }
 
 /// Error that may occur when password is being hashed by some algorithm.
-#[derive(Error, Debug, Display, From)]
-#[display(fmt = "password hashing failed: {}", _0)]
+#[derive(Error, Debug, Display, From, Clone)]
+#[display(fmt = "password hashing failed")]
 pub struct PasswordHashError(#[error(source)] argon2::password_hash::Error);
 
 impl CorePasswordHasher for PasswordHasher {
@@ -65,8 +65,8 @@ impl CorePasswordHasher for PasswordHasher {
 }
 
 /// Error that may occur when verifying password with its hash.
-#[derive(Error, Debug, Display, From)]
-#[display(fmt = "password hash verification failed: {}", _0)]
+#[derive(Error, Debug, Display, From, Clone)]
+#[display(fmt = "password hash verification failed")]
 pub struct PasswordHashVerifyError(#[error(source)] argon2::password_hash::Error);
 
 impl PasswordHashVerifier for PasswordHasher {

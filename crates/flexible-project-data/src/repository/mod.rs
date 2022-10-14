@@ -1,11 +1,10 @@
 //! Definitions and utilities for repositories of the Flexible Project system.
 
-pub use crud::CrudRepository;
+pub use error::{Error, Result};
 
-pub mod ops;
 pub mod user;
 
-mod crud;
+mod error;
 
 /// Marker trait for repositories of the Flexible Project system.
 ///
@@ -14,7 +13,4 @@ mod crud;
 pub trait Repository {
     /// Type of item stored in this repository.
     type Item;
-
-    /// Type returned when any error occurs.
-    type Error;
 }

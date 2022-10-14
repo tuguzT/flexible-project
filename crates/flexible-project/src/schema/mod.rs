@@ -1,8 +1,17 @@
 //! Definitions of GraphQL schemas, queries, mutations and subscriptions.
 
-use async_graphql::{EmptySubscription, MergedObject};
+use std::sync::Arc;
 
-use crate::data::create_user_repository;
+use async_graphql::{EmptySubscription, MergedObject};
+use fp_data::data_source::local::{Client, LocalUserDataSource};
+use fp_data::interactor::{
+    CreateUser, DeleteUser, FilterUsers, FindNode, GUIDGenerator, UpdateUser,
+    UserCredentialsVerifier,
+};
+use fp_data::repository::user::UserRepository;
+use fp_data::repository::Error as RepositoryError;
+use fp_data::Error;
+
 use crate::model::Node;
 
 pub mod node;
@@ -17,15 +26,37 @@ pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, EmptySubs
 /// Builds the [schema](Schema) for the Flexible Project system.
 ///
 /// Returns a [builder](SchemaBuilder) to allow users to customize it.
-pub fn build_schema() -> SchemaBuilder {
-    let user_repository = create_user_repository();
+pub async fn build_schema() -> Result<SchemaBuilder, Error> {
+    let client = Client::new().map_err(RepositoryError::from)?;
+    let database = client.0.database("flexible-project");
+    let user_data_source = LocalUserDataSource::new(database)
+        .await
+        .map_err(RepositoryError::from)?;
+    let user_repository = Arc::new(UserRepository::new(user_data_source));
+
+    let find_node = FindNode::default();
+    let filter_users = FilterUsers::new(user_repository.clone());
+    let user_credentials_verifier = UserCredentialsVerifier::default();
+    let id_generator = GUIDGenerator::default();
+    let create_user = CreateUser::new(
+        user_repository.clone(),
+        user_credentials_verifier,
+        id_generator,
+    );
+    let update_user = UpdateUser::new(user_repository.clone());
+    let delete_user = DeleteUser::new(user_repository);
 
     let query = Query::default();
     let mutation = Mutation::default();
     let subscription = Subscription::default();
-    Schema::build(query, mutation, subscription)
+    let schema_builder = Schema::build(query, mutation, subscription)
         .register_output_type::<Node>()
-        .data(user_repository)
+        .data(find_node)
+        .data(filter_users)
+        .data(create_user)
+        .data(update_user)
+        .data(delete_user);
+    Ok(schema_builder)
 }
 
 /// Root query object of the Flexible Project system.

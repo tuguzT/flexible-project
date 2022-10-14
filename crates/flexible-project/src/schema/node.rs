@@ -1,10 +1,10 @@
 //! Definitions of node queries, mutations and subscriptions of the Flexible Project system.
 
 use async_graphql::{Context, Error, Object, ID};
-use fp_data::repository::ops::ReadById;
+use fp_core::use_case::FindNode as _;
+use fp_data::interactor::FindNode;
 
-use crate::data::UserRepositoryData;
-use crate::model::{Node, User};
+use crate::model::Node;
 
 /// Node query object of the Flexible Project system.
 #[derive(Default)]
@@ -18,16 +18,11 @@ impl NodeQuery {
         ctx: &Context<'_>,
         #[graphql(desc = "The ID of the object.")] id: ID,
     ) -> Result<Option<Node>, Error> {
-        // TODO: find from more than one repository (add special use case for node searching by ID)
-        let id = id.parse()?;
-        let repository = ctx
-            .data::<UserRepositoryData>()
-            .expect("user repository should always exist");
-        let node = repository
-            .read_by_id(id)
-            .await?
-            .map(User::from)
-            .map(Node::from);
+        let interactor = ctx
+            .data::<FindNode>()
+            .expect("find node interactor should always exist");
+        let id = id.to_string().into();
+        let node = interactor.find(id).await?.map(Node::from);
         Ok(node)
     }
 }
