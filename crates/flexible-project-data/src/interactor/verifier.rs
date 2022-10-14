@@ -25,15 +25,14 @@ pub struct UsernameVerifier;
 impl CoreUsernameVerifier for UsernameVerifier {
     type Error = RegexError;
 
-    fn verify(&self, _username: &str) -> Result<bool, Self::Error> {
-        // let is_match = USERNAME_REGEX.is_match(username)?;
-        // Ok(is_match)
-        Ok(true) // todo fix code above
+    fn verify(&self, username: &str) -> Result<bool, Self::Error> {
+        let is_match = USERNAME_REGEX.is_match(username)?;
+        Ok(is_match)
     }
 }
 
-static _USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"/^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
+static USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
 });
 
 /// Checks if password meets all the requirements.
@@ -50,14 +49,13 @@ pub struct PasswordVerifier;
 impl CorePasswordVerifier for PasswordVerifier {
     type Error = RegexError;
 
-    fn verify(&self, _password: &str) -> Result<bool, Self::Error> {
-        // let is_match = PASSWORD_REGEX.is_match(password)?;
-        // Ok(is_match)
-        Ok(true) // todo fix code above
+    fn verify(&self, password: &str) -> Result<bool, Self::Error> {
+        let is_match = PASSWORD_REGEX.is_match(password)?;
+        Ok(is_match)
     }
 }
 
-static _PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
+static PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d)(?=.*?[()#?!@$%^&*_-]).{8,}$").unwrap()
 });
 
