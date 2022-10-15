@@ -1,3 +1,7 @@
+#![allow(missing_docs)]
+
+use derive_more::{Display, From, IsVariant, Unwrap};
+
 use crate::model::Id;
 
 /// Data of user of the Flexible Project system.
@@ -14,7 +18,7 @@ pub struct User {
 }
 
 /// Represents role of the user in the Flexible Project system.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default, IsVariant, Unwrap)]
 pub enum UserRole {
     /// An ordinary user of the system.
     #[default]
@@ -47,4 +51,17 @@ impl UserFilters {
     pub fn is_empty(&self) -> bool {
         self.ids.is_empty()
     }
+}
+
+/// User access token which is required to access non-public system resources.
+#[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
+pub struct UserToken {
+    /// User token general representation.
+    pub token: String,
+}
+
+#[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UserTokenClaims {
+    /// Identifier of the user.
+    pub id: Id<User>,
 }

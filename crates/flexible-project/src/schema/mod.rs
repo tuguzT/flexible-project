@@ -5,8 +5,8 @@ use std::sync::Arc;
 use async_graphql::{EmptySubscription, MergedObject};
 use fp_data::data_source::local::{Client, LocalUserDataSource};
 use fp_data::interactor::{
-    CreateUser, DeleteUser, FilterUsers, FindNode, GUIDGenerator, UpdateUser,
-    UserCredentialsVerifier,
+    DeleteUser, FilterUsers, FindNode, GUIDGenerator, PasswordHasher, SignIn, SignUp, UpdateUser,
+    UserCredentialsVerifier, UserTokenGenerator, UserTokenVerifier,
 };
 use fp_data::repository::user::UserRepository;
 use fp_data::repository::Error as RepositoryError;
@@ -36,12 +36,23 @@ pub async fn build_schema() -> Result<SchemaBuilder, Error> {
 
     let find_node = FindNode::new(user_repository.clone());
     let filter_users = FilterUsers::new(user_repository.clone());
-    let user_credentials_verifier = UserCredentialsVerifier::default();
+    let credentials_verifier = UserCredentialsVerifier::default();
     let id_generator = GUIDGenerator::default();
-    let create_user = CreateUser::new(
+    let password_hasher = Arc::new(PasswordHasher::default());
+    let token_generator = UserTokenGenerator::default();
+    let sign_up = SignUp::new(
         user_repository.clone(),
-        user_credentials_verifier,
+        password_hasher.clone(),
+        credentials_verifier,
         id_generator,
+        token_generator,
+    );
+    let token_verifier = UserTokenVerifier::default();
+    let sign_in = SignIn::new(
+        user_repository.clone(),
+        password_hasher,
+        credentials_verifier,
+        token_verifier,
     );
     let update_user = UpdateUser::new(user_repository.clone());
     let delete_user = DeleteUser::new(user_repository);
@@ -50,12 +61,14 @@ pub async fn build_schema() -> Result<SchemaBuilder, Error> {
     let mutation = Mutation::default();
     let subscription = Subscription::default();
     let schema_builder = Schema::build(query, mutation, subscription)
-        .register_output_type::<Node>()
         .data(find_node)
         .data(filter_users)
-        .data(create_user)
+        .data(sign_up)
+        .data(sign_in)
         .data(update_user)
-        .data(delete_user);
+        .data(delete_user)
+        .data(token_verifier)
+        .register_output_type::<Node>();
     Ok(schema_builder)
 }
 

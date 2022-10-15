@@ -6,11 +6,11 @@ use crate::data_source::local::Error as LocalError;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error of some data source implementation.
-#[derive(Debug, Display, Error, From, Clone)]
+#[derive(Debug, Display, Error, From)]
 #[from(forward)]
 pub struct Error(#[error(source)] ErrorKind);
 
-#[derive(Debug, Display, Error, From, Clone)]
+#[derive(Debug, Display, Error, From)]
 #[display(fmt = "data source error")]
 #[from(forward)]
 enum ErrorKind {

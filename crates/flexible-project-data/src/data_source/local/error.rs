@@ -4,11 +4,11 @@ use mongodb::bson::uuid::Error as UuidError;
 use mongodb::error::Error as MongoError;
 
 /// Error of the local data source implementation.
-#[derive(Debug, Display, Error, From, Clone)]
+#[derive(Debug, Display, Error, From)]
 #[from(forward)]
 pub struct Error(#[error(source)] ErrorKind);
 
-#[derive(Debug, Display, Error, From, Clone)]
+#[derive(Debug, Display, Error, From)]
 #[display(fmt = "local data source error")]
 enum ErrorKind {
     Mongo(#[error(source)] MongoError),

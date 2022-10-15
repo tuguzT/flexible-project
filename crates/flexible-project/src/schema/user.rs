@@ -2,13 +2,16 @@
 
 use async_graphql::{Context, Error, Object, ID};
 use fp_core::model::UserFilters;
-use fp_core::use_case::{CreateUser as _, DeleteUser as _, FilterUsers as _, UpdateUser as _};
+use fp_core::use_case::{
+    DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _, UpdateUser as _,
+    UserTokenVerifier as _,
+};
 use fp_data::data_source::local::LocalUserDataSource;
 use fp_data::interactor::{
-    CreateUser, DeleteUser, FilterUsers, UpdateUser as UpdateUserInteractor,
+    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser as UpdateUserInteractor, UserTokenVerifier,
 };
 
-use crate::model::{UpdateUser, User, UserCredentials};
+use crate::model::{UpdateUser, User, UserCredentials, UserToken};
 
 /// User query object of the Flexible Project system.
 #[derive(Default)]
@@ -23,7 +26,8 @@ impl UserQuery {
             .expect("filter users interactor should always exist");
         let filters = UserFilters::default();
         let users = interactor.filter(filters).await?;
-        Ok(users.into_iter().map(User::from).collect())
+        let users = users.into_iter().map(User::from).collect();
+        Ok(users)
     }
 
     /// Data of user by its identifier of the Flexible Project system.
@@ -49,16 +53,33 @@ pub struct UserMutation;
 
 #[Object]
 impl UserMutation {
-    /// Creates new user from provided user data in the Flexible Project system.
-    async fn create_user(
+    /// Registers new user in the Flexible Project system.
+    async fn sign_up(
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "User credentials of the new user.")] credentials: UserCredentials,
-    ) -> Result<User, Error> {
+    ) -> Result<UserToken, Error> {
         let interactor = ctx
-            .data::<CreateUser<LocalUserDataSource>>()
-            .expect("create user interactor should always exist");
-        let user = interactor.create(credentials.into()).await?.into();
+            .data::<SignUp<LocalUserDataSource>>()
+            .expect("sign up interactor should always exist");
+        let token = interactor.sign_up(credentials.into()).await?.into();
+        Ok(token)
+    }
+
+    /// Login existing user in the Flexible Project system.
+    async fn sign_in(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(desc = "User credentials of the existing user.")] credentials: UserCredentials,
+    ) -> Result<User, Error> {
+        let token = require_user_token(ctx)?;
+        let interactor = ctx
+            .data::<SignIn<LocalUserDataSource>>()
+            .expect("sign in interactor should always exist");
+        let user = interactor
+            .sign_in(credentials.into(), token.into())
+            .await?
+            .into();
         Ok(user)
     }
 
@@ -88,4 +109,36 @@ impl UserMutation {
         let user = interactor.delete(id).await?.map(User::from);
         Ok(user)
     }
+}
+
+/// Tries to retrieve [user token](UserToken) from the GraphQL [context](Context).
+pub fn require_user_token(ctx: &Context<'_>) -> Result<UserToken, Error> {
+    let token = ctx
+        .data_opt::<UserToken>()
+        .cloned()
+        .ok_or("authentication is required")?;
+    Ok(token)
+}
+
+/// Tries to retrieve [user](User) from the GraphQL [context](Context).
+pub async fn require_user(ctx: &Context<'_>) -> Result<User, Error> {
+    let token = &require_user_token(ctx)?.into();
+    let token_verifier = ctx
+        .data::<UserTokenVerifier>()
+        .expect("token verifier interactor should always exist");
+    let claims = token_verifier.verify(token)?;
+
+    let filter_users = ctx
+        .data::<FilterUsers<LocalUserDataSource>>()
+        .expect("filter users interactor should always exist");
+    let id = claims.id;
+    let filters = UserFilters { ids: vec![id] };
+    let user = filter_users
+        .filter(filters)
+        .await?
+        .first()
+        .cloned()
+        .ok_or("user is required")?
+        .into();
+    Ok(user)
 }

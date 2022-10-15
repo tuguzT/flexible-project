@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use fp_core::model::{User, UserFilters};
+use fp_core::model::{Id, User, UserFilters};
 use futures::future;
 use futures::stream::TryStreamExt;
 use mongodb::bson::{doc, to_bson, Uuid};
@@ -45,12 +45,12 @@ impl LocalUserDataSource {
 
 #[async_trait]
 impl UserDataSource for LocalUserDataSource {
-    async fn create(&self, user: Self::Item, password: String) -> Result<Self::Item> {
+    async fn create(&self, user: Self::Item, password_hash: String) -> Result<Self::Item> {
         let user = UserData {
             id: Uuid::parse_str(user.id.to_string())?,
             name: user.name,
             email: user.email,
-            password_hash: password,
+            password_hash,
             role: user.role.into(),
         };
         self.collection.insert_one(&user, None).await?;
@@ -104,6 +104,13 @@ impl UserDataSource for LocalUserDataSource {
             .await?
             .map(Into::into);
         Ok(user)
+    }
+
+    async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>> {
+        let filter = doc! { "_id": Uuid::parse_str(&*id)? };
+        let user = self.collection.find_one(filter, None).await?;
+        let password_hash = user.map(|user| user.password_hash);
+        Ok(password_hash)
     }
 }
 

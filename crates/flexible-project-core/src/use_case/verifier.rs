@@ -1,4 +1,4 @@
-use crate::model::UserCredentials;
+use crate::model::{UserCredentials, UserToken, UserTokenClaims};
 
 /// Interactor type which can verify username provided by user.
 pub trait UsernameVerifier {
@@ -31,4 +31,15 @@ pub trait UserCredentialsVerifier {
     ///
     /// Returns `true` if provided credentials are valid, `false` otherwise.
     fn verify(&self, credentials: &UserCredentials) -> Result<bool, Self::Error>;
+}
+
+/// Interactor type which can verify user token provided by client.
+pub trait UserTokenVerifier {
+    /// The type returned when any error occurs.
+    type Error;
+
+    /// Verifies user token provided by client.
+    ///
+    /// Returns `true` if provided token is valid, `false` otherwise.
+    fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, Self::Error>;
 }

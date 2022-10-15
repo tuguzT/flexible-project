@@ -1,10 +1,16 @@
+#![allow(missing_docs)]
+
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
+use derive_more::{Display, From, IsVariant, Unwrap};
 use fp_core::model::{
     Id, User as CoreUser, UserCredentials as CoreUserCredentials, UserRole as CoreUserRole,
+    UserToken as CoreUserToken,
 };
 
 /// Role of user in the Flexible Project system.
-#[derive(Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(
+    Enum, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default, IsVariant, Unwrap,
+)]
 #[graphql(remote = "CoreUserRole")]
 pub enum UserRole {
     /// An ordinary user of the system.
@@ -121,5 +127,24 @@ impl From<UpdateUser> for CoreUser {
             email: user.email,
             role: user.role.into(),
         }
+    }
+}
+
+/// User access token which is required to access non-public system resources.
+#[derive(SimpleObject, Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
+pub struct UserToken {
+    /// User token general representation.
+    pub token: String,
+}
+
+impl From<CoreUserToken> for UserToken {
+    fn from(token: CoreUserToken) -> Self {
+        Self { token: token.token }
+    }
+}
+
+impl From<UserToken> for CoreUserToken {
+    fn from(token: UserToken) -> Self {
+        Self { token: token.token }
     }
 }

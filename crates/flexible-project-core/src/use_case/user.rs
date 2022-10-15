@@ -1,17 +1,40 @@
 use async_trait::async_trait;
 
-use crate::model::{Id, User, UserCredentials, UserFilters};
+use crate::model::{Id, User, UserCredentials, UserFilters, UserToken, UserTokenClaims};
 
-/// Interactor type which can create new user from provided user credentials.
-#[async_trait]
-pub trait CreateUser {
+/// Interactor type which can generate new user token from the claims.
+pub trait UserTokenGenerator {
     /// The type returned when any error occurs.
     type Error;
 
-    /// Creates new user from provided user credentials.
-    ///
-    /// Returns data of created user.
-    async fn create(&self, credentials: UserCredentials) -> Result<User, Self::Error>;
+    /// Generates new [user token](UserToken) with data provided in [claims](UserTokenClaims).
+    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, Self::Error>;
+}
+
+/// Interactor type which can register new user.
+#[async_trait]
+pub trait SignUp {
+    /// The type returned when any error occurs.
+    type Error;
+
+    /// Registers new user from provided [credentials](UserCredentials)
+    /// in the Flexible Project system.
+    async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error>;
+}
+
+/// Interactor type which can login existing user.
+#[async_trait]
+pub trait SignIn {
+    /// The type returned when any error occurs.
+    type Error;
+
+    /// Login existing user with provided [credentials](UserCredentials)
+    /// and [user token](UserToken) in the Flexible Project system.
+    async fn sign_in(
+        &self,
+        credentials: UserCredentials,
+        token: UserToken,
+    ) -> Result<User, Self::Error>;
 }
 
 /// Interactor type which can filter all the users.

@@ -1,81 +1,214 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chrono::{Duration, Utc};
 use derive_more::{Display, Error, From};
-use fp_core::model::{Id, User, UserCredentials, UserFilters, UserRole};
-use fp_core::use_case::{
-    CreateUser as CoreCreateUser, DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
-    GUIDGenerator as CoreGUIDGenerator, UpdateUser as CoreUpdateUser,
-    UserCredentialsVerifier as CoreUserCredentialsVerifier,
+use fp_core::model::{
+    Id, User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims,
 };
+use fp_core::use_case::{
+    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
+    GUIDGenerator as CoreGUIDGenerator, PasswordHashVerifier, PasswordHasher as _,
+    SignIn as CoreSignIn, SignUp as CoreSignUp, UpdateUser as CoreUpdateUser,
+    UserCredentialsVerifier as CoreUserCredentialsVerifier,
+    UserTokenGenerator as CoreUserTokenGenerator, UserTokenVerifier as CoreUserTokenVerifier,
+};
+use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
-use crate::interactor::verifier::RegexError;
+use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, PasswordHasher};
+use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
+use crate::interactor::verifier::{RegexError, UserTokenVerifier};
 use crate::interactor::{GUIDGenerator, UserCredentialsVerifier};
 use crate::repository::user::UserRepository;
 use crate::repository::Error;
 
-/// Interactor used to create new user in the system.
-pub struct CreateUser<S>
+/// Interactor used to generate new user token from claims.
+#[derive(Default)]
+pub struct UserTokenGenerator;
+
+impl CoreUserTokenGenerator for UserTokenGenerator {
+    type Error = JwtError;
+
+    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, Self::Error> {
+        let claims = UserTokenClaimsData {
+            id: claims.id.to_string(),
+            exp: Utc::now() + Duration::hours(1),
+        };
+        let header = &Header::default();
+        let key = &EncodingKey::from_secret(secret());
+        let token = encode(header, &claims, key).map_err(JwtError::from)?;
+        let token = UserToken { token };
+        Ok(token)
+    }
+}
+
+/// Interactor used to register new user in the system.
+pub struct SignUp<S>
 where
     S: UserDataSource,
 {
     repository: Arc<UserRepository<S>>,
-    verifier: UserCredentialsVerifier,
+    password_hasher: Arc<PasswordHasher>,
+    credentials_verifier: UserCredentialsVerifier,
     id_generator: GUIDGenerator,
+    token_generator: UserTokenGenerator,
 }
 
-impl<S> CreateUser<S>
+impl<S> SignUp<S>
 where
     S: UserDataSource,
 {
-    /// Creates new create user interactor.
+    /// Creates new sign up interactor.
     pub fn new(
         repository: Arc<UserRepository<S>>,
-        verifier: UserCredentialsVerifier,
+        password_hasher: Arc<PasswordHasher>,
+        credentials_verifier: UserCredentialsVerifier,
         id_generator: GUIDGenerator,
+        token_generator: UserTokenGenerator,
     ) -> Self {
         Self {
             repository,
-            verifier,
+            password_hasher,
+            credentials_verifier,
             id_generator,
+            token_generator,
         }
     }
 }
 
 #[derive(Debug, Display, Error, From)]
 #[from(forward)]
-pub struct CreateUserError(#[error(source)] CreateUserErrorKind);
+pub struct SignUpError(#[error(source)] SignUpErrorKind);
 
 #[derive(Debug, Display, Error, From)]
-enum CreateUserErrorKind {
+enum SignUpErrorKind {
     Repository(#[error(source)] Error),
     Regex(#[error(source)] RegexError),
+    Jwt(#[error(source)] JwtError),
+    PasswordHash(#[error(source)] PasswordHashError),
     #[display(fmt = "user credentials does not match requirements")]
     UserCredentials,
 }
 
 #[async_trait]
-impl<S> CoreCreateUser for CreateUser<S>
+impl<S> CoreSignUp for SignUp<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = CreateUserError;
+    type Error = SignUpError;
 
-    async fn create(&self, credentials: UserCredentials) -> Result<User, Self::Error> {
-        self.verifier
+    async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
+        self.credentials_verifier
             .verify(&credentials)?
             .then_some(())
-            .ok_or(CreateUserErrorKind::UserCredentials)?;
+            .ok_or(SignUpErrorKind::UserCredentials)?;
         let repository = self.repository.as_ref();
-        let id = self.id_generator.generate();
+        let id = self.id_generator.generate().to_string().into();
         let user = User {
-            id: id.to_string().into(),
+            id,
             name: credentials.name,
             email: None,
             role: UserRole::User,
         };
-        let user = repository.create(user, credentials.password).await?;
+        let password_hash = self.password_hasher.hash(&credentials.password)?;
+        let user = repository.create(user, password_hash).await?;
+        let claims = UserTokenClaims { id: user.id };
+        let token = self.token_generator.generate(claims)?;
+        Ok(token)
+    }
+}
+
+#[derive(Debug, Display, From, Error)]
+#[from(forward)]
+pub struct SignInError(#[error(source)] SignInErrorKind);
+
+#[derive(Debug, Display, From, Error)]
+enum SignInErrorKind {
+    Repository(#[error(source)] Error),
+    Regex(#[error(source)] RegexError),
+    Jwt(#[error(source)] JwtError),
+    PasswordVerify(#[error(source)] PasswordHashVerifyError),
+    #[display(fmt = "user credentials does not match requirements")]
+    UserCredentials,
+    #[display(fmt = "wrong password")]
+    WrongPassword,
+    #[display(fmt = "user credentials and token are incompatible")]
+    UserMismatch,
+    #[display(fmt = "no user was found by token")]
+    NoUser,
+}
+
+/// Interactor used to login existing user in the system.
+pub struct SignIn<S>
+where
+    S: UserDataSource,
+{
+    repository: Arc<UserRepository<S>>,
+    password_hasher: Arc<PasswordHasher>,
+    credentials_verifier: UserCredentialsVerifier,
+    token_verifier: UserTokenVerifier,
+}
+
+impl<S> SignIn<S>
+where
+    S: UserDataSource,
+{
+    /// Creates new sign in interactor.
+    pub fn new(
+        repository: Arc<UserRepository<S>>,
+        password_hasher: Arc<PasswordHasher>,
+        credentials_verifier: UserCredentialsVerifier,
+        token_verifier: UserTokenVerifier,
+    ) -> Self {
+        Self {
+            repository,
+            password_hasher,
+            credentials_verifier,
+            token_verifier,
+        }
+    }
+}
+
+#[async_trait]
+impl<S> CoreSignIn for SignIn<S>
+where
+    S: UserDataSource + Send + Sync,
+{
+    type Error = SignInError;
+
+    async fn sign_in(
+        &self,
+        credentials: UserCredentials,
+        token: UserToken,
+    ) -> Result<User, Self::Error> {
+        self.credentials_verifier
+            .verify(&credentials)?
+            .then_some(())
+            .ok_or(SignInErrorKind::UserCredentials)?;
+        let repository = self.repository.as_ref();
+        let claims = self.token_verifier.verify(&token)?;
+
+        let id = claims.id;
+        let password_hash = repository
+            .get_password_hash(id.clone())
+            .await?
+            .ok_or(SignInErrorKind::NoUser)?;
+        self.password_hasher
+            .verify(&credentials.password, &password_hash)?
+            .then_some(())
+            .ok_or(SignInErrorKind::WrongPassword)?;
+
+        let filter = UserFilters { ids: vec![id] };
+        let user = repository
+            .read(filter)
+            .await?
+            .first()
+            .cloned()
+            .ok_or(SignInErrorKind::NoUser)?;
+        if user.name != credentials.name {
+            return Err(SignInErrorKind::UserMismatch.into());
+        }
         Ok(user)
     }
 }

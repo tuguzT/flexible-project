@@ -1,7 +1,7 @@
 use derive_more::{Display, Error, From};
 
 use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, WithSecretError};
-use crate::interactor::user::CreateUserError;
+use crate::interactor::user::{SignInError, SignUpError};
 use crate::repository::Error as RepositoryError;
 
 /// Result of interactor operations with error type of [`struct@Error`].
@@ -18,6 +18,7 @@ enum ErrorKind {
     WithSecret(#[error(source)] WithSecretError),
     PasswordHash(#[error(source)] PasswordHashError),
     PasswordHashVerify(#[error(source)] PasswordHashVerifyError),
-    CreateUser(#[error(source)] CreateUserError),
+    SignIn(#[error(source)] SignInError),
+    SignUp(#[error(source)] SignUpError),
     Repository(#[error(source)] RepositoryError),
 }

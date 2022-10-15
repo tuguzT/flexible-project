@@ -1,6 +1,6 @@
 //! Repositories for users of the Flexible Project system.
 
-use fp_core::model::{User, UserFilters};
+use fp_core::model::{Id, User, UserFilters};
 
 use crate::data_source::user::UserDataSource;
 use crate::repository::{Repository, Result};
@@ -43,6 +43,12 @@ where
     pub async fn delete(&self, user: User) -> Result<Option<User>> {
         let user = self.0.delete(user).await?;
         Ok(user)
+    }
+
+    /// Retrieve password hash from the user by its identifier.
+    pub async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>> {
+        let password_hash = self.0.get_password_hash(id).await?;
+        Ok(password_hash)
     }
 }
 
