@@ -143,7 +143,7 @@ impl ErasedId {
     }
 
     /// Sets the owner type for this identifier.
-    pub fn set_owner<Owner>(self) -> Id<Owner>
+    pub fn with_owner<Owner>(self) -> Id<Owner>
     where
         Owner: ?Sized,
     {
