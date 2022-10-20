@@ -52,7 +52,7 @@ pub async fn build_schema() -> Result<SchemaBuilder, Error> {
         user_repository.clone(),
         password_hasher,
         credentials_verifier,
-        token_verifier,
+        token_generator,
     );
     let update_user = UpdateUser::new(user_repository.clone());
     let delete_user = DeleteUser::new(user_repository);

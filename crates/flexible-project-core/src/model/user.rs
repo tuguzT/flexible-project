@@ -44,12 +44,14 @@ pub struct UserCredentials {
 pub struct UserFilters {
     /// Identifiers to be filtered in search query.
     pub ids: Vec<Id<User>>,
+    /// User names to be filtered in search query.
+    pub names: Vec<String>,
 }
 
 impl UserFilters {
     /// Checks if user filters are completely empty.
     pub fn is_empty(&self) -> bool {
-        self.ids.is_empty()
+        self.ids.is_empty() && self.names.is_empty()
     }
 }
 

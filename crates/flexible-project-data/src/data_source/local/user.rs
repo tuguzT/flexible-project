@@ -60,13 +60,24 @@ impl UserDataSource for LocalUserDataSource {
     async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
         let filter = if filter.is_empty() {
             doc! {}
-        } else {
+        } else if filter.names.is_empty() {
             let ids = filter
                 .ids
                 .iter()
                 .map(|id| Uuid::parse_str(&**id).map_err(Into::into))
                 .collect::<Result<Vec<_>>>()?;
             doc! { "_id": { "$in": ids } }
+        } else if filter.ids.is_empty() {
+            let names = filter.names;
+            doc! { "name": { "$in": names } }
+        } else {
+            let ids = filter
+                .ids
+                .iter()
+                .map(|id| Uuid::parse_str(&**id).map_err(Into::into))
+                .collect::<Result<Vec<_>>>()?;
+            let names = filter.names;
+            doc! { "_id": { "$in": ids }, "name": { "$in": names } }
         };
         let cursor = self.collection.find(filter, None).await?;
         let vec = cursor

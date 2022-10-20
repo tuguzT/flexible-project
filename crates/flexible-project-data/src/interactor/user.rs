@@ -11,20 +11,20 @@ use fp_core::use_case::{
     GUIDGenerator as CoreGUIDGenerator, PasswordHashVerifier, PasswordHasher as _,
     SignIn as CoreSignIn, SignUp as CoreSignUp, UpdateUser as CoreUpdateUser,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,
-    UserTokenGenerator as CoreUserTokenGenerator, UserTokenVerifier as CoreUserTokenVerifier,
+    UserTokenGenerator as CoreUserTokenGenerator,
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
 use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, PasswordHasher};
 use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
-use crate::interactor::verifier::{RegexError, UserTokenVerifier};
+use crate::interactor::verifier::RegexError;
 use crate::interactor::{GUIDGenerator, UserCredentialsVerifier};
 use crate::repository::user::UserRepository;
 use crate::repository::Error;
 
 /// Interactor used to generate new user token from claims.
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct UserTokenGenerator;
 
 impl CoreUserTokenGenerator for UserTokenGenerator {
@@ -147,7 +147,7 @@ where
     repository: Arc<UserRepository<S>>,
     password_hasher: Arc<PasswordHasher>,
     credentials_verifier: UserCredentialsVerifier,
-    token_verifier: UserTokenVerifier,
+    token_generator: UserTokenGenerator,
 }
 
 impl<S> SignIn<S>
@@ -159,13 +159,13 @@ where
         repository: Arc<UserRepository<S>>,
         password_hasher: Arc<PasswordHasher>,
         credentials_verifier: UserCredentialsVerifier,
-        token_verifier: UserTokenVerifier,
+        token_generator: UserTokenGenerator,
     ) -> Self {
         Self {
             repository,
             password_hasher,
             credentials_verifier,
-            token_verifier,
+            token_generator,
         }
     }
 }
@@ -177,29 +177,17 @@ where
 {
     type Error = SignInError;
 
-    async fn sign_in(
-        &self,
-        credentials: UserCredentials,
-        token: UserToken,
-    ) -> Result<User, Self::Error> {
+    async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
         self.credentials_verifier
             .verify(&credentials)?
             .then_some(())
             .ok_or(SignInErrorKind::UserCredentials)?;
         let repository = self.repository.as_ref();
-        let claims = self.token_verifier.verify(&token)?;
 
-        let id = claims.id;
-        let password_hash = repository
-            .get_password_hash(id.clone())
-            .await?
-            .ok_or(SignInErrorKind::NoUser)?;
-        self.password_hasher
-            .verify(&credentials.password, &password_hash)?
-            .then_some(())
-            .ok_or(SignInErrorKind::WrongPassword)?;
-
-        let filter = UserFilters { ids: vec![id] };
+        let filter = UserFilters {
+            ids: vec![],
+            names: vec![credentials.name.clone()],
+        };
         let user = repository
             .read(filter)
             .await?
@@ -209,7 +197,19 @@ where
         if user.name != credentials.name {
             return Err(SignInErrorKind::UserMismatch.into());
         }
-        Ok(user)
+
+        let password_hash = repository
+            .get_password_hash(user.id.clone())
+            .await?
+            .ok_or(SignInErrorKind::NoUser)?;
+        self.password_hasher
+            .verify(&credentials.password, &password_hash)?
+            .then_some(())
+            .ok_or(SignInErrorKind::WrongPassword)?;
+
+        let claims = UserTokenClaims { id: user.id };
+        let token = self.token_generator.generate(claims)?;
+        Ok(token)
     }
 }
 
@@ -240,7 +240,10 @@ where
 
     async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        let filters = UserFilters { ids: vec![id] };
+        let filters = UserFilters {
+            ids: vec![id],
+            names: vec![],
+        };
         let user = repository.read(filters).await?.first().cloned();
         let user = match user {
             Some(user) => user,

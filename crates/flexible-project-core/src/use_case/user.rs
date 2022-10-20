@@ -29,12 +29,8 @@ pub trait SignIn {
     type Error;
 
     /// Login existing user with provided [credentials](UserCredentials)
-    /// and [user token](UserToken) in the Flexible Project system.
-    async fn sign_in(
-        &self,
-        credentials: UserCredentials,
-        token: UserToken,
-    ) -> Result<User, Self::Error>;
+    /// in the Flexible Project system.
+    async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error>;
 }
 
 /// Interactor type which can filter all the users.

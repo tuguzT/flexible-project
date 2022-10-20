@@ -40,9 +40,18 @@ impl UserQuery {
             .data::<FilterUsers<LocalUserDataSource>>()
             .expect("filter users interactor should always exist");
         let id = id.to_string().into();
-        let filters = UserFilters { ids: vec![id] };
+        let filters = UserFilters {
+            ids: vec![id],
+            names: vec![],
+        };
         let user = interactor.filter(filters).await?.first().cloned();
         let user = user.map(User::from);
+        Ok(user)
+    }
+
+    /// Data of the current user of the Flexible project system.
+    async fn current_user(&self, ctx: &Context<'_>) -> Result<User, Error> {
+        let user = require_user(ctx).await?;
         Ok(user)
     }
 }
@@ -71,16 +80,12 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "User credentials of the existing user.")] credentials: UserCredentials,
-    ) -> Result<User, Error> {
-        let token = require_user_token(ctx)?;
+    ) -> Result<UserToken, Error> {
         let interactor = ctx
             .data::<SignIn<LocalUserDataSource>>()
             .expect("sign in interactor should always exist");
-        let user = interactor
-            .sign_in(credentials.into(), token.into())
-            .await?
-            .into();
-        Ok(user)
+        let token = interactor.sign_in(credentials.into()).await?.into();
+        Ok(token)
     }
 
     /// Updates existing user from provided user data in the Flexible Project system.
@@ -132,7 +137,10 @@ pub async fn require_user(ctx: &Context<'_>) -> Result<User, Error> {
         .data::<FilterUsers<LocalUserDataSource>>()
         .expect("filter users interactor should always exist");
     let id = claims.id;
-    let filters = UserFilters { ids: vec![id] };
+    let filters = UserFilters {
+        ids: vec![id],
+        names: vec![],
+    };
     let user = filter_users
         .filter(filters)
         .await?

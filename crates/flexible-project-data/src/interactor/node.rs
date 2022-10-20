@@ -36,6 +36,7 @@ where
     async fn find(&self, id: ErasedId) -> Result<Option<Node>, Self::Error> {
         let filter = UserFilters {
             ids: vec![id.with_owner()],
+            names: vec![],
         };
         let user = self.user_repository.read(filter).await?.first().cloned();
         let user = user.map(Node::from);
