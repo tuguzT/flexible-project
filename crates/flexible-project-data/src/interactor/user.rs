@@ -78,11 +78,7 @@ where
 }
 
 #[derive(Debug, Display, Error, From)]
-#[from(forward)]
-pub struct SignUpError(#[error(source)] SignUpErrorKind);
-
-#[derive(Debug, Display, Error, From)]
-enum SignUpErrorKind {
+pub enum SignUpError {
     Repository(#[error(source)] Error),
     Regex(#[error(source)] RegexError),
     Jwt(#[error(source)] JwtError),
@@ -102,7 +98,7 @@ where
         self.credentials_verifier
             .verify(&credentials)?
             .then_some(())
-            .ok_or(SignUpErrorKind::UserCredentials)?;
+            .ok_or(SignUpError::UserCredentials)?;
         let repository = self.repository.as_ref();
         let id = self.id_generator.generate().to_string().into();
         let user = User {
@@ -120,11 +116,7 @@ where
 }
 
 #[derive(Debug, Display, From, Error)]
-#[from(forward)]
-pub struct SignInError(#[error(source)] SignInErrorKind);
-
-#[derive(Debug, Display, From, Error)]
-enum SignInErrorKind {
+pub enum SignInError {
     Repository(#[error(source)] Error),
     Regex(#[error(source)] RegexError),
     Jwt(#[error(source)] JwtError),
@@ -181,7 +173,7 @@ where
         self.credentials_verifier
             .verify(&credentials)?
             .then_some(())
-            .ok_or(SignInErrorKind::UserCredentials)?;
+            .ok_or(SignInError::UserCredentials)?;
         let repository = self.repository.as_ref();
 
         let filter = UserFilters {
@@ -193,19 +185,19 @@ where
             .await?
             .first()
             .cloned()
-            .ok_or(SignInErrorKind::NoUser)?;
+            .ok_or(SignInError::NoUser)?;
         if user.name != credentials.name {
-            return Err(SignInErrorKind::UserMismatch.into());
+            return Err(SignInError::UserMismatch);
         }
 
         let password_hash = repository
             .get_password_hash(user.id.clone())
             .await?
-            .ok_or(SignInErrorKind::NoUser)?;
+            .ok_or(SignInError::NoUser)?;
         self.password_hasher
             .verify(&credentials.password, &password_hash)?
             .then_some(())
-            .ok_or(SignInErrorKind::WrongPassword)?;
+            .ok_or(SignInError::WrongPassword)?;
 
         let claims = UserTokenClaims { id: user.id };
         let token = self.token_generator.generate(claims)?;

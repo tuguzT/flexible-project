@@ -5,12 +5,7 @@ use mongodb::error::Error as MongoError;
 
 /// Error of the local data source implementation.
 #[derive(Debug, Display, Error, From)]
-#[from(forward)]
-pub struct Error(#[error(source)] ErrorKind);
-
-#[derive(Debug, Display, Error, From)]
-#[display(fmt = "local data source error")]
-enum ErrorKind {
+pub enum Error {
     Mongo(#[error(source)] MongoError),
     Id(#[error(source)] UuidError),
     Serialize(#[error(source)] SerError),

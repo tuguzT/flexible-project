@@ -9,8 +9,7 @@ use fp_data::interactor::{
     UserCredentialsVerifier, UserTokenGenerator, UserTokenVerifier,
 };
 use fp_data::repository::user::UserRepository;
-use fp_data::repository::Error as RepositoryError;
-use fp_data::Error;
+use fp_data::Result;
 
 use crate::model::Node;
 
@@ -26,12 +25,10 @@ pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, EmptySubs
 /// Builds the [schema](Schema) for the Flexible Project system.
 ///
 /// Returns a [builder](SchemaBuilder) to allow users to customize it.
-pub async fn build_schema() -> Result<SchemaBuilder, Error> {
-    let client = Client::new().map_err(RepositoryError::from)?;
+pub async fn build_schema() -> Result<SchemaBuilder> {
+    let client = Client::new()?;
     let database = client.0.database("flexible-project");
-    let user_data_source = LocalUserDataSource::new(database)
-        .await
-        .map_err(RepositoryError::from)?;
+    let user_data_source = LocalUserDataSource::new(database).await?;
     let user_repository = Arc::new(UserRepository::new(user_data_source));
 
     let find_node = FindNode::new(user_repository.clone());
