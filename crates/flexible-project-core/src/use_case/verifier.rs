@@ -22,15 +22,24 @@ pub trait PasswordVerifier {
     fn verify(&self, password: &str) -> Result<bool, Self::Error>;
 }
 
+/// State of [user credentials](UserCredentials) after its checking by
+/// [user credentials verifier](UserCredentialsVerifier).
+pub enum UserCredentialsState {
+    /// [User credentials](UserCredentials) are totally valid.
+    Valid,
+    /// [User credentials](UserCredentials) name is invalid.
+    InvalidUsername,
+    /// [User credentials](UserCredentials) password is invalid.
+    InvalidPassword,
+}
+
 /// Interactor type which can verify credentials provided by user.
 pub trait UserCredentialsVerifier {
     /// The type returned when any error occurs.
     type Error;
 
     /// Verifies credentials provided by user.
-    ///
-    /// Returns `true` if provided credentials are valid, `false` otherwise.
-    fn verify(&self, credentials: &UserCredentials) -> Result<bool, Self::Error>;
+    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, Self::Error>;
 }
 
 /// Interactor type which can verify user token provided by client.

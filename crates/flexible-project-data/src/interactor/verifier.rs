@@ -2,7 +2,7 @@ use derive_more::{Display, Error, From};
 use fancy_regex::Regex;
 use fp_core::model::{UserCredentials, UserToken, UserTokenClaims};
 use fp_core::use_case::{
-    PasswordVerifier as CorePasswordVerifier,
+    PasswordVerifier as CorePasswordVerifier, UserCredentialsState,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,
     UserTokenVerifier as CoreUserTokenVerifier, UsernameVerifier as CoreUsernameVerifier,
 };
@@ -72,12 +72,17 @@ pub struct UserCredentialsVerifier(UsernameVerifier, PasswordVerifier);
 impl CoreUserCredentialsVerifier for UserCredentialsVerifier {
     type Error = RegexError;
 
-    fn verify(&self, credentials: &UserCredentials) -> Result<bool, Self::Error> {
+    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, Self::Error> {
         let UserCredentialsVerifier(uv, pv) = self;
         let username = &credentials.name;
+        if !uv.verify(username)? {
+            return Ok(UserCredentialsState::InvalidUsername);
+        }
         let password = &credentials.password;
-        let is_match = uv.verify(username)? && pv.verify(password)?;
-        Ok(is_match)
+        if !pv.verify(password)? {
+            return Ok(UserCredentialsState::InvalidPassword);
+        }
+        Ok(UserCredentialsState::Valid)
     }
 }
 

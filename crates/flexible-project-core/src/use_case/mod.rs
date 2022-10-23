@@ -9,7 +9,8 @@ pub use id::GUIDGenerator;
 pub use node::FindNode;
 pub use user::{DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser, UserTokenGenerator};
 pub use verifier::{
-    PasswordVerifier, UserCredentialsVerifier, UserTokenVerifier, UsernameVerifier,
+    PasswordVerifier, UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier,
+    UsernameVerifier,
 };
 
 mod hasher;

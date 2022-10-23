@@ -9,7 +9,7 @@ use fp_core::model::{
 use fp_core::use_case::{
     DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
     GUIDGenerator as CoreGUIDGenerator, PasswordHashVerifier, PasswordHasher as _,
-    SignIn as CoreSignIn, SignUp as CoreSignUp, UpdateUser as CoreUpdateUser,
+    SignIn as CoreSignIn, SignUp as CoreSignUp, UpdateUser as CoreUpdateUser, UserCredentialsState,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,
     UserTokenGenerator as CoreUserTokenGenerator,
 };
@@ -83,8 +83,10 @@ pub enum SignUpError {
     Regex(#[error(source)] RegexError),
     Jwt(#[error(source)] JwtError),
     PasswordHash(#[error(source)] PasswordHashError),
-    #[display(fmt = "user credentials does not match requirements")]
-    UserCredentials,
+    #[display(fmt = "user name does not match requirements")]
+    InvalidUsername,
+    #[display(fmt = "user password does not match requirements")]
+    InvalidPassword,
 }
 
 #[async_trait]
@@ -95,10 +97,11 @@ where
     type Error = SignUpError;
 
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
-        self.credentials_verifier
-            .verify(&credentials)?
-            .then_some(())
-            .ok_or(SignUpError::UserCredentials)?;
+        match self.credentials_verifier.verify(&credentials)? {
+            UserCredentialsState::Valid => (),
+            UserCredentialsState::InvalidUsername => return Err(SignUpError::InvalidUsername),
+            UserCredentialsState::InvalidPassword => return Err(SignUpError::InvalidPassword),
+        };
         let repository = self.repository.as_ref();
         let id = self.id_generator.generate().to_string().into();
         let user = User {
@@ -121,8 +124,10 @@ pub enum SignInError {
     Regex(#[error(source)] RegexError),
     Jwt(#[error(source)] JwtError),
     PasswordVerify(#[error(source)] PasswordHashVerifyError),
-    #[display(fmt = "user credentials does not match requirements")]
-    UserCredentials,
+    #[display(fmt = "user name does not match requirements")]
+    InvalidUsername,
+    #[display(fmt = "user password does not match requirements")]
+    InvalidPassword,
     #[display(fmt = "wrong password")]
     WrongPassword,
     #[display(fmt = "user credentials and token are incompatible")]
@@ -170,10 +175,11 @@ where
     type Error = SignInError;
 
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
-        self.credentials_verifier
-            .verify(&credentials)?
-            .then_some(())
-            .ok_or(SignInError::UserCredentials)?;
+        match self.credentials_verifier.verify(&credentials)? {
+            UserCredentialsState::Valid => (),
+            UserCredentialsState::InvalidUsername => return Err(SignInError::InvalidUsername),
+            UserCredentialsState::InvalidPassword => return Err(SignInError::InvalidPassword),
+        };
         let repository = self.repository.as_ref();
 
         let filter = UserFilters {
