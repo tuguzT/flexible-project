@@ -32,7 +32,7 @@ where
     where
         Other: ?Sized,
     {
-        Id::new(self.id)
+        self.id.into()
     }
 
     /// Erases the owner of this identifier explicitly,
@@ -58,7 +58,7 @@ where
     Owner: ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
+        self.id.eq(&other.id)
     }
 }
 
@@ -132,6 +132,7 @@ where
 
 /// Type of identifier with erased (unknown) owner.
 #[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
 pub struct ErasedId {
     id: String,
 }
