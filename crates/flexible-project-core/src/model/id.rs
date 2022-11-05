@@ -275,6 +275,10 @@ impl<Owner> Ord for IdFilters<Owner> {
             std::cmp::Ordering::Equal => {}
             ord => return ord,
         }
+        match self.ne.cmp(&other.ne) {
+            std::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
         match self.r#in.cmp(&other.r#in) {
             std::cmp::Ordering::Equal => {}
             ord => return ord,
