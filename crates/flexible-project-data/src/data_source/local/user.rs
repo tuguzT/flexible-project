@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use fp_core::model::{Id, User, UserFilters};
+use fp_core::model::id::Id;
+use fp_core::model::user::{User, UserFilters};
 use futures::future;
 use futures::stream::TryStreamExt;
 use mongodb::bson::{doc, to_bson, Uuid};
@@ -10,7 +11,7 @@ use crate::data_source::user::UserDataSource;
 use crate::data_source::{DataSource, Result};
 
 use super::model::{UserData, UserRoleData};
-use super::utils::UserCollection;
+use super::utils::{IntoDocument, UserCollection};
 
 /// Local user data source implementation.
 pub struct LocalUserDataSource {
@@ -47,8 +48,9 @@ impl LocalUserDataSource {
 impl UserDataSource for LocalUserDataSource {
     async fn create(&self, user: Self::Item, password_hash: String) -> Result<Self::Item> {
         let user = UserData {
-            id: Uuid::parse_str(user.id.to_string())?,
+            id: Uuid::parse_str(&*user.id)?,
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             password_hash,
             role: user.role.into(),
@@ -58,27 +60,8 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
-        let filter = if filter.is_empty() {
-            doc! {}
-        } else if filter.names.is_empty() {
-            let ids = filter
-                .ids
-                .iter()
-                .map(|id| Uuid::parse_str(&**id).map_err(Into::into))
-                .collect::<Result<Vec<_>>>()?;
-            doc! { "_id": { "$in": ids } }
-        } else if filter.ids.is_empty() {
-            let names = filter.names;
-            doc! { "name": { "$in": names } }
-        } else {
-            let ids = filter
-                .ids
-                .iter()
-                .map(|id| Uuid::parse_str(&**id).map_err(Into::into))
-                .collect::<Result<Vec<_>>>()?;
-            let names = filter.names;
-            doc! { "_id": { "$in": ids }, "name": { "$in": names } }
-        };
+        let filter = filter.into_document();
+        log::debug!("{:#?}", filter);
         let cursor = self.collection.find(filter, None).await?;
         let vec = cursor
             .and_then(|user| future::ok(User::from(user)))
@@ -91,6 +74,7 @@ impl UserDataSource for LocalUserDataSource {
         let filter = doc! { "_id": Uuid::parse_str(&*user.id)? };
         let update = doc! {
             "name": &user.name,
+            "display_name": &user.display_name,
             "email": user.email.as_deref(),
             "role": to_bson(&UserRoleData::from(user.role))?,
         };
@@ -103,12 +87,7 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn delete(&self, user: Self::Item) -> Result<Option<Self::Item>> {
-        let query = doc! {
-            "_id": Uuid::parse_str(&*user.id)?,
-            "name": &user.name,
-            "email": user.email.as_deref(),
-            "role": to_bson(&UserRoleData::from(user.role))?,
-        };
+        let query = doc! { "_id": Uuid::parse_str(&*user.id)? };
         let user = self
             .collection
             .find_one_and_delete(query, None)

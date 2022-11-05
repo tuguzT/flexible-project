@@ -1,4 +1,4 @@
-use crate::model::{UserCredentials, UserToken, UserTokenClaims};
+use crate::model::user::{UserCredentials, UserToken, UserTokenClaims};
 
 /// Interactor type which can verify username provided by user.
 pub trait UsernameVerifier {

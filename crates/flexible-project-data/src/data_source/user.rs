@@ -1,7 +1,8 @@
 //! Data sources for users of the Flexible Project system.
 
 use async_trait::async_trait;
-use fp_core::model::{Id, User, UserFilters};
+use fp_core::model::id::Id;
+use fp_core::model::user::{User, UserFilters};
 
 use crate::data_source::{DataSource, Result};
 
@@ -15,7 +16,7 @@ pub trait UserDataSource: DataSource<Item = User> {
     /// Find users by provided [filters](UserFilters).
     async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>>;
 
-    /// Update user which has the same [identifier](fp_core::model::Id)
+    /// Update user which has the same [identifier](fp_core::model::id::Id)
     /// from the user parameter with provided [user data](User).
     async fn update(&self, user: Self::Item) -> Result<Option<Self::Item>>;
 

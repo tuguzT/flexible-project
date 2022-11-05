@@ -1,4 +1,4 @@
-use fp_core::model::{User, UserRole};
+use fp_core::model::user::{User, UserRole};
 use mongodb::bson::Uuid;
 use serde::{Deserialize, Serialize};
 
@@ -7,6 +7,7 @@ pub struct UserData {
     #[serde(rename = "_id")]
     pub id: Uuid,
     pub name: String,
+    pub display_name: String,
     pub email: Option<String>,
     pub password_hash: String,
     pub role: UserRoleData,
@@ -17,6 +18,7 @@ impl From<UserData> for User {
         Self {
             id: user.id.to_string().into(),
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             role: user.role.into(),
         }

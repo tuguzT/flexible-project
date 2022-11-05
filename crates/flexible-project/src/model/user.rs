@@ -2,8 +2,9 @@
 
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
 use derive_more::{Display, From, IsVariant, Unwrap};
-use fp_core::model::{
-    Id, User as CoreUser, UserCredentials as CoreUserCredentials, UserRole as CoreUserRole,
+use fp_core::model::id::Id;
+use fp_core::model::user::{
+    User as CoreUser, UserCredentials as CoreUserCredentials, UserRole as CoreUserRole,
     UserToken as CoreUserToken,
 };
 
@@ -31,6 +32,8 @@ pub struct User {
     pub id: Id<Self>,
     /// Unique name of the user.
     pub name: String,
+    /// Display name of the user which is not unique.
+    pub display_name: String,
     /// Unique email of the user, if exists.
     pub email: Option<String>,
     /// Role of the user in the system.
@@ -50,6 +53,7 @@ impl From<CoreUser> for User {
         Self {
             id: user.id.change_owner(),
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             role: user.role.into(),
         }
@@ -61,6 +65,7 @@ impl From<User> for CoreUser {
         Self {
             id: user.id.change_owner(),
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             role: user.role.into(),
         }
@@ -102,6 +107,8 @@ pub struct UpdateUser {
     pub id: ID,
     /// Unique name of the user.
     pub name: String,
+    /// Display name of the user which is not unique.
+    pub display_name: String,
     /// Unique email of the user, if exists.
     pub email: Option<String>,
     /// Role of the user in the system.
@@ -113,6 +120,7 @@ impl From<CoreUser> for UpdateUser {
         Self {
             id: user.id.into(),
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             role: user.role.into(),
         }
@@ -124,6 +132,7 @@ impl From<UpdateUser> for CoreUser {
         Self {
             id: user.id.to_string().into(),
             name: user.name,
+            display_name: user.display_name,
             email: user.email,
             role: user.role.into(),
         }

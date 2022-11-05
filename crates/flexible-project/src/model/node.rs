@@ -2,7 +2,7 @@
 
 use async_graphql::{Interface, ID};
 use derive_more::{IsVariant, Unwrap};
-use fp_core::model::Node as CoreNode;
+use fp_core::model::node::Node as CoreNode;
 
 use crate::model::User;
 

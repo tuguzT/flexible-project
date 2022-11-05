@@ -3,8 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use derive_more::{Display, Error, From};
-use fp_core::model::{
-    Id, User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims,
+use fp_core::model::filter::Equal;
+use fp_core::model::id::{Id, IdFilters};
+use fp_core::model::user::{
+    User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
 };
 use fp_core::use_case::{
     DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
@@ -106,7 +108,8 @@ where
         let id = self.id_generator.generate().to_string().into();
         let user = User {
             id,
-            name: credentials.name,
+            name: credentials.name.clone(),
+            display_name: credentials.name,
             email: None,
             role: UserRole::User,
         };
@@ -182,17 +185,17 @@ where
         };
         let repository = self.repository.as_ref();
 
-        let filter = UserFilters {
-            ids: vec![],
-            names: vec![credentials.name.clone()],
-        };
+        let name = credentials.name;
+        let filters = UserFilters::builder()
+            .name(UsernameFilters::builder().eq(Equal(name.clone())).build())
+            .build();
         let user = repository
-            .read(filter)
+            .read(filters)
             .await?
             .first()
             .cloned()
             .ok_or(SignInError::NoUser)?;
-        if user.name != credentials.name {
+        if user.name != name {
             return Err(SignInError::UserMismatch);
         }
 
@@ -238,10 +241,13 @@ where
 
     async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        let filters = UserFilters {
-            ids: vec![id],
-            names: vec![],
-        };
+        // let filters = UserFilters {
+        //     ids: vec![id],
+        //     names: vec![],
+        // };
+        let filters = UserFilters::builder()
+            .id(IdFilters::builder().eq(Equal(id)).build())
+            .build();
         let user = repository.read(filters).await?.first().cloned();
         let user = match user {
             Some(user) => user,

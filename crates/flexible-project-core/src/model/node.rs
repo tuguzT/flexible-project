@@ -1,6 +1,9 @@
+//! Node utilities for the Flexible Project system model.
+
 #![allow(missing_docs)]
 
-use crate::model::{ErasedId, Id, User};
+use crate::model::id::{ErasedId, Id};
+use crate::model::user::User;
 
 use derive_more::{Display, From, IsVariant, Unwrap};
 
@@ -20,6 +23,7 @@ impl Node {
     }
 }
 
+/// Identifier type of the [`Node`].
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Display, From, IsVariant, Unwrap)]
 pub enum NodeId {
     /// User variant of the identifier.

@@ -1,7 +1,7 @@
 use chrono::serde::ts_seconds;
 use chrono::{DateTime, Utc};
 use derive_more::{Display, Error, From};
-use fp_core::model::UserTokenClaims;
+use fp_core::model::user::UserTokenClaims;
 use jsonwebtoken::errors::Error;
 use serde::{Deserialize, Serialize};
 
@@ -23,5 +23,5 @@ impl From<UserTokenClaimsData> for UserTokenClaims {
 }
 
 pub fn secret() -> &'static [u8] {
-    "secret".as_bytes()
+    "secret".as_bytes() // TODO: env variable
 }

@@ -1,6 +1,7 @@
 //! Repositories for users of the Flexible Project system.
 
-use fp_core::model::{Id, User, UserFilters};
+use fp_core::model::id::Id;
+use fp_core::model::user::{User, UserFilters};
 
 use crate::data_source::user::UserDataSource;
 use crate::repository::{Repository, Result};
@@ -32,7 +33,7 @@ where
         Ok(users)
     }
 
-    /// Update user which has the same [identifier](fp_core::model::Id)
+    /// Update user which has the same [identifier](fp_core::model::id::Id)
     /// from the user parameter with provided [user data](User).
     pub async fn update(&self, user: User) -> Result<Option<User>> {
         let user = self.0.update(user).await?;

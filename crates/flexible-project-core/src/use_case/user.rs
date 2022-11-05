@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use crate::model::{Id, User, UserCredentials, UserFilters, UserToken, UserTokenClaims};
+use crate::model::id::Id;
+use crate::model::user::{User, UserCredentials, UserFilters, UserToken, UserTokenClaims};
 
 /// Interactor type which can generate new user token from the claims.
 pub trait UserTokenGenerator {

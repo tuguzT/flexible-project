@@ -1,6 +1,6 @@
 use derive_more::{Display, Error, From};
 use fancy_regex::Regex;
-use fp_core::model::{UserCredentials, UserToken, UserTokenClaims};
+use fp_core::model::user::{UserCredentials, UserToken, UserTokenClaims};
 use fp_core::use_case::{
     PasswordVerifier as CorePasswordVerifier, UserCredentialsState,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,

@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
-use crate::model::{ErasedId, Node};
+use crate::model::id::ErasedId;
+use crate::model::node::Node;
 
 /// Interactor type which can find any node of the system by its identifier.
 #[async_trait]

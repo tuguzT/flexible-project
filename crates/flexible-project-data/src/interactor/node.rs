@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fp_core::model::{ErasedId, Node, UserFilters};
+use fp_core::model::filter::Equal;
+use fp_core::model::id::{ErasedId, IdFilters};
+use fp_core::model::node::Node;
+use fp_core::model::user::UserFilters;
 use fp_core::use_case::FindNode as CoreFindNode;
 
 use crate::data_source::user::UserDataSource;
@@ -34,10 +37,9 @@ where
     type Error = Error;
 
     async fn find(&self, id: ErasedId) -> Result<Option<Node>, Self::Error> {
-        let filter = UserFilters {
-            ids: vec![id.with_owner()],
-            names: vec![],
-        };
+        let filter = UserFilters::builder()
+            .id(IdFilters::builder().eq(Equal(id.with_owner())).build())
+            .build();
         let user = self.user_repository.read(filter).await?.first().cloned();
         let user = user.map(Node::from);
         Ok(user)
