@@ -1,4 +1,4 @@
-//! Node utilities for the Flexible Project system model.
+//! Node definitions and utilities for the Flexible Project system model.
 
 #![allow(missing_docs)]
 

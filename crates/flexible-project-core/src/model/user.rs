@@ -1,4 +1,4 @@
-//! User utilities for the Flexible Project system model.
+//! User definitions and utilities for the Flexible Project system model.
 
 #![allow(missing_docs)]
 
@@ -7,6 +7,9 @@ use typed_builder::TypedBuilder;
 
 use crate::model::filter::{Contains, Equal, In, NotEqual, NotIn, Regex};
 use crate::model::id::{Id, IdFilters};
+
+/// Type of [user](User) identifier.
+pub type UserId = Id<User>;
 
 /// Data of user of the Flexible Project system.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]

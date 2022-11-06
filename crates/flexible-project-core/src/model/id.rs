@@ -1,4 +1,4 @@
-//! Identifier utilities for the Flexible Project system model.
+//! Identifier definitions and utilities for the Flexible Project system model.
 
 use std::fmt::{Debug, Display};
 use std::hash::Hash;

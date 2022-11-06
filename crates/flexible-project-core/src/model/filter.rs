@@ -1,4 +1,4 @@
-//! Filter utilities for the Flexible Project system model.
+//! Filter definitions and utilities for the Flexible Project system model.
 
 use derive_more::From;
 
