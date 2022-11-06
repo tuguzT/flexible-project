@@ -1,12 +1,16 @@
+//! User utilities for the Flexible Project server model.
+
 #![allow(missing_docs)]
 
 use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
 use derive_more::{Display, From, IsVariant, Unwrap};
 use fp_core::model::id::Id;
 use fp_core::model::user::{
-    User as CoreUser, UserCredentials as CoreUserCredentials, UserRole as CoreUserRole,
-    UserToken as CoreUserToken,
+    User as CoreUser, UserCredentials as CoreUserCredentials, UserFilters as CoreUserFilters,
+    UserRole as CoreUserRole, UserToken as CoreUserToken,
 };
+
+use crate::model::id::IdFilters;
 
 /// Role of user in the Flexible Project system.
 #[derive(
@@ -155,5 +159,24 @@ impl From<CoreUserToken> for UserToken {
 impl From<UserToken> for CoreUserToken {
     fn from(token: UserToken) -> Self {
         Self { token: token.token }
+    }
+}
+
+/// User filters of the Flexible Project server.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UserFilters {
+    /// User identifier filters.
+    pub id: Option<IdFilters>,
+}
+
+impl From<UserFilters> for CoreUserFilters {
+    fn from(filters: UserFilters) -> Self {
+        Self {
+            id: filters.id.map(Into::into),
+            name: Default::default(),
+            display_name: Default::default(),
+            email: Default::default(),
+            role: Default::default(),
+        }
     }
 }

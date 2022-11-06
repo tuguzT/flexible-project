@@ -2,7 +2,7 @@
 
 use async_graphql::{Context, Object, Result, ID};
 use fp_core::model::id::{Id, IdFilters};
-use fp_core::model::user::UserFilters;
+use fp_core::model::user::UserFilters as CoreUserFilters;
 use fp_core::use_case::{
     DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _, UpdateUser as _,
     UserTokenVerifier as _,
@@ -12,7 +12,7 @@ use fp_data::interactor::{
     DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser as UpdateUserInteractor, UserTokenVerifier,
 };
 
-use crate::model::{UpdateUser, User, UserCredentials, UserToken};
+use crate::model::user::{UpdateUser, User, UserCredentials, UserFilters, UserToken};
 
 /// User query object of the Flexible Project system.
 #[derive(Default)]
@@ -21,11 +21,16 @@ pub struct UserQuery;
 #[Object]
 impl UserQuery {
     /// Data of all users of the Flexible Project system.
-    async fn users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
+    async fn users(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(desc = "User filters.", default_with = "UserFilters::default()")]
+        filters: UserFilters,
+    ) -> Result<Vec<User>> {
         let interactor = ctx
             .data::<FilterUsers<LocalUserDataSource>>()
             .expect("filter users interactor should always exist");
-        let filters = UserFilters::default();
+        let filters = filters.into();
         let users = interactor.filter(filters).await?;
         let users = users.into_iter().map(User::from).collect();
         Ok(users)
@@ -41,7 +46,7 @@ impl UserQuery {
             .data::<FilterUsers<LocalUserDataSource>>()
             .expect("filter users interactor should always exist");
         let id = Id::from(id.to_string());
-        let filters = UserFilters::builder()
+        let filters = CoreUserFilters::builder()
             .id(IdFilters::builder().eq(id).build())
             .build();
         let user = interactor.filter(filters).await?.first().cloned();
@@ -136,7 +141,7 @@ pub async fn require_user(ctx: &Context<'_>) -> Result<User> {
     let filter_users = ctx
         .data::<FilterUsers<LocalUserDataSource>>()
         .expect("filter users interactor should always exist");
-    let filters = UserFilters::builder()
+    let filters = CoreUserFilters::builder()
         .id(IdFilters::builder().eq(claims.id).build())
         .build();
     let user = filter_users

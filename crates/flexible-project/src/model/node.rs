@@ -1,10 +1,12 @@
+//! Node utilities for the Flexible Project server model.
+
 #![allow(missing_docs)]
 
 use async_graphql::{Interface, ID};
 use derive_more::{IsVariant, Unwrap};
 use fp_core::model::node::Node as CoreNode;
 
-use crate::model::User;
+use crate::model::user::User;
 
 /// Global Object Identification interface of the Flexible Project system.
 #[derive(Interface, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, IsVariant, Unwrap)]

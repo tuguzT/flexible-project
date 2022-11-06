@@ -189,23 +189,19 @@ where
 
 /// Filters for identifiers of the Flexible Project system.
 #[derive(Debug, TypedBuilder)]
-#[builder(field_defaults(setter(into, strip_option)))]
+#[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct IdFilters<Owner>
 // TODO: make an issue about wrong code generation
 // where
 //     Owner: ?Sized,
 {
     /// Equality identifier filter.
-    #[builder(default)]
     pub eq: Option<Equal<Id<Owner>>>,
     /// Inequality identifier filter.
-    #[builder(default)]
     pub ne: Option<NotEqual<Id<Owner>>>,
     /// In identifier filter.
-    #[builder(default)]
     pub r#in: Option<In<Id<Owner>>>,
     /// Not in identifier filter.
-    #[builder(default)]
     pub nin: Option<NotIn<Id<Owner>>>,
 }
 

@@ -5,7 +5,7 @@ use fp_core::use_case::FindNode as _;
 use fp_data::data_source::local::LocalUserDataSource;
 use fp_data::interactor::FindNode;
 
-use crate::model::Node;
+use crate::model::node::Node;
 
 /// Node query object of the Flexible Project system.
 #[derive(Default)]

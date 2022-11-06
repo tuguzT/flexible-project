@@ -5,7 +5,7 @@ use actix_web_lab::respond::Html;
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 
-use crate::model::UserToken;
+use crate::model::user::UserToken;
 use crate::schema::Schema;
 
 /// Provides configuration for GraphQL endpoints of the Flexible Project system.

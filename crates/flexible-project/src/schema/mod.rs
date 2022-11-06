@@ -11,7 +11,7 @@ use fp_data::interactor::{
 use fp_data::repository::user::UserRepository;
 use fp_data::Result;
 
-use crate::model::Node;
+use crate::model::node::Node;
 
 pub mod node;
 pub mod user;
