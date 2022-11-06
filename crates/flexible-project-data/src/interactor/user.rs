@@ -3,7 +3,6 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use derive_more::{Display, Error, From};
-use fp_core::model::filter::Equal;
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::{
     User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
@@ -184,11 +183,7 @@ where
         let repository = self.repository.as_ref();
 
         let filters = UserFilters::builder()
-            .name(
-                UsernameFilters::builder()
-                    .eq(Equal(credentials.name.clone()))
-                    .build(),
-            )
+            .name(UsernameFilters::builder().eq(credentials.name).build())
             .build();
         let user = repository
             .read(filters)
@@ -240,7 +235,7 @@ where
     async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
         let filters = UserFilters::builder()
-            .id(IdFilters::builder().eq(Equal(id)).build())
+            .id(IdFilters::builder().eq(id).build())
             .build();
         let user = repository.read(filters).await?.first().cloned();
         let user = match user {

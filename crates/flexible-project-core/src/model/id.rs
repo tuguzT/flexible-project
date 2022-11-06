@@ -189,7 +189,7 @@ where
 
 /// Filters for identifiers of the Flexible Project system.
 #[derive(Debug, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct IdFilters<Owner>
 // TODO: make an issue about wrong code generation
 // where

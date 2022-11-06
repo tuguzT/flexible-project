@@ -1,8 +1,7 @@
 //! Definitions of user queries, mutations and subscriptions of the Flexible Project system.
 
 use async_graphql::{Context, Object, Result, ID};
-use fp_core::model::filter::Equal;
-use fp_core::model::id::IdFilters;
+use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::UserFilters;
 use fp_core::use_case::{
     DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _, UpdateUser as _,
@@ -41,9 +40,9 @@ impl UserQuery {
         let interactor = ctx
             .data::<FilterUsers<LocalUserDataSource>>()
             .expect("filter users interactor should always exist");
-        let id = id.to_string().into();
+        let id = Id::from(id.to_string());
         let filters = UserFilters::builder()
-            .id(IdFilters::builder().eq(Equal(id)).build())
+            .id(IdFilters::builder().eq(id).build())
             .build();
         let user = interactor.filter(filters).await?.first().cloned();
         let user = user.map(User::from);
@@ -137,9 +136,8 @@ pub async fn require_user(ctx: &Context<'_>) -> Result<User> {
     let filter_users = ctx
         .data::<FilterUsers<LocalUserDataSource>>()
         .expect("filter users interactor should always exist");
-    let id = claims.id;
     let filters = UserFilters::builder()
-        .id(IdFilters::builder().eq(Equal(id)).build())
+        .id(IdFilters::builder().eq(claims.id).build())
         .build();
     let user = filter_users
         .filter(filters)

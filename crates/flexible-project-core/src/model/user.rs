@@ -61,7 +61,7 @@ pub struct UserTokenClaims {
 
 /// Filters to be applied on user search process.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct UserFilters {
     /// User identifier filters.
     #[builder(default)]
@@ -82,7 +82,7 @@ pub struct UserFilters {
 
 /// User name filters to be applied on user search process.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct UsernameFilters {
     /// Equality username filter.
     #[builder(default)]
@@ -106,7 +106,7 @@ pub struct UsernameFilters {
 
 /// User display name filters to be applied on user search process.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct UserDisplayNameFilters {
     /// Equality user display name filter.
     #[builder(default)]
@@ -130,7 +130,7 @@ pub struct UserDisplayNameFilters {
 
 /// User email filters to be applied on user search process.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct UserEmailFilters {
     /// Equality user email filter.
     #[builder(default)]
@@ -154,7 +154,7 @@ pub struct UserEmailFilters {
 
 /// User role filters to be applied on user search process.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, TypedBuilder)]
-#[builder(field_defaults(setter(into)))]
+#[builder(field_defaults(setter(into, strip_option)))]
 pub struct UserRoleFilters {
     /// Equality user role filter.
     #[builder(default)]
