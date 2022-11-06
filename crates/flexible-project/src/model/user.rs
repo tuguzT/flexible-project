@@ -7,7 +7,7 @@ use derive_more::{Display, From, IsVariant, Unwrap};
 use fp_core::model::id::Id;
 use fp_core::model::user::{
     User as CoreUser, UserCredentials as CoreUserCredentials, UserFilters as CoreUserFilters,
-    UserRole as CoreUserRole, UserToken as CoreUserToken,
+    UserRole as CoreUserRole, UserToken as CoreUserToken, UsernameFilters as CoreUsernameFilters,
 };
 
 use crate::model::id::IdFilters;
@@ -166,17 +166,50 @@ impl From<UserToken> for CoreUserToken {
 #[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UserFilters {
     /// User identifier filters.
-    pub id: Option<IdFilters>,
+    id: Option<IdFilters>,
+    /// User name filters.
+    name: Option<UsernameFilters>,
 }
 
 impl From<UserFilters> for CoreUserFilters {
     fn from(filters: UserFilters) -> Self {
         Self {
             id: filters.id.map(Into::into),
-            name: Default::default(),
+            name: filters.name.map(Into::into),
             display_name: Default::default(),
             email: Default::default(),
             role: Default::default(),
+        }
+    }
+}
+
+/// User name filters of the Flexible Project server.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UsernameFilters {
+    /// Equality username filter.
+    eq: Option<String>,
+    /// Inequality username filter.
+    ne: Option<String>,
+    /// In username filter.
+    #[graphql(name = "in")]
+    r#in: Option<Vec<String>>,
+    /// Not in username filter.
+    nin: Option<Vec<String>>,
+    /// Contains username filter.
+    contains: Option<String>,
+    /// Regex username filter.
+    regex: Option<String>,
+}
+
+impl From<UsernameFilters> for CoreUsernameFilters {
+    fn from(filters: UsernameFilters) -> Self {
+        Self {
+            eq: filters.eq.map(Into::into),
+            ne: filters.ne.map(Into::into),
+            r#in: filters.r#in.map(Into::into),
+            nin: filters.nin.map(Into::into),
+            contains: filters.contains.map(Into::into),
+            regex: filters.regex.map(Into::into),
         }
     }
 }

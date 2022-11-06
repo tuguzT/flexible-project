@@ -31,14 +31,15 @@ impl<Owner> From<IdFilters> for CoreIdFilters<Owner>
             String::from(id).into()
         }
 
-        let eq = filters.eq.map(|id| convert_id(id).into());
-        let ne = filters.ne.map(|id| convert_id(id).into());
-        let r#in = filters
-            .r#in
-            .map(|ids| ids.into_iter().map(convert_id).collect::<Vec<_>>().into());
-        let nin = filters
-            .nin
-            .map(|ids| ids.into_iter().map(convert_id).collect::<Vec<_>>().into());
-        Self { eq, ne, r#in, nin }
+        Self {
+            eq: filters.eq.map(|id| convert_id(id).into()),
+            ne: filters.ne.map(|id| convert_id(id).into()),
+            r#in: filters
+                .r#in
+                .map(|ids| ids.into_iter().map(convert_id).collect::<Vec<_>>().into()),
+            nin: filters
+                .nin
+                .map(|ids| ids.into_iter().map(convert_id).collect::<Vec<_>>().into()),
+        }
     }
 }

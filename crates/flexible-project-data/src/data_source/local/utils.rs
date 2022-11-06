@@ -1,7 +1,7 @@
 use std::convert;
 use std::result::Result as CoreResult;
 
-use fp_core::model::filter::{Contains, Equal, In, NotEqual, NotIn};
+use fp_core::model::filter::{Contains, Equal, In, NotEqual, NotIn, Regex};
 use fp_core::model::id::IdFilters;
 use fp_core::model::user::{
     UserDisplayNameFilters, UserEmailFilters, UserFilters, UserRoleFilters, UsernameFilters,
@@ -105,8 +105,8 @@ impl IntoDocument for UsernameFilters {
         if let Some(Contains(substring)) = self.contains {
             document.insert("$regex", substring);
         }
-        if let Some(regex) = self.regex {
-            document.insert("$regex", regex.as_str());
+        if let Some(Regex(regex)) = self.regex {
+            document.insert("$regex", regex);
         }
         Ok(document)
     }
@@ -130,8 +130,8 @@ impl IntoDocument for UserDisplayNameFilters {
         if let Some(Contains(substring)) = self.contains {
             document.insert("$regex", substring);
         }
-        if let Some(regex) = self.regex {
-            document.insert("$regex", regex.as_str());
+        if let Some(Regex(regex)) = self.regex {
+            document.insert("$regex", regex);
         }
         Ok(document)
     }
@@ -155,8 +155,8 @@ impl IntoDocument for UserEmailFilters {
         if let Some(Contains(substring)) = self.contains {
             document.insert("$regex", substring);
         }
-        if let Some(regex) = self.regex {
-            document.insert("$regex", regex.as_str());
+        if let Some(Regex(regex)) = self.regex {
+            document.insert("$regex", regex);
         }
         Ok(document)
     }
