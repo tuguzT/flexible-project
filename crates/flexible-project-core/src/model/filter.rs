@@ -218,8 +218,8 @@ pub struct Between<T>
 where
     T: PartialOrd,
 {
-    left: T,
-    right: T,
+    min: T,
+    max: T,
 }
 
 impl<T> Filter for Between<T>
@@ -231,7 +231,7 @@ where
     type Error = Infallible;
 
     fn check(&self, input: &Self::Input) -> Result<bool, Self::Error> {
-        let result = (&self.left < input) && (input < &self.right);
+        let result = (&self.min < input) && (input < &self.max);
         Ok(result)
     }
 }
@@ -244,8 +244,8 @@ pub struct NotBetween<T>
 where
     T: PartialOrd,
 {
-    left: T,
-    right: T,
+    min: T,
+    max: T,
 }
 
 impl<T> Filter for NotBetween<T>
@@ -257,7 +257,7 @@ where
     type Error = Infallible;
 
     fn check(&self, input: &Self::Input) -> Result<bool, Self::Error> {
-        let result = (input <= &self.left) || (&self.right <= input);
+        let result = (input <= &self.min) || (&self.max <= input);
         Ok(result)
     }
 }
@@ -270,8 +270,8 @@ pub struct BetweenEqual<T>
 where
     T: PartialOrd,
 {
-    left: T,
-    right: T,
+    min: T,
+    max: T,
 }
 
 impl<T> Filter for BetweenEqual<T>
@@ -283,7 +283,7 @@ where
     type Error = Infallible;
 
     fn check(&self, input: &Self::Input) -> Result<bool, Self::Error> {
-        let result = (&self.left <= input) && (input <= &self.right);
+        let result = (&self.min <= input) && (input <= &self.max);
         Ok(result)
     }
 }
@@ -296,8 +296,8 @@ pub struct NotBetweenEqual<T>
 where
     T: PartialOrd,
 {
-    left: T,
-    right: T,
+    min: T,
+    max: T,
 }
 
 impl<T> Filter for NotBetweenEqual<T>
@@ -309,7 +309,7 @@ where
     type Error = Infallible;
 
     fn check(&self, input: &Self::Input) -> Result<bool, Self::Error> {
-        let result = (input < &self.left) || (&self.right < input);
+        let result = (input < &self.min) || (&self.max < input);
         Ok(result)
     }
 }
