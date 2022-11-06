@@ -95,7 +95,7 @@ impl CoreUserTokenVerifier for UserTokenVerifier {
 
     fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, Self::Error> {
         let token = &token.token;
-        let key = &DecodingKey::from_secret(secret());
+        let key = &DecodingKey::from_secret(secret().as_slice());
         let validation = &Validation::default();
         let token_data = decode::<UserTokenClaimsData>(token, key, validation)?;
         let claims = token_data.claims.into();

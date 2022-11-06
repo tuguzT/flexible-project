@@ -14,7 +14,9 @@ use flexible_project::schema::build_schema;
 /// Entry point of the server.
 #[actix_web::main]
 async fn main() -> Result<()> {
-    dotenv::dotenv()?;
+    if dotenv::dotenv().is_err() {
+        log::info!(".env file not found, server may panic unexpectedly");
+    }
     log_panics::init();
     pretty_env_logger::try_init()?;
 

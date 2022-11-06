@@ -37,7 +37,7 @@ impl CoreUserTokenGenerator for UserTokenGenerator {
             exp: Utc::now() + Duration::hours(1),
         };
         let header = &Header::default();
-        let key = &EncodingKey::from_secret(secret());
+        let key = &EncodingKey::from_secret(secret().as_slice());
         let token = encode(header, &claims, key).map_err(JwtError::from)?;
         let token = UserToken { token };
         Ok(token)
