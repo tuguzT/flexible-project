@@ -133,9 +133,7 @@ pub enum SignInError {
     InvalidPassword,
     #[display(fmt = "wrong password")]
     WrongPassword,
-    #[display(fmt = "user credentials and token are incompatible")]
-    UserMismatch,
-    #[display(fmt = "no user was found by token")]
+    #[display(fmt = "no user was found")]
     NoUser,
 }
 
@@ -185,9 +183,12 @@ where
         };
         let repository = self.repository.as_ref();
 
-        let name = credentials.name;
         let filters = UserFilters::builder()
-            .name(UsernameFilters::builder().eq(Equal(name.clone())).build())
+            .name(
+                UsernameFilters::builder()
+                    .eq(Equal(credentials.name.clone()))
+                    .build(),
+            )
             .build();
         let user = repository
             .read(filters)
@@ -195,9 +196,6 @@ where
             .first()
             .cloned()
             .ok_or(SignInError::NoUser)?;
-        if user.name != name {
-            return Err(SignInError::UserMismatch);
-        }
 
         let password_hash = repository
             .get_password_hash(user.id.clone())
@@ -241,10 +239,6 @@ where
 
     async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
         let repository = self.repository.as_ref();
-        // let filters = UserFilters {
-        //     ids: vec![id],
-        //     names: vec![],
-        // };
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(Equal(id)).build())
             .build();

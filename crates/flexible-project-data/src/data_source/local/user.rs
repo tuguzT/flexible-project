@@ -3,14 +3,14 @@ use fp_core::model::id::Id;
 use fp_core::model::user::{User, UserFilters};
 use futures::future;
 use futures::stream::TryStreamExt;
-use mongodb::bson::{doc, to_bson, Uuid};
+use mongodb::bson::{doc, to_bson};
 use mongodb::options::IndexOptions;
 use mongodb::{Collection, Database, IndexModel};
 
 use crate::data_source::user::UserDataSource;
 use crate::data_source::{DataSource, Result};
 
-use super::model::{UserData, UserRoleData};
+use super::model::{IdData, UserData, UserRoleData};
 use super::utils::{IntoDocument, UserCollection};
 
 /// Local user data source implementation.
@@ -48,7 +48,7 @@ impl LocalUserDataSource {
 impl UserDataSource for LocalUserDataSource {
     async fn create(&self, user: Self::Item, password_hash: String) -> Result<Self::Item> {
         let user = UserData {
-            id: Uuid::parse_str(&*user.id)?,
+            id: user.id.try_into()?,
             name: user.name,
             display_name: user.display_name,
             email: user.email,
@@ -60,7 +60,7 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
-        let filter = filter.into_document();
+        let filter = filter.into_document()?;
         log::debug!("{:#?}", filter);
         let cursor = self.collection.find(filter, None).await?;
         let vec = cursor
@@ -71,7 +71,8 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn update(&self, user: Self::Item) -> Result<Option<Self::Item>> {
-        let filter = doc! { "_id": Uuid::parse_str(&*user.id)? };
+        let id = IdData::try_from(user.id)?;
+        let filter = doc! { "_id": to_bson(&id)? };
         let update = doc! {
             "name": &user.name,
             "display_name": &user.display_name,
@@ -87,7 +88,8 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn delete(&self, user: Self::Item) -> Result<Option<Self::Item>> {
-        let query = doc! { "_id": Uuid::parse_str(&*user.id)? };
+        let id = IdData::try_from(user.id)?;
+        let query = doc! { "_id": to_bson(&id)? };
         let user = self
             .collection
             .find_one_and_delete(query, None)
@@ -97,7 +99,8 @@ impl UserDataSource for LocalUserDataSource {
     }
 
     async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>> {
-        let filter = doc! { "_id": Uuid::parse_str(&*id)? };
+        let id = IdData::try_from(id)?;
+        let filter = doc! { "_id": to_bson(&id)? };
         let user = self.collection.find_one(filter, None).await?;
         let password_hash = user.map(|user| user.password_hash);
         Ok(password_hash)

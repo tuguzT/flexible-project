@@ -1,7 +1,7 @@
 //! Local implementations of data sources using MongoDB.
 
 pub use client::Client;
-pub(crate) use error::Error;
+pub(crate) use error::{Error, Result};
 pub use user::LocalUserDataSource;
 
 mod client;

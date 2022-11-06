@@ -1,11 +1,12 @@
 use fp_core::model::user::{User, UserRole};
-use mongodb::bson::Uuid;
 use serde::{Deserialize, Serialize};
+
+use crate::data_source::local::model::id::IdData;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct UserData {
     #[serde(rename = "_id")]
-    pub id: Uuid,
+    pub id: IdData,
     pub name: String,
     pub display_name: String,
     pub email: Option<String>,
@@ -16,7 +17,7 @@ pub struct UserData {
 impl From<UserData> for User {
     fn from(user: UserData) -> Self {
         Self {
-            id: user.id.to_string().into(),
+            id: user.id.into(),
             name: user.name,
             display_name: user.display_name,
             email: user.email,
