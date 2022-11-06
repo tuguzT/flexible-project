@@ -6,8 +6,11 @@ use async_graphql::{ComplexObject, Enum, InputObject, SimpleObject, ID};
 use derive_more::{Display, From, IsVariant, Unwrap};
 use fp_core::model::id::Id;
 use fp_core::model::user::{
-    User as CoreUser, UserCredentials as CoreUserCredentials, UserFilters as CoreUserFilters,
-    UserRole as CoreUserRole, UserToken as CoreUserToken, UsernameFilters as CoreUsernameFilters,
+    User as CoreUser, UserCredentials as CoreUserCredentials,
+    UserDisplayNameFilters as CoreUserDisplayNameFilters, UserEmailFilters as CoreUserEmailFilters,
+    UserFilters as CoreUserFilters, UserRole as CoreUserRole,
+    UserRoleFilters as CoreUserRoleFilters, UserToken as CoreUserToken,
+    UsernameFilters as CoreUsernameFilters,
 };
 
 use crate::model::id::IdFilters;
@@ -169,6 +172,12 @@ pub struct UserFilters {
     id: Option<IdFilters>,
     /// User name filters.
     name: Option<UsernameFilters>,
+    /// User display name filters.
+    display_name: Option<UserDisplayNameFilters>,
+    /// User email filters.
+    email: Option<UserEmailFilters>,
+    /// User role filters.
+    role: Option<UserRoleFilters>,
 }
 
 impl From<UserFilters> for CoreUserFilters {
@@ -176,9 +185,9 @@ impl From<UserFilters> for CoreUserFilters {
         Self {
             id: filters.id.map(Into::into),
             name: filters.name.map(Into::into),
-            display_name: Default::default(),
-            email: Default::default(),
-            role: Default::default(),
+            display_name: filters.display_name.map(Into::into),
+            email: filters.email.map(Into::into),
+            role: filters.role.map(Into::into),
         }
     }
 }
@@ -210,6 +219,105 @@ impl From<UsernameFilters> for CoreUsernameFilters {
             nin: filters.nin.map(Into::into),
             contains: filters.contains.map(Into::into),
             regex: filters.regex.map(Into::into),
+        }
+    }
+}
+
+/// User display name filters of the Flexible Project server.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UserDisplayNameFilters {
+    /// Equality user display name filter.
+    eq: Option<String>,
+    /// Inequality user display name filter.
+    ne: Option<String>,
+    /// In user display name filter.
+    #[graphql(name = "in")]
+    r#in: Option<Vec<String>>,
+    /// Not in user display name filter.
+    nin: Option<Vec<String>>,
+    /// Contains user display name filter.
+    contains: Option<String>,
+    /// Regex user display name filter.
+    regex: Option<String>,
+}
+
+impl From<UserDisplayNameFilters> for CoreUserDisplayNameFilters {
+    fn from(filters: UserDisplayNameFilters) -> Self {
+        Self {
+            eq: filters.eq.map(Into::into),
+            ne: filters.ne.map(Into::into),
+            r#in: filters.r#in.map(Into::into),
+            nin: filters.nin.map(Into::into),
+            contains: filters.contains.map(Into::into),
+            regex: filters.regex.map(Into::into),
+        }
+    }
+}
+
+/// User email filters of the Flexible Project server.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UserEmailFilters {
+    /// Equality user email filter.
+    eq: Option<String>,
+    /// Inequality user email filter.
+    ne: Option<String>,
+    /// In user email filter.
+    #[graphql(name = "in")]
+    r#in: Option<Vec<String>>,
+    /// Not in user email filter.
+    nin: Option<Vec<String>>,
+    /// Contains user email filter.
+    contains: Option<String>,
+    /// Regex user email filter.
+    regex: Option<String>,
+}
+
+impl From<UserEmailFilters> for CoreUserEmailFilters {
+    fn from(filters: UserEmailFilters) -> Self {
+        Self {
+            eq: filters.eq.map(Into::into),
+            ne: filters.ne.map(Into::into),
+            r#in: filters.r#in.map(Into::into),
+            nin: filters.nin.map(Into::into),
+            contains: filters.contains.map(Into::into),
+            regex: filters.regex.map(Into::into),
+        }
+    }
+}
+
+/// User role filters of the Flexible Project server.
+#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct UserRoleFilters {
+    /// Equality user role filter.
+    eq: Option<UserRole>,
+    /// Inequality user role filter.
+    ne: Option<UserRole>,
+    /// In user role filter.
+    #[graphql(name = "in")]
+    r#in: Option<Vec<UserRole>>,
+    /// Not in user role filter.
+    nin: Option<Vec<UserRole>>,
+}
+
+impl From<UserRoleFilters> for CoreUserRoleFilters {
+    fn from(filters: UserRoleFilters) -> Self {
+        Self {
+            eq: filters.eq.map(|role| CoreUserRole::from(role).into()),
+            ne: filters.ne.map(|role| CoreUserRole::from(role).into()),
+            r#in: filters.r#in.map(|roles| {
+                roles
+                    .into_iter()
+                    .map(CoreUserRole::from)
+                    .collect::<Vec<_>>()
+                    .into()
+            }),
+            nin: filters.nin.map(|roles| {
+                roles
+                    .into_iter()
+                    .map(CoreUserRole::from)
+                    .collect::<Vec<_>>()
+                    .into()
+            }),
         }
     }
 }
