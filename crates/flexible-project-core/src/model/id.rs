@@ -3,7 +3,6 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::marker::PhantomData;
-use std::ops::Deref;
 
 use derive_more::Display;
 use typed_builder::TypedBuilder;
@@ -32,6 +31,11 @@ where
         }
     }
 
+    /// Returns a string slice of this identifier.
+    pub fn as_str(&self) -> &str {
+        &self.id
+    }
+
     /// Changes the owner of this identifier explicitly.
     pub fn change_owner<Other>(self) -> Id<Other>
     where
@@ -44,17 +48,6 @@ where
     /// turning self into [`ErasedId`].
     pub fn erase(self) -> ErasedId {
         self.into()
-    }
-}
-
-impl<Owner> Deref for Id<Owner>
-where
-    Owner: ?Sized,
-{
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.id.deref()
     }
 }
 
@@ -155,6 +148,11 @@ impl ErasedId {
     /// Creates new erased identifier from the string.
     pub fn new(id: String) -> Self {
         Self { id }
+    }
+
+    /// Returns a string slice of this identifier.
+    pub fn as_str(&self) -> &str {
+        &self.id
     }
 
     /// Sets the owner type for this identifier.

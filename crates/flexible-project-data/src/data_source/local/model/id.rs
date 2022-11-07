@@ -23,7 +23,7 @@ where
     type Error = Error;
 
     fn try_from(id: Id<Owner>) -> Result<Self, Self::Error> {
-        let uuid = Uuid::parse_str(&*id)?;
+        let uuid = Uuid::parse_str(String::from(id))?;
         Ok(Self { uuid })
     }
 }

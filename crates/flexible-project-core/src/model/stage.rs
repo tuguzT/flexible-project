@@ -10,6 +10,7 @@ pub type StageId = Id<Stage>;
 /// is a collection of its own [tasks](Task).
 ///
 /// Stage is a part of some [project](crate::model::project::Project).
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Stage {
     /// Identifier of the stage.
     pub id: Id<Self>,

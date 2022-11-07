@@ -28,6 +28,10 @@ impl From<CoreNode> for Node {
     fn from(node: CoreNode) -> Self {
         match node {
             CoreNode::User(user) => Node::User(user.into()),
+            CoreNode::Workspace(_) => todo!(),
+            CoreNode::Project(_) => todo!(),
+            CoreNode::Stage(_) => todo!(),
+            CoreNode::Task(_) => todo!(),
         }
     }
 }

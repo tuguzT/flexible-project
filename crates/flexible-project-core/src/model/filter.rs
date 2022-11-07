@@ -68,50 +68,58 @@ where
 
 /// Between filter of the Flexible Project system.
 ///
-/// Checks if input is located between left and right values.
+/// Checks if input is located between the range bounds.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
 pub struct Between<T>
 where
     T: PartialOrd,
 {
-    min: T,
-    max: T,
+    /// Lower bound of the range.
+    pub min: T,
+    /// Higher bound of the range.
+    pub max: T,
 }
 
 /// Not between filter of the Flexible Project system.
 ///
-/// Checks if input is not located between left and right values.
+/// Checks if input is not located between the range bounds.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
 pub struct NotBetween<T>
 where
     T: PartialOrd,
 {
-    min: T,
-    max: T,
+    /// Lower bound of the range.
+    pub min: T,
+    /// Higher bound of the range.
+    pub max: T,
 }
 
 /// Between or equal filter of the Flexible Project system.
 ///
-/// Checks if input is located between or equal to the left and right values.
+/// Checks if input is located between or equal to the range bounds.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
 pub struct BetweenEqual<T>
 where
     T: PartialOrd,
 {
-    min: T,
-    max: T,
+    /// Lower bound of the range.
+    pub min: T,
+    /// Higher bound of the range.
+    pub max: T,
 }
 
 /// Not between or equal filter of the Flexible Project system.
 ///
-/// Checks if input is not located between or equal to the left and right values.
+/// Checks if input is not located between or equal to the range bounds.
 #[derive(Debug, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
 pub struct NotBetweenEqual<T>
 where
     T: PartialOrd,
 {
-    min: T,
-    max: T,
+    /// Lower bound of the range.
+    pub min: T,
+    /// Higher bound of the range.
+    pub max: T,
 }
 
 /// Contains filter of the Flexible Project system.
