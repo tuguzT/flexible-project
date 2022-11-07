@@ -13,7 +13,7 @@ fp-core = { path = "../flexible-project-core", package = "flexible-project-core"
 # Tokio runtime
 tokio = { version = "1.21.2", features = ["sync"] }
 # Serialization & deserialization
-serde = { version = "1.0.145", features = ["derive"] }
+serde = { version = "1.0.147", features = ["derive"] }
 # Password hashing
 argon2 = { version = "0.4.1", features = ["std"] }
 rand_core = { version = "0.6.4", features = ["std"] }
@@ -22,14 +22,14 @@ jsonwebtoken = "8.1.1"
 # Database
 mongodb = "2.3.1"
 # Mocking
-mockall = "0.11.2"
+mockall = "0.11.3"
 # Miscellaneous
-async-trait = "0.1.57"
-futures = "0.3.24"
+async-trait = "0.1.58"
+futures = "0.3.25"
 ouroboros = "0.15.5"
 derive_more = "0.99.17"
 uuid = { version = "1.2.1", features = ["serde", "v4"] }
 fancy-regex = "0.10.0"
-once_cell = "1.15.0"
+once_cell = "1.16.0"
 log = "0.4.17"
 chrono = { version = "0.4.22", features = ["serde"] }

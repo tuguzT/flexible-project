@@ -8,6 +8,6 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
-async-trait = "0.1.57"
+async-trait = "0.1.58"
 derive_more = "0.99.17"
 typed-builder = "0.11.0"
