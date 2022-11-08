@@ -46,3 +46,10 @@ pub enum WorkspaceMemberRole {
     /// Owner (usually creator) of the workspace.
     Owner,
 }
+
+/// Filters to be applied on workspace search process.
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub struct WorkspaceFilters {
+    // empty
+    // TODO fill with filters
+}

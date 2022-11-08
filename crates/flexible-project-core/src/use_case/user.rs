@@ -36,15 +36,15 @@ pub trait SignIn {
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error>;
 }
 
-/// Interactor type which can filter all the users.
+/// Interactor type which can filter all users of the system.
 #[async_trait]
 pub trait FilterUsers {
     /// The type returned when any error occurs.
     type Error;
 
-    /// Filters all the users with provided [filters](UserFilters).
+    /// Filters all users with provided [filters](UserFilters).
     ///
-    /// Returns [`Vec`] with filter results.
+    /// Returns collection of filter results.
     async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, Self::Error>;
 }
 
