@@ -18,9 +18,8 @@ pub struct IdFilters {
 }
 
 impl<Owner> From<IdFilters> for CoreIdFilters<Owner>
-// TODO: linked with IdFilters todo from domain layer
-// where
-//     Owner: ?Sized,
+where
+    Owner: ?Sized,
 {
     fn from(filters: IdFilters) -> Self {
         #[inline]

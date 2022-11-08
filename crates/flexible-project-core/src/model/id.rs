@@ -188,11 +188,7 @@ where
 /// Filters for identifiers of the Flexible Project system.
 #[derive(Debug, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct IdFilters<Owner>
-// TODO: make an issue about wrong code generation
-// where
-//     Owner: ?Sized,
-{
+pub struct IdFilters<Owner: ?Sized> {
     /// Equality identifier filter.
     pub eq: Option<Equal<Id<Owner>>>,
     /// Inequality identifier filter.
@@ -203,7 +199,10 @@ pub struct IdFilters<Owner>
     pub nin: Option<NotIn<Id<Owner>>>,
 }
 
-impl<Owner> Default for IdFilters<Owner> {
+impl<Owner> Default for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn default() -> Self {
         Self {
             eq: Default::default(),
@@ -214,7 +213,10 @@ impl<Owner> Default for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Clone for IdFilters<Owner> {
+impl<Owner> Clone for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn clone(&self) -> Self {
         Self {
             eq: self.eq.clone(),
@@ -225,7 +227,10 @@ impl<Owner> Clone for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Hash for IdFilters<Owner> {
+impl<Owner> Hash for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.eq.hash(state);
         self.ne.hash(state);
@@ -234,7 +239,10 @@ impl<Owner> Hash for IdFilters<Owner> {
     }
 }
 
-impl<Owner> PartialEq for IdFilters<Owner> {
+impl<Owner> PartialEq for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn eq(&self, other: &Self) -> bool {
         self.eq == other.eq
             && self.ne == other.ne
@@ -243,9 +251,12 @@ impl<Owner> PartialEq for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Eq for IdFilters<Owner> {}
+impl<Owner> Eq for IdFilters<Owner> where Owner: ?Sized {}
 
-impl<Owner> PartialOrd for IdFilters<Owner> {
+impl<Owner> PartialOrd for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match self.eq.partial_cmp(&other.eq) {
             Some(core::cmp::Ordering::Equal) => {}
@@ -263,7 +274,10 @@ impl<Owner> PartialOrd for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Ord for IdFilters<Owner> {
+impl<Owner> Ord for IdFilters<Owner>
+where
+    Owner: ?Sized,
+{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match self.eq.cmp(&other.eq) {
             std::cmp::Ordering::Equal => {}
