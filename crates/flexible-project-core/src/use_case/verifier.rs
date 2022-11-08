@@ -1,3 +1,7 @@
+#![allow(missing_docs)]
+
+use derive_more::{IsVariant, Unwrap};
+
 use crate::model::user::{UserCredentials, UserToken, UserTokenClaims};
 
 /// Interactor type which can verify username provided by user.
@@ -24,6 +28,7 @@ pub trait PasswordVerifier {
 
 /// State of [user credentials](UserCredentials) after its checking by
 /// [user credentials verifier](UserCredentialsVerifier).
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, IsVariant, Unwrap)]
 pub enum UserCredentialsState {
     /// [User credentials](UserCredentials) are totally valid.
     Valid,

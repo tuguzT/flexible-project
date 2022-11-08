@@ -5,7 +5,7 @@ use std::sync::Arc;
 use async_graphql::{EmptySubscription, MergedObject};
 use fp_data::data_source::local::{Client, LocalUserDataSource};
 use fp_data::interactor::{
-    DeleteUser, FilterUsers, FindNode, GUIDGenerator, PasswordHasher, SignIn, SignUp, UpdateUser,
+    DeleteUser, FilterUsers, FindNode, IdGenerator, PasswordHasher, SignIn, SignUp, UpdateUser,
     UserCredentialsVerifier, UserTokenGenerator, UserTokenVerifier,
 };
 use fp_data::repository::user::UserRepository;
@@ -34,7 +34,7 @@ pub async fn build_schema() -> Result<SchemaBuilder> {
     let find_node = FindNode::new(user_repository.clone());
     let filter_users = FilterUsers::new(user_repository.clone());
     let credentials_verifier = UserCredentialsVerifier::default();
-    let id_generator = GUIDGenerator::default();
+    let id_generator = IdGenerator::default();
     let password_hasher = Arc::new(PasswordHasher::default());
     let token_generator = UserTokenGenerator::default();
     let sign_up = SignUp::new(

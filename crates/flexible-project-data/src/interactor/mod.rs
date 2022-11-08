@@ -2,7 +2,7 @@
 
 pub use error::{Error, Result};
 pub use hasher::PasswordHasher;
-pub use id::GUIDGenerator;
+pub use id::IdGenerator;
 pub use node::FindNode;
 pub use user::{DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser, UserTokenGenerator};
 pub use verifier::{

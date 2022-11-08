@@ -8,9 +8,9 @@ use fp_core::model::user::{
     User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
 };
 use fp_core::use_case::{
-    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers,
-    GUIDGenerator as CoreGUIDGenerator, PasswordHashVerifier, PasswordHasher as _,
-    SignIn as CoreSignIn, SignUp as CoreSignUp, UpdateUser as CoreUpdateUser, UserCredentialsState,
+    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers, IdGenerator as CoreGUIDGenerator,
+    PasswordHashVerifier, PasswordHasher as _, SignIn as CoreSignIn, SignUp as CoreSignUp,
+    UpdateUser as CoreUpdateUser, UserCredentialsState,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,
     UserTokenGenerator as CoreUserTokenGenerator,
 };
@@ -20,7 +20,7 @@ use crate::data_source::user::UserDataSource;
 use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, PasswordHasher};
 use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
 use crate::interactor::verifier::RegexError;
-use crate::interactor::{GUIDGenerator, UserCredentialsVerifier};
+use crate::interactor::{IdGenerator, UserCredentialsVerifier};
 use crate::repository::user::UserRepository;
 use crate::repository::Error;
 
@@ -52,7 +52,7 @@ where
     repository: Arc<UserRepository<S>>,
     password_hasher: Arc<PasswordHasher>,
     credentials_verifier: UserCredentialsVerifier,
-    id_generator: GUIDGenerator,
+    id_generator: IdGenerator,
     token_generator: UserTokenGenerator,
 }
 
@@ -65,7 +65,7 @@ where
         repository: Arc<UserRepository<S>>,
         password_hasher: Arc<PasswordHasher>,
         credentials_verifier: UserCredentialsVerifier,
-        id_generator: GUIDGenerator,
+        id_generator: IdGenerator,
         token_generator: UserTokenGenerator,
     ) -> Self {
         Self {
@@ -104,9 +104,12 @@ where
             UserCredentialsState::InvalidPassword => return Err(SignUpError::InvalidPassword),
         };
         let repository = self.repository.as_ref();
-        let id = self.id_generator.generate().to_string().into();
         let user = User {
-            id,
+            id: self
+                .id_generator
+                .generate()
+                .expect("should never fail because of `Infallible` error type, aka 'never' type")
+                .with_owner(),
             name: credentials.name.clone(),
             display_name: credentials.name,
             email: None,

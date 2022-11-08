@@ -1,14 +1,18 @@
-use fp_core::use_case::GUIDGenerator as CoreGUIDGenerator;
+use std::convert::Infallible;
+
+use fp_core::model::id::ErasedId;
+use fp_core::use_case::IdGenerator as CoreIdGenerator;
 use uuid::Uuid;
 
 /// Interactor used to generate globally unique identifier.
 #[derive(Debug, Clone, Default)]
-pub struct GUIDGenerator;
+pub struct IdGenerator;
 
-impl CoreGUIDGenerator for GUIDGenerator {
-    type Id = Uuid;
+impl CoreIdGenerator for IdGenerator {
+    type Error = Infallible;
 
-    fn generate(&self) -> Self::Id {
-        Uuid::new_v4()
+    fn generate(&self) -> Result<ErasedId, Self::Error> {
+        let id = Uuid::new_v4().to_string().into();
+        Ok(id)
     }
 }

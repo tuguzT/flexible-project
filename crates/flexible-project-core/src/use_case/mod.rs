@@ -5,7 +5,7 @@
 //! A use case object, or *interactor*, encapsulates and implements use cases of the system.
 
 pub use hasher::{PasswordHashVerifier, PasswordHasher};
-pub use id::GUIDGenerator;
+pub use id::IdGenerator;
 pub use node::FindNode;
 pub use user::{DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser, UserTokenGenerator};
 pub use verifier::{
