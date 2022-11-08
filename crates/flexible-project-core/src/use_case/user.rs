@@ -1,3 +1,5 @@
+//! User use cases of the Flexible Project system.
+
 use async_trait::async_trait;
 
 use crate::model::id::Id;
@@ -54,7 +56,7 @@ pub trait UpdateUser {
 
     /// Updates user state in the system.
     ///
-    /// Returns updated user data.
+    /// Returns updated user data if present.
     async fn update(&self, user: User) -> Result<Option<User>, Self::Error>;
 }
 

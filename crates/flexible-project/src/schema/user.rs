@@ -3,14 +3,15 @@
 use async_graphql::{Context, Object, Result, ID};
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::UserFilters as CoreUserFilters;
-use fp_core::use_case::{
+use fp_core::use_case::user::{
     DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _, UpdateUser as _,
-    UserTokenVerifier as _,
 };
+use fp_core::use_case::verifier::UserTokenVerifier as _;
 use fp_data::data_source::local::LocalUserDataSource;
-use fp_data::interactor::{
-    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser as UpdateUserInteractor, UserTokenVerifier,
+use fp_data::interactor::user::{
+    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser as UpdateUserInteractor,
 };
+use fp_data::interactor::verifier::UserTokenVerifier;
 
 use crate::model::user::{UpdateUser, User, UserCredentials, UserFilters, UserToken};
 

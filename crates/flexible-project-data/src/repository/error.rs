@@ -7,8 +7,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 /// Error of repository implementation.
 #[derive(Debug, Display, Error, From)]
-#[from(forward)]
 pub enum Error {
     /// Data source error variant.
-    DataSource(#[error(source)] DataSourceError),
+    DataSource(DataSourceError),
 }

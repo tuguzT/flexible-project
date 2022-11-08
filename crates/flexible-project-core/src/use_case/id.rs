@@ -1,3 +1,5 @@
+//! Identifier use cases of the Flexible Project system.
+
 use crate::model::id::ErasedId;
 
 /// Interactor type which can generate new globally unique identifier.

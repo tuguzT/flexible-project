@@ -1,10 +1,12 @@
+//! Node use case implementations of the Flexible Project system.
+
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use fp_core::model::id::{ErasedId, IdFilters};
 use fp_core::model::node::Node;
 use fp_core::model::user::UserFilters;
-use fp_core::use_case::FindNode as CoreFindNode;
+use fp_core::use_case::node::FindNode as CoreFindNode;
 
 use crate::data_source::user::UserDataSource;
 use crate::repository::user::UserRepository;

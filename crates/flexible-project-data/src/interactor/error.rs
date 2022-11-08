@@ -11,15 +11,15 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
     /// With secret error variant.
-    WithSecret(#[error(source)] WithSecretError),
+    WithSecret(WithSecretError),
     /// Password hash error variant.
-    PasswordHash(#[error(source)] PasswordHashError),
+    PasswordHash(PasswordHashError),
     /// Password hash verification error variant.
-    PasswordHashVerify(#[error(source)] PasswordHashVerifyError),
+    PasswordHashVerify(PasswordHashVerifyError),
     /// Sign in error variant.
-    SignIn(#[error(source)] SignInError),
+    SignIn(SignInError),
     /// Sign up error variant.
-    SignUp(#[error(source)] SignUpError),
+    SignUp(SignUpError),
     /// Repository error variant.
-    Repository(#[error(source)] RepositoryError),
+    Repository(RepositoryError),
 }

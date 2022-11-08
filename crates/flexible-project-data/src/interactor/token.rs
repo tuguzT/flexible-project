@@ -1,3 +1,5 @@
+//! Token use case implementations of the Flexible Project system.
+
 use std::env;
 
 use chrono::serde::ts_seconds;
@@ -7,12 +9,16 @@ use fp_core::model::user::UserTokenClaims;
 use jsonwebtoken::errors::Error;
 use serde::{Deserialize, Serialize};
 
+/// Error type which is returned on JWT token verification failure.
 #[derive(Debug, Display, Error, From)]
-pub struct JwtError(#[error(source)] Error);
+pub struct JwtError(Error);
 
+/// Data of the actual user claims stored inside of the token.
 #[derive(Deserialize, Serialize)]
 pub struct UserTokenClaimsData {
+    /// Identifier representation.
     pub id: String,
+    /// Time after which token will be treated as expired.
     #[serde(with = "ts_seconds")]
     pub exp: DateTime<Utc>,
 }

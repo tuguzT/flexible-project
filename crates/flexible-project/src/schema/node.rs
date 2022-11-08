@@ -1,9 +1,9 @@
 //! Definitions of node queries, mutations and subscriptions of the Flexible Project system.
 
 use async_graphql::{Context, Object, Result, ID};
-use fp_core::use_case::FindNode as _;
+use fp_core::use_case::node::FindNode as _;
 use fp_data::data_source::local::LocalUserDataSource;
-use fp_data::interactor::FindNode;
+use fp_data::interactor::node::FindNode;
 
 use crate::model::node::Node;
 

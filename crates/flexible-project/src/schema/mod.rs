@@ -4,12 +4,16 @@ use std::sync::Arc;
 
 use async_graphql::{EmptySubscription, MergedObject};
 use fp_data::data_source::local::{Client, LocalUserDataSource};
-use fp_data::interactor::{
-    DeleteUser, FilterUsers, FindNode, IdGenerator, PasswordHasher, SignIn, SignUp, UpdateUser,
-    UserCredentialsVerifier, UserTokenGenerator, UserTokenVerifier,
+use fp_data::interactor::hasher::PasswordHasher;
+use fp_data::interactor::id::IdGenerator;
+use fp_data::interactor::node::FindNode;
+use fp_data::interactor::user::{
+    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser, UserTokenGenerator,
 };
+use fp_data::interactor::verifier::{UserCredentialsVerifier, UserTokenVerifier};
+use fp_data::interactor::Result;
 use fp_data::repository::user::UserRepository;
-use fp_data::Result;
+use fp_data::repository::Error;
 
 use crate::model::node::Node;
 
@@ -26,9 +30,10 @@ pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, EmptySubs
 ///
 /// Returns a [builder](SchemaBuilder) to allow users to customize it.
 pub async fn build_schema() -> Result<SchemaBuilder> {
-    let client = Client::new()?;
-    let database = client.0.database("flexible-project");
-    let user_data_source = LocalUserDataSource::new(database).await?;
+    let client = Client::new().map_err(Error::from)?;
+    let user_data_source = LocalUserDataSource::new(client)
+        .await
+        .map_err(Error::from)?;
     let user_repository = Arc::new(UserRepository::new(user_data_source));
 
     let find_node = FindNode::new(user_repository.clone());

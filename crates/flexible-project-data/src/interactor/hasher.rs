@@ -1,8 +1,10 @@
+//! Hashing use case implementations of the Flexible Project system.
+
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as _, Version};
 use derive_more::{Display, Error, From};
-use fp_core::use_case::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
+use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
 use ouroboros::self_referencing;
 
 /// Interactor for password hashing with Argon2 algorithm.
@@ -17,7 +19,7 @@ pub struct PasswordHasher {
 /// Error that may occur when creating new password hasher interactor with some secret.
 #[derive(Error, Debug, Display, From, Clone)]
 #[display(fmt = "invalid secret provided")]
-pub struct WithSecretError(#[error(source)] argon2::Error);
+pub struct WithSecretError(argon2::Error);
 
 impl PasswordHasher {
     /// Creates new password hasher interactor with some secret.
@@ -51,7 +53,7 @@ impl Default for PasswordHasher {
 /// Error that may occur when password is being hashed by some algorithm.
 #[derive(Error, Debug, Display, From, Clone)]
 #[display(fmt = "password hashing failed")]
-pub struct PasswordHashError(#[error(source)] argon2::password_hash::Error);
+pub struct PasswordHashError(argon2::password_hash::Error);
 
 impl CorePasswordHasher for PasswordHasher {
     type Error = PasswordHashError;
@@ -67,7 +69,7 @@ impl CorePasswordHasher for PasswordHasher {
 /// Error that may occur when verifying password with its hash.
 #[derive(Error, Debug, Display, From, Clone)]
 #[display(fmt = "password hash verification failed")]
-pub struct PasswordHashVerifyError(#[error(source)] argon2::password_hash::Error);
+pub struct PasswordHashVerifyError(argon2::password_hash::Error);
 
 impl PasswordHashVerifier for PasswordHasher {
     type Error = PasswordHashVerifyError;

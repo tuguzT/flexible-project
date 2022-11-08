@@ -9,7 +9,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Error of the local data source implementation.
 #[derive(Debug, Display, Error, From)]
 pub enum Error {
-    Mongo(#[error(source)] MongoError),
-    Id(#[error(source)] UuidError),
-    Serialize(#[error(source)] SerError),
+    Mongo(MongoError),
+    Id(UuidError),
+    Serialize(SerError),
 }

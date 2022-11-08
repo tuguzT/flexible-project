@@ -1,3 +1,5 @@
+//! Node use cases of the Flexible Project system.
+
 use async_trait::async_trait;
 
 use crate::model::id::ErasedId;

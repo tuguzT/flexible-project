@@ -1,3 +1,5 @@
+//! Hashing use cases of the Flexible Project system.
+
 /// Interactor type which can hash password with some algorithm.
 pub trait PasswordHasher {
     /// The type returned when any error occurs.

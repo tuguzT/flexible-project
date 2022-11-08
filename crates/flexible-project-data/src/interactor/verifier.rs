@@ -1,7 +1,9 @@
+//! Verifier use case implementations of the Flexible Project system.
+
 use derive_more::{Display, Error, From};
 use fancy_regex::Regex;
 use fp_core::model::user::{UserCredentials, UserToken, UserTokenClaims};
-use fp_core::use_case::{
+use fp_core::use_case::verifier::{
     PasswordVerifier as CorePasswordVerifier, UserCredentialsState,
     UserCredentialsVerifier as CoreUserCredentialsVerifier,
     UserTokenVerifier as CoreUserTokenVerifier, UsernameVerifier as CoreUsernameVerifier,
@@ -11,8 +13,9 @@ use once_cell::sync::Lazy;
 
 use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
 
+/// Error type which is returned on regex running failure.
 #[derive(Debug, Display, Error, From)]
-pub struct RegexError(#[error(source)] fancy_regex::Error);
+pub struct RegexError(fancy_regex::Error);
 
 /// Checks if username meets all the requirements.
 ///

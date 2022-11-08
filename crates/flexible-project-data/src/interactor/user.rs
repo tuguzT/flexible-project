@@ -1,3 +1,5 @@
+//! User use case implementations of the Flexible Project system.
+
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -7,20 +9,23 @@ use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::{
     User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
 };
-use fp_core::use_case::{
-    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers, IdGenerator as CoreGUIDGenerator,
-    PasswordHashVerifier, PasswordHasher as _, SignIn as CoreSignIn, SignUp as CoreSignUp,
-    UpdateUser as CoreUpdateUser, UserCredentialsState,
-    UserCredentialsVerifier as CoreUserCredentialsVerifier,
+use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as _};
+use fp_core::use_case::id::IdGenerator as _;
+use fp_core::use_case::user::{
+    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers, SignIn as CoreSignIn,
+    SignUp as CoreSignUp, UpdateUser as CoreUpdateUser,
     UserTokenGenerator as CoreUserTokenGenerator,
+};
+use fp_core::use_case::verifier::{
+    UserCredentialsState, UserCredentialsVerifier as CoreUserCredentialsVerifier,
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
 use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, PasswordHasher};
+use crate::interactor::id::IdGenerator;
 use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
-use crate::interactor::verifier::RegexError;
-use crate::interactor::{IdGenerator, UserCredentialsVerifier};
+use crate::interactor::verifier::{RegexError, UserCredentialsVerifier};
 use crate::repository::user::UserRepository;
 use crate::repository::Error;
 
@@ -78,14 +83,21 @@ where
     }
 }
 
+/// Error type of sign up use case.
 #[derive(Debug, Display, Error, From)]
 pub enum SignUpError {
-    Repository(#[error(source)] Error),
-    Regex(#[error(source)] RegexError),
-    Jwt(#[error(source)] JwtError),
-    PasswordHash(#[error(source)] PasswordHashError),
+    /// Repository error variant.
+    Repository(Error),
+    /// Regex execution error variant.
+    Regex(RegexError),
+    /// JWT token verification error variant.
+    Jwt(JwtError),
+    /// Password hashing error variant.
+    PasswordHash(PasswordHashError),
+    /// Invalid username error variant.
     #[display(fmt = "user name does not match requirements")]
     InvalidUsername,
+    /// Invalid password error variant.
     #[display(fmt = "user password does not match requirements")]
     InvalidPassword,
 }
@@ -123,18 +135,27 @@ where
     }
 }
 
+/// Error type of sign in use case.
 #[derive(Debug, Display, From, Error)]
 pub enum SignInError {
-    Repository(#[error(source)] Error),
-    Regex(#[error(source)] RegexError),
-    Jwt(#[error(source)] JwtError),
-    PasswordVerify(#[error(source)] PasswordHashVerifyError),
+    /// Repository error variant.
+    Repository(Error),
+    /// Regex execution error variant.
+    Regex(RegexError),
+    /// JWT token verification error variant.
+    Jwt(JwtError),
+    /// Password verification error variant.
+    PasswordVerify(PasswordHashVerifyError),
+    /// Invalid username error variant.
     #[display(fmt = "user name does not match requirements")]
     InvalidUsername,
+    /// Invalid password error variant.
     #[display(fmt = "user password does not match requirements")]
     InvalidPassword,
+    /// User password is wrong.
     #[display(fmt = "wrong password")]
     WrongPassword,
+    /// No user was found by credentials.
     #[display(fmt = "no user was found")]
     NoUser,
 }

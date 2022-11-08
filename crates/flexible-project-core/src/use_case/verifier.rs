@@ -1,3 +1,5 @@
+//! Verifier use cases of the Flexible Project system.
+
 #![allow(missing_docs)]
 
 use derive_more::{IsVariant, Unwrap};
