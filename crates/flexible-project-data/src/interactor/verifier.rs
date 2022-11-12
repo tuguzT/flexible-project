@@ -1,5 +1,6 @@
 //! Verifier use case implementations of the Flexible Project system.
 
+use async_trait::async_trait;
 use fancy_regex::Regex;
 use fp_core::model::user::{UserCredentials, UserToken, UserTokenClaims};
 use fp_core::use_case::error::InternalError;
@@ -8,9 +9,11 @@ use fp_core::use_case::verifier::{
     UserCredentialsVerifier as CoreUserCredentialsVerifier, UserTokenError,
     UserTokenVerifier as CoreUserTokenVerifier, UsernameVerifier as CoreUsernameVerifier,
 };
+use futures::join;
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use once_cell::sync::Lazy;
+use tokio::task::spawn_blocking;
 
 use crate::interactor::token::{secret, UserTokenClaimsData};
 
@@ -25,11 +28,12 @@ use crate::interactor::token::{secret, UserTokenClaimsData};
 #[derive(Debug, Clone, Default)]
 pub struct UsernameVerifier;
 
+#[async_trait]
 impl CoreUsernameVerifier for UsernameVerifier {
-    fn verify(&self, username: &str) -> Result<bool, InternalError> {
-        let is_match = USERNAME_REGEX
-            .is_match(username)
-            .map_err(InternalError::new)?;
+    async fn verify(&self, username: String) -> Result<bool, InternalError> {
+        let future = spawn_blocking(move || USERNAME_REGEX.is_match(&username));
+        let result = future.await.map_err(InternalError::new)?;
+        let is_match = result.map_err(InternalError::new)?;
         Ok(is_match)
     }
 }
@@ -49,11 +53,12 @@ static USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
 #[derive(Debug, Clone, Default)]
 pub struct PasswordVerifier;
 
+#[async_trait]
 impl CorePasswordVerifier for PasswordVerifier {
-    fn verify(&self, password: &str) -> Result<bool, InternalError> {
-        let is_match = PASSWORD_REGEX
-            .is_match(password)
-            .map_err(InternalError::new)?;
+    async fn verify(&self, password: String) -> Result<bool, InternalError> {
+        let future = spawn_blocking(move || PASSWORD_REGEX.is_match(&password));
+        let result = future.await.map_err(InternalError::new)?;
+        let is_match = result.map_err(InternalError::new)?;
         Ok(is_match)
     }
 }
@@ -69,15 +74,24 @@ static PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
 #[derive(Debug, Clone, Default)]
 pub struct UserCredentialsVerifier(UsernameVerifier, PasswordVerifier);
 
+#[async_trait]
 impl CoreUserCredentialsVerifier for UserCredentialsVerifier {
-    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, InternalError> {
+    async fn verify(
+        &self,
+        credentials: UserCredentials,
+    ) -> Result<UserCredentialsState, InternalError> {
         let UserCredentialsVerifier(uv, pv) = self;
-        let username = &credentials.name;
-        if !uv.verify(username)? {
+        let UserCredentials {
+            password,
+            name: username,
+        } = credentials;
+
+        let is_match = join!(uv.verify(username), pv.verify(password));
+        let (is_match_username, is_match_password) = is_match;
+        if !is_match_username? {
             return Ok(UserCredentialsState::InvalidUsername);
         }
-        let password = &credentials.password;
-        if !pv.verify(password)? {
+        if !is_match_password? {
             return Ok(UserCredentialsState::InvalidPassword);
         }
         Ok(UserCredentialsState::Valid)
@@ -88,17 +102,21 @@ impl CoreUserCredentialsVerifier for UserCredentialsVerifier {
 #[derive(Debug, Clone, Default)]
 pub struct UserTokenVerifier;
 
+#[async_trait]
 impl CoreUserTokenVerifier for UserTokenVerifier {
-    fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, UserTokenError> {
-        let token = &token.token;
-        let key = &DecodingKey::from_secret(secret().as_bytes());
-        let validation = &Validation::default();
-        let token_data =
-            decode::<UserTokenClaimsData>(token, key, validation).map_err(|error| {
-                match error.kind() {
-                    ErrorKind::ExpiredSignature => UserTokenError::Expired,
-                    _ => UserTokenError::Internal(InternalError::new(error)),
-                }
+    async fn verify(&self, token: UserToken) -> Result<UserTokenClaims, UserTokenError> {
+        let token = token.token;
+        let key = DecodingKey::from_secret(secret().as_bytes());
+        let validation = Validation::default();
+
+        let future =
+            spawn_blocking(move || decode::<UserTokenClaimsData>(&token, &key, &validation));
+        let token_data = future
+            .await
+            .map_err(InternalError::new)?
+            .map_err(|error| match error.kind() {
+                ErrorKind::ExpiredSignature => UserTokenError::Expired,
+                _ => UserTokenError::Internal(InternalError::new(error)),
             })?;
         let claims = token_data.claims.into();
         Ok(claims)

@@ -11,9 +11,10 @@ use crate::use_case::error::InternalError;
 use crate::use_case::verifier::UserTokenError;
 
 /// Interactor type which can generate new user token from the claims.
+#[async_trait]
 pub trait UserTokenGenerator {
     /// Generates new [user token](UserToken) with data provided in [claims](UserTokenClaims).
-    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError>;
+    async fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError>;
 }
 
 /// Error type of [sign up](SignUp) use case.

@@ -3,17 +3,20 @@
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as _, Version};
+use async_trait::async_trait;
 use derive_more::{Display, Error, From};
 use fp_core::use_case::error::InternalError;
 use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
+use futures::executor::block_on;
 use ouroboros::self_referencing;
+use tokio::runtime::Handle;
 
 /// Interactor for password hashing with Argon2 algorithm.
 #[self_referencing]
 pub struct PasswordHasher {
     secret: Option<String>,
     #[borrows(secret)]
-    #[covariant]
+    #[not_covariant]
     hasher: Argon2<'this>,
 }
 
@@ -51,25 +54,35 @@ impl Default for PasswordHasher {
     }
 }
 
+#[async_trait]
 impl CorePasswordHasher for PasswordHasher {
-    fn hash(&self, password: &str) -> Result<String, InternalError> {
+    async fn hash(&self, password: String) -> Result<String, InternalError> {
         let password = password.as_bytes();
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = self
-            .borrow_hasher()
-            .hash_password(password, &salt)
+            .with_hasher(|hasher| {
+                let handle = Handle::current();
+                let _ = handle.enter();
+                block_on(async { hasher.hash_password(password, &salt) })
+            })
             .map_err(InternalError::new)?;
         Ok(password_hash.to_string())
     }
 }
 
+#[async_trait]
 impl PasswordHashVerifier for PasswordHasher {
-    fn verify(&self, password: &str, password_hash: &str) -> Result<bool, InternalError> {
+    async fn verify(&self, password: String, password_hash: String) -> Result<bool, InternalError> {
         let password = password.as_bytes();
-        let password_hash = password_hash.try_into().map_err(InternalError::new)?;
-        let result = self
-            .borrow_hasher()
-            .verify_password(password, &password_hash);
+        let password_hash = password_hash
+            .as_str()
+            .try_into()
+            .map_err(InternalError::new)?;
+        let result = self.with_hasher(|hasher| {
+            let handle = Handle::current();
+            let _ = handle.enter();
+            block_on(async { hasher.verify_password(password, &password_hash) })
+        });
         match result {
             Ok(_) => Ok(true),
             Err(error) => match error {

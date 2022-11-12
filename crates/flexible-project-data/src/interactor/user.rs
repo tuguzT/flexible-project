@@ -33,8 +33,9 @@ use crate::repository::user::UserRepository;
 #[derive(Debug, Clone, Default)]
 pub struct UserTokenGenerator;
 
+#[async_trait]
 impl CoreUserTokenGenerator for UserTokenGenerator {
-    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError> {
+    async fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError> {
         let claims = UserTokenClaimsData {
             id: claims.id.to_string(),
             exp: Utc::now() + Duration::hours(1),
@@ -87,31 +88,45 @@ where
     S: UserDataSource + Send + Sync,
 {
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError> {
-        match self.credentials_verifier.verify(&credentials)? {
+        match self
+            .credentials_verifier
+            .verify(credentials.clone())
+            .await?
+        {
             UserCredentialsState::Valid => (),
             UserCredentialsState::InvalidUsername => return Err(SignUpError::InvalidUsername),
             UserCredentialsState::InvalidPassword => return Err(SignUpError::InvalidPassword),
         };
+
+        let username = credentials.name;
         let repository = self.repository.as_ref();
+        let filters = UserFilters::builder()
+            .name(UsernameFilters::builder().eq(username.clone()).build())
+            .build();
+        let username_taken = repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?
+            .first()
+            .is_some();
+        if username_taken {
+            return Err(SignUpError::UsernameAlreadyTaken);
+        }
+
         let user = User {
-            id: self
-                .id_generator
-                .generate()
-                .expect("should never fail because of `Infallible` error type, aka 'never' type")
-                .with_owner(),
-            name: credentials.name.clone(),
-            display_name: credentials.name,
+            id: self.id_generator.generate().await?.with_owner(),
+            name: username.clone(),
+            display_name: username,
             email: None,
             role: UserRole::User,
         };
-        let password_hash = self.password_hasher.hash(&credentials.password)?;
-        // TODO what if user name already taken? move to repo error
+        let password_hash = self.password_hasher.hash(credentials.password).await?;
         let user = repository
             .create(user, password_hash)
             .await
             .map_err(InternalError::new)?;
         let claims = UserTokenClaims { id: user.id };
-        let token = self.token_generator.generate(claims)?;
+        let token = self.token_generator.generate(claims).await?;
         Ok(token)
     }
 }
@@ -153,7 +168,11 @@ where
     S: UserDataSource + Send + Sync,
 {
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError> {
-        match self.credentials_verifier.verify(&credentials)? {
+        match self
+            .credentials_verifier
+            .verify(credentials.clone())
+            .await?
+        {
             UserCredentialsState::Valid => (),
             UserCredentialsState::InvalidUsername => return Err(SignInError::InvalidUsername),
             UserCredentialsState::InvalidPassword => return Err(SignInError::InvalidPassword),
@@ -177,12 +196,13 @@ where
             .map_err(InternalError::new)?
             .ok_or(SignInError::NoUser)?;
         self.password_hasher
-            .verify(&credentials.password, &password_hash)?
+            .verify(credentials.password, password_hash)
+            .await?
             .then_some(())
             .ok_or(SignInError::WrongPassword)?;
 
         let claims = UserTokenClaims { id: user.id };
-        let token = self.token_generator.generate(claims)?;
+        let token = self.token_generator.generate(claims).await?;
         Ok(token)
     }
 }
@@ -215,7 +235,7 @@ where
     S: UserDataSource + Send + Sync,
 {
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError> {
-        let UserTokenClaims { id } = self.token_verifier.verify(&token)?;
+        let UserTokenClaims { id } = self.token_verifier.verify(token).await?;
         let repository = self.repository.as_ref();
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(id).build())

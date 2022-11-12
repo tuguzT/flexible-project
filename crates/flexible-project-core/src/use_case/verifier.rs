@@ -2,25 +2,28 @@
 
 #![allow(missing_docs)]
 
+use async_trait::async_trait;
 use derive_more::{Display, Error, From, IsVariant, Unwrap};
 
 use crate::model::user::{UserCredentials, UserToken, UserTokenClaims};
 use crate::use_case::error::InternalError;
 
 /// Interactor type which can verify username provided by user.
+#[async_trait]
 pub trait UsernameVerifier {
     /// Verifies username provided by user.
     ///
     /// Returns `true` if provided username is valid, `false` otherwise.
-    fn verify(&self, username: &str) -> Result<bool, InternalError>;
+    async fn verify(&self, username: String) -> Result<bool, InternalError>;
 }
 
 /// Interactor type which can verify password provided by user.
+#[async_trait]
 pub trait PasswordVerifier {
     /// Verifies password provided by user.
     ///
     /// Returns `true` if provided password is valid, `false` otherwise.
-    fn verify(&self, password: &str) -> Result<bool, InternalError>;
+    async fn verify(&self, password: String) -> Result<bool, InternalError>;
 }
 
 /// State of [user credentials](UserCredentials) after its checking by
@@ -36,9 +39,13 @@ pub enum UserCredentialsState {
 }
 
 /// Interactor type which can verify credentials provided by user.
+#[async_trait]
 pub trait UserCredentialsVerifier {
     /// Verifies credentials provided by user.
-    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, InternalError>;
+    async fn verify(
+        &self,
+        credentials: UserCredentials,
+    ) -> Result<UserCredentialsState, InternalError>;
 }
 
 /// Error type of [token verifier](UserTokenVerifier) use case.
@@ -52,9 +59,10 @@ pub enum UserTokenError {
 }
 
 /// Interactor type which can verify user token provided by client.
+#[async_trait]
 pub trait UserTokenVerifier {
     /// Verifies user token provided by client.
     ///
     /// Returns [token claims](UserTokenClaims) if provided token is valid.
-    fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, UserTokenError>;
+    async fn verify(&self, token: UserToken) -> Result<UserTokenClaims, UserTokenError>;
 }
