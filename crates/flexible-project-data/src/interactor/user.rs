@@ -4,46 +4,44 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use derive_more::{Display, Error, From};
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::{
     User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
 };
+use fp_core::use_case::error::InternalError;
 use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as _};
 use fp_core::use_case::id::IdGenerator as _;
 use fp_core::use_case::user::{
-    DeleteUser as CoreDeleteUser, FilterUsers as CoreFilterUsers, SignIn as CoreSignIn,
-    SignUp as CoreSignUp, UpdateUser as CoreUpdateUser,
-    UserTokenGenerator as CoreUserTokenGenerator,
+    CurrentUser as CoreCurrentUser, CurrentUserError, DeleteUser as CoreDeleteUser,
+    DeleteUserError, FilterUsers as CoreFilterUsers, SignIn as CoreSignIn, SignInError,
+    SignUp as CoreSignUp, SignUpError, UserTokenGenerator as CoreUserTokenGenerator,
 };
 use fp_core::use_case::verifier::{
     UserCredentialsState, UserCredentialsVerifier as CoreUserCredentialsVerifier,
+    UserTokenVerifier as _,
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
-use crate::interactor::hasher::{PasswordHashError, PasswordHashVerifyError, PasswordHasher};
+use crate::interactor::hasher::PasswordHasher;
 use crate::interactor::id::IdGenerator;
-use crate::interactor::token::{secret, JwtError, UserTokenClaimsData};
-use crate::interactor::verifier::{RegexError, UserCredentialsVerifier};
+use crate::interactor::token::{secret, UserTokenClaimsData};
+use crate::interactor::verifier::{UserCredentialsVerifier, UserTokenVerifier};
 use crate::repository::user::UserRepository;
-use crate::repository::Error;
 
 /// Interactor used to generate new user token from claims.
-#[derive(Default, Clone, Copy)]
+#[derive(Debug, Clone, Default)]
 pub struct UserTokenGenerator;
 
 impl CoreUserTokenGenerator for UserTokenGenerator {
-    type Error = JwtError;
-
-    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, Self::Error> {
+    fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError> {
         let claims = UserTokenClaimsData {
             id: claims.id.to_string(),
             exp: Utc::now() + Duration::hours(1),
         };
         let header = &Header::default();
-        let key = &EncodingKey::from_secret(secret().as_slice());
-        let token = encode(header, &claims, key).map_err(JwtError::from)?;
+        let key = &EncodingKey::from_secret(secret().as_bytes());
+        let token = encode(header, &claims, key).map_err(InternalError::new)?;
         let token = UserToken { token };
         Ok(token)
     }
@@ -83,33 +81,12 @@ where
     }
 }
 
-/// Error type of sign up use case.
-#[derive(Debug, Display, Error, From)]
-pub enum SignUpError {
-    /// Repository error variant.
-    Repository(Error),
-    /// Regex execution error variant.
-    Regex(RegexError),
-    /// JWT token verification error variant.
-    Jwt(JwtError),
-    /// Password hashing error variant.
-    PasswordHash(PasswordHashError),
-    /// Invalid username error variant.
-    #[display(fmt = "user name does not match requirements")]
-    InvalidUsername,
-    /// Invalid password error variant.
-    #[display(fmt = "user password does not match requirements")]
-    InvalidPassword,
-}
-
 #[async_trait]
 impl<S> CoreSignUp for SignUp<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = SignUpError;
-
-    async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
+    async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError> {
         match self.credentials_verifier.verify(&credentials)? {
             UserCredentialsState::Valid => (),
             UserCredentialsState::InvalidUsername => return Err(SignUpError::InvalidUsername),
@@ -128,36 +105,15 @@ where
             role: UserRole::User,
         };
         let password_hash = self.password_hasher.hash(&credentials.password)?;
-        let user = repository.create(user, password_hash).await?;
+        // TODO what if user name already taken? move to repo error
+        let user = repository
+            .create(user, password_hash)
+            .await
+            .map_err(InternalError::new)?;
         let claims = UserTokenClaims { id: user.id };
         let token = self.token_generator.generate(claims)?;
         Ok(token)
     }
-}
-
-/// Error type of sign in use case.
-#[derive(Debug, Display, From, Error)]
-pub enum SignInError {
-    /// Repository error variant.
-    Repository(Error),
-    /// Regex execution error variant.
-    Regex(RegexError),
-    /// JWT token verification error variant.
-    Jwt(JwtError),
-    /// Password verification error variant.
-    PasswordVerify(PasswordHashVerifyError),
-    /// Invalid username error variant.
-    #[display(fmt = "user name does not match requirements")]
-    InvalidUsername,
-    /// Invalid password error variant.
-    #[display(fmt = "user password does not match requirements")]
-    InvalidPassword,
-    /// User password is wrong.
-    #[display(fmt = "wrong password")]
-    WrongPassword,
-    /// No user was found by credentials.
-    #[display(fmt = "no user was found")]
-    NoUser,
 }
 
 /// Interactor used to login existing user in the system.
@@ -196,9 +152,7 @@ impl<S> CoreSignIn for SignIn<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = SignInError;
-
-    async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, Self::Error> {
+    async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError> {
         match self.credentials_verifier.verify(&credentials)? {
             UserCredentialsState::Valid => (),
             UserCredentialsState::InvalidUsername => return Err(SignInError::InvalidUsername),
@@ -211,14 +165,16 @@ where
             .build();
         let user = repository
             .read(filters)
-            .await?
+            .await
+            .map_err(InternalError::new)?
             .first()
             .cloned()
             .ok_or(SignInError::NoUser)?;
 
         let password_hash = repository
             .get_password_hash(user.id.clone())
-            .await?
+            .await
+            .map_err(InternalError::new)?
             .ok_or(SignInError::NoUser)?;
         self.password_hasher
             .verify(&credentials.password, &password_hash)?
@@ -231,12 +187,69 @@ where
     }
 }
 
+/// Interactor used to get current user from the token.
+pub struct CurrentUser<S>
+where
+    S: UserDataSource,
+{
+    repository: Arc<UserRepository<S>>,
+    token_verifier: UserTokenVerifier,
+}
+
+impl<S> CurrentUser<S>
+where
+    S: UserDataSource,
+{
+    /// Creates new current user interactor.
+    pub fn new(repository: Arc<UserRepository<S>>, token_verifier: UserTokenVerifier) -> Self {
+        Self {
+            repository,
+            token_verifier,
+        }
+    }
+}
+
+#[async_trait]
+impl<S> CoreCurrentUser for CurrentUser<S>
+where
+    S: UserDataSource + Send + Sync,
+{
+    async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError> {
+        let UserTokenClaims { id } = self.token_verifier.verify(&token)?;
+        let repository = self.repository.as_ref();
+        let filters = UserFilters::builder()
+            .id(IdFilters::builder().eq(id).build())
+            .build();
+        let user = repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?
+            .first()
+            .cloned()
+            .ok_or(CurrentUserError::NoUser)?;
+        Ok(user)
+    }
+}
+
+impl<S> Clone for CurrentUser<S>
+where
+    S: UserDataSource,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repository: self.repository.clone(),
+            token_verifier: self.token_verifier.clone(),
+        }
+    }
+}
+
 /// Interactor used to delete user from the system.
 pub struct DeleteUser<S>
 where
     S: UserDataSource,
 {
     repository: Arc<UserRepository<S>>,
+    current_user: CurrentUser<S>,
 }
 
 impl<S> DeleteUser<S>
@@ -244,8 +257,11 @@ where
     S: UserDataSource,
 {
     /// Creates new delete user interactor.
-    pub fn new(repository: Arc<UserRepository<S>>) -> Self {
-        Self { repository }
+    pub fn new(repository: Arc<UserRepository<S>>, current_user: CurrentUser<S>) -> Self {
+        Self {
+            repository,
+            current_user,
+        }
     }
 }
 
@@ -254,19 +270,31 @@ impl<S> CoreDeleteUser for DeleteUser<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = Error;
-
-    async fn delete(&self, id: Id<User>) -> Result<Option<User>, Self::Error> {
+    async fn delete(
+        &self,
+        token: UserToken,
+        user_to_delete: Id<User>,
+    ) -> Result<Option<User>, DeleteUserError> {
         let repository = self.repository.as_ref();
+        let current_user = self.current_user.current_user(token).await?;
+        if (current_user.id != user_to_delete) || current_user.role.is_user() {
+            return Err(DeleteUserError::NotAllowed);
+        }
+
         let filters = UserFilters::builder()
-            .id(IdFilters::builder().eq(id).build())
+            .id(IdFilters::builder().eq(user_to_delete).build())
             .build();
-        let user = repository.read(filters).await?.first().cloned();
+        let user = repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?
+            .first()
+            .cloned();
         let user = match user {
             Some(user) => user,
             None => return Ok(None),
         };
-        let user = repository.delete(user).await?;
+        let user = repository.delete(user).await.map_err(InternalError::new)?;
         Ok(user)
     }
 }
@@ -294,43 +322,20 @@ impl<S> CoreFilterUsers for FilterUsers<S>
 where
     S: UserDataSource + Send + Sync,
 {
-    type Error = Error;
-
-    async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, Self::Error> {
+    async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, InternalError> {
         let repository = self.repository.as_ref();
-        let user = repository.read(filters).await?;
+        let user = repository.read(filters).await.map_err(InternalError::new)?;
         Ok(user)
     }
 }
 
-/// Interactor used to update users.
-pub struct UpdateUser<S>
+impl<S> Clone for FilterUsers<S>
 where
     S: UserDataSource,
 {
-    repository: Arc<UserRepository<S>>,
-}
-
-impl<S> UpdateUser<S>
-where
-    S: UserDataSource,
-{
-    /// Creates user update interactor.
-    pub fn new(repository: Arc<UserRepository<S>>) -> Self {
-        Self { repository }
-    }
-}
-
-#[async_trait]
-impl<S> CoreUpdateUser for UpdateUser<S>
-where
-    S: UserDataSource + Send + Sync,
-{
-    type Error = Error;
-
-    async fn update(&self, user: User) -> Result<Option<User>, Self::Error> {
-        let repository = self.repository.as_ref();
-        let user = repository.update(user).await?;
-        Ok(user)
+    fn clone(&self) -> Self {
+        Self {
+            repository: self.repository.clone(),
+        }
     }
 }

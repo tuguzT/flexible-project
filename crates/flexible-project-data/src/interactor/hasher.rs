@@ -4,6 +4,7 @@ use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as _, Version};
 use derive_more::{Display, Error, From};
+use fp_core::use_case::error::InternalError;
 use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
 use ouroboros::self_referencing;
 
@@ -50,33 +51,22 @@ impl Default for PasswordHasher {
     }
 }
 
-/// Error that may occur when password is being hashed by some algorithm.
-#[derive(Error, Debug, Display, From, Clone)]
-#[display(fmt = "password hashing failed")]
-pub struct PasswordHashError(argon2::password_hash::Error);
-
 impl CorePasswordHasher for PasswordHasher {
-    type Error = PasswordHashError;
-
-    fn hash(&self, password: &str) -> Result<String, Self::Error> {
+    fn hash(&self, password: &str) -> Result<String, InternalError> {
         let password = password.as_bytes();
         let salt = SaltString::generate(&mut OsRng);
-        let password_hash = self.borrow_hasher().hash_password(password, &salt)?;
+        let password_hash = self
+            .borrow_hasher()
+            .hash_password(password, &salt)
+            .map_err(InternalError::new)?;
         Ok(password_hash.to_string())
     }
 }
 
-/// Error that may occur when verifying password with its hash.
-#[derive(Error, Debug, Display, From, Clone)]
-#[display(fmt = "password hash verification failed")]
-pub struct PasswordHashVerifyError(argon2::password_hash::Error);
-
 impl PasswordHashVerifier for PasswordHasher {
-    type Error = PasswordHashVerifyError;
-
-    fn verify(&self, password: &str, password_hash: &str) -> Result<bool, Self::Error> {
+    fn verify(&self, password: &str, password_hash: &str) -> Result<bool, InternalError> {
         let password = password.as_bytes();
-        let password_hash = password_hash.try_into()?;
+        let password_hash = password_hash.try_into().map_err(InternalError::new)?;
         let result = self
             .borrow_hasher()
             .verify_password(password, &password_hash);
@@ -84,7 +74,7 @@ impl PasswordHashVerifier for PasswordHasher {
             Ok(_) => Ok(true),
             Err(error) => match error {
                 argon2::password_hash::Error::Password => Ok(false),
-                error => Err(error.into()),
+                error => Err(InternalError::new(error)),
             },
         }
     }

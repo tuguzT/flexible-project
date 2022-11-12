@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 #![warn(clippy::all)]
+#![forbid(unsafe_code)]
 
 //! Flexible Project server.
 
@@ -8,8 +9,13 @@ use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use anyhow::Result;
 use async_graphql::extensions;
-use flexible_project::config::graphql_config;
-use flexible_project::schema::build_schema;
+
+use self::config::graphql_config;
+use self::schema::build_schema;
+
+mod config;
+mod model;
+mod schema;
 
 /// Entry point of the server.
 #[actix_web::main]

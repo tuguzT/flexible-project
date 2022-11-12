@@ -4,14 +4,8 @@ use std::env;
 
 use chrono::serde::ts_seconds;
 use chrono::{DateTime, Utc};
-use derive_more::{Display, Error, From};
 use fp_core::model::user::UserTokenClaims;
-use jsonwebtoken::errors::Error;
 use serde::{Deserialize, Serialize};
-
-/// Error type which is returned on JWT token verification failure.
-#[derive(Debug, Display, Error, From)]
-pub struct JwtError(Error);
 
 /// Data of the actual user claims stored inside of the token.
 #[derive(Deserialize, Serialize)]
@@ -30,8 +24,8 @@ impl From<UserTokenClaimsData> for UserTokenClaims {
     }
 }
 
-pub fn secret() -> Vec<u8> {
+pub fn secret() -> String {
     let secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable should be set");
     log::debug!("JWT_SECRET is {}", &secret);
-    secret.into_bytes()
+    secret
 }

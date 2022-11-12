@@ -107,45 +107,6 @@ impl From<UserCredentials> for CoreUserCredentials {
     }
 }
 
-/// User input data in the Flexible Project system.
-#[derive(InputObject, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct UpdateUser {
-    /// Unique identifier of the user.
-    pub id: ID,
-    /// Unique name of the user.
-    pub name: String,
-    /// Display name of the user which is not unique.
-    pub display_name: String,
-    /// Unique email of the user, if exists.
-    pub email: Option<String>,
-    /// Role of the user in the system.
-    pub role: UserRole,
-}
-
-impl From<CoreUser> for UpdateUser {
-    fn from(user: CoreUser) -> Self {
-        Self {
-            id: user.id.into(),
-            name: user.name,
-            display_name: user.display_name,
-            email: user.email,
-            role: user.role.into(),
-        }
-    }
-}
-
-impl From<UpdateUser> for CoreUser {
-    fn from(user: UpdateUser) -> Self {
-        Self {
-            id: user.id.to_string().into(),
-            name: user.name,
-            display_name: user.display_name,
-            email: user.email,
-            role: user.role.into(),
-        }
-    }
-}
-
 /// User access token which is required to access non-public system resources.
 #[derive(SimpleObject, Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, From)]
 pub struct UserToken {

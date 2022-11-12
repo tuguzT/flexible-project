@@ -3,8 +3,9 @@
 #![allow(missing_docs)]
 
 use derive_more::{IsVariant, Unwrap};
+use typed_builder::TypedBuilder;
 
-use crate::model::id::Id;
+use crate::model::id::{Id, IdFilters};
 use crate::model::project::Project;
 use crate::model::user::User;
 
@@ -48,8 +49,10 @@ pub enum WorkspaceMemberRole {
 }
 
 /// Filters to be applied on workspace search process.
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, TypedBuilder)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct WorkspaceFilters {
-    // empty
+    /// Workspace identifier filters.
+    pub id: Option<IdFilters<Workspace>>,
     // TODO fill with filters
 }

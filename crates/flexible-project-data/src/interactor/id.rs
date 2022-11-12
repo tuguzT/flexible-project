@@ -1,8 +1,7 @@
 //! Identifier use case implementations of the Flexible Project system.
 
-use std::convert::Infallible;
-
 use fp_core::model::id::ErasedId;
+use fp_core::use_case::error::InternalError;
 use fp_core::use_case::id::IdGenerator as CoreIdGenerator;
 use uuid::Uuid;
 
@@ -11,9 +10,7 @@ use uuid::Uuid;
 pub struct IdGenerator;
 
 impl CoreIdGenerator for IdGenerator {
-    type Error = Infallible;
-
-    fn generate(&self) -> Result<ErasedId, Self::Error> {
+    fn generate(&self) -> Result<ErasedId, InternalError> {
         let id = Uuid::new_v4().to_string().into();
         Ok(id)
     }

@@ -2,16 +2,16 @@
 
 use std::sync::Arc;
 
+use anyhow::Result;
 use async_graphql::{EmptySubscription, MergedObject};
 use fp_data::data_source::local::{Client, LocalUserDataSource};
 use fp_data::interactor::hasher::PasswordHasher;
 use fp_data::interactor::id::IdGenerator;
 use fp_data::interactor::node::FindNode;
 use fp_data::interactor::user::{
-    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser, UserTokenGenerator,
+    CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp, UserTokenGenerator,
 };
 use fp_data::interactor::verifier::{UserCredentialsVerifier, UserTokenVerifier};
-use fp_data::interactor::Result;
 use fp_data::repository::user::UserRepository;
 use fp_data::repository::Error;
 
@@ -36,7 +36,6 @@ pub async fn build_schema() -> Result<SchemaBuilder> {
         .map_err(Error::from)?;
     let user_repository = Arc::new(UserRepository::new(user_data_source));
 
-    let find_node = FindNode::new(user_repository.clone());
     let filter_users = FilterUsers::new(user_repository.clone());
     let credentials_verifier = UserCredentialsVerifier::default();
     let id_generator = IdGenerator::default();
@@ -45,9 +44,9 @@ pub async fn build_schema() -> Result<SchemaBuilder> {
     let sign_up = SignUp::new(
         user_repository.clone(),
         password_hasher.clone(),
-        credentials_verifier,
+        credentials_verifier.clone(),
         id_generator,
-        token_generator,
+        token_generator.clone(),
     );
     let token_verifier = UserTokenVerifier::default();
     let sign_in = SignIn::new(
@@ -56,8 +55,9 @@ pub async fn build_schema() -> Result<SchemaBuilder> {
         credentials_verifier,
         token_generator,
     );
-    let update_user = UpdateUser::new(user_repository.clone());
-    let delete_user = DeleteUser::new(user_repository);
+    let current_user = CurrentUser::new(user_repository.clone(), token_verifier.clone());
+    let delete_user = DeleteUser::new(user_repository, current_user.clone());
+    let find_node = FindNode::new(filter_users.clone());
 
     let query = Query::default();
     let mutation = Mutation::default();
@@ -67,7 +67,7 @@ pub async fn build_schema() -> Result<SchemaBuilder> {
         .data(filter_users)
         .data(sign_up)
         .data(sign_in)
-        .data(update_user)
+        .data(current_user)
         .data(delete_user)
         .data(token_verifier)
         .register_output_type::<Node>();

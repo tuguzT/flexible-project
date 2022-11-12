@@ -4,16 +4,12 @@ use async_graphql::{Context, Object, Result, ID};
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::UserFilters as CoreUserFilters;
 use fp_core::use_case::user::{
-    DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _, UpdateUser as _,
+    CurrentUser as _, DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _,
 };
-use fp_core::use_case::verifier::UserTokenVerifier as _;
 use fp_data::data_source::local::LocalUserDataSource;
-use fp_data::interactor::user::{
-    DeleteUser, FilterUsers, SignIn, SignUp, UpdateUser as UpdateUserInteractor,
-};
-use fp_data::interactor::verifier::UserTokenVerifier;
+use fp_data::interactor::user::{CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp};
 
-use crate::model::user::{UpdateUser, User, UserCredentials, UserFilters, UserToken};
+use crate::model::user::{User, UserCredentials, UserFilters, UserToken};
 
 /// User query object of the Flexible Project system.
 #[derive(Default)]
@@ -57,7 +53,11 @@ impl UserQuery {
 
     /// Data of the current user of the Flexible project system.
     async fn current_user(&self, ctx: &Context<'_>) -> Result<User> {
-        let user = require_user(ctx).await?;
+        let token = require_user_token(ctx)?.into();
+        let interactor = ctx
+            .data::<CurrentUser<LocalUserDataSource>>()
+            .expect("current user interactor should always exist");
+        let user = interactor.current_user(token).await?.into();
         Ok(user)
     }
 }
@@ -94,30 +94,18 @@ impl UserMutation {
         Ok(token)
     }
 
-    /// Updates existing user from provided user data in the Flexible Project system.
-    async fn update_user(
-        &self,
-        ctx: &Context<'_>,
-        #[graphql(desc = "User data to be updated.")] user: UpdateUser,
-    ) -> Result<Option<User>> {
-        let interactor = ctx
-            .data::<UpdateUserInteractor<LocalUserDataSource>>()
-            .expect("update user interactor should always exist");
-        let user = interactor.update(user.into()).await?.map(User::from);
-        Ok(user)
-    }
-
     /// Deletes user by its identifier from the Flexible Project system.
     async fn delete_user(
         &self,
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
     ) -> Result<Option<User>> {
+        let token = require_user_token(ctx)?.into();
         let interactor = ctx
             .data::<DeleteUser<LocalUserDataSource>>()
             .expect("delete user interactor should always exist");
         let id = id.to_string().into();
-        let user = interactor.delete(id).await?.map(User::from);
+        let user = interactor.delete(token, id).await?.map(User::from);
         Ok(user)
     }
 }
@@ -129,28 +117,4 @@ pub fn require_user_token(ctx: &Context<'_>) -> Result<UserToken> {
         .cloned()
         .ok_or("authentication is required")?;
     Ok(token)
-}
-
-/// Tries to retrieve [user](User) from the GraphQL [context](Context).
-pub async fn require_user(ctx: &Context<'_>) -> Result<User> {
-    let token = &require_user_token(ctx)?.into();
-    let token_verifier = ctx
-        .data::<UserTokenVerifier>()
-        .expect("token verifier interactor should always exist");
-    let claims = token_verifier.verify(token)?;
-
-    let filter_users = ctx
-        .data::<FilterUsers<LocalUserDataSource>>()
-        .expect("filter users interactor should always exist");
-    let filters = CoreUserFilters::builder()
-        .id(IdFilters::builder().eq(claims.id).build())
-        .build();
-    let user = filter_users
-        .filter(filters)
-        .await?
-        .first()
-        .cloned()
-        .ok_or("user is required")?
-        .into();
-    Ok(user)
 }

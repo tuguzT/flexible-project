@@ -24,14 +24,14 @@ async fn playground() -> impl Responder {
 #[route("/graphql", method = "GET", method = "POST")]
 async fn graphql(
     schema: web::Data<Schema>,
-    request: HttpRequest,
-    gql_request: GraphQLRequest,
+    http_request: HttpRequest,
+    request: GraphQLRequest,
 ) -> GraphQLResponse {
-    let mut gql_request = gql_request.into_inner();
-    if let Some(token) = authorization_token(request.headers()) {
-        gql_request = gql_request.data(token);
+    let mut request = request.into_inner();
+    if let Some(token) = authorization_token(http_request.headers()) {
+        request = request.data(token);
     }
-    schema.execute(gql_request).await.into()
+    schema.execute(request).await.into()
 }
 
 fn authorization_token(headers: &HeaderMap) -> Option<UserToken> {

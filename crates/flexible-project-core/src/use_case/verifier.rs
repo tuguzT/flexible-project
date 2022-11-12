@@ -2,30 +2,25 @@
 
 #![allow(missing_docs)]
 
-use derive_more::{IsVariant, Unwrap};
+use derive_more::{Display, Error, From, IsVariant, Unwrap};
 
 use crate::model::user::{UserCredentials, UserToken, UserTokenClaims};
+use crate::use_case::error::InternalError;
 
 /// Interactor type which can verify username provided by user.
 pub trait UsernameVerifier {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Verifies username provided by user.
     ///
     /// Returns `true` if provided username is valid, `false` otherwise.
-    fn verify(&self, username: &str) -> Result<bool, Self::Error>;
+    fn verify(&self, username: &str) -> Result<bool, InternalError>;
 }
 
 /// Interactor type which can verify password provided by user.
 pub trait PasswordVerifier {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Verifies password provided by user.
     ///
     /// Returns `true` if provided password is valid, `false` otherwise.
-    fn verify(&self, password: &str) -> Result<bool, Self::Error>;
+    fn verify(&self, password: &str) -> Result<bool, InternalError>;
 }
 
 /// State of [user credentials](UserCredentials) after its checking by
@@ -42,20 +37,24 @@ pub enum UserCredentialsState {
 
 /// Interactor type which can verify credentials provided by user.
 pub trait UserCredentialsVerifier {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Verifies credentials provided by user.
-    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, Self::Error>;
+    fn verify(&self, credentials: &UserCredentials) -> Result<UserCredentialsState, InternalError>;
+}
+
+/// Error type of [token verifier](UserTokenVerifier) use case.
+#[derive(Debug, Display, From, Error)]
+pub enum UserTokenError {
+    /// User token expired and needs to be updated.
+    #[display(fmt = "user token was expired")]
+    Expired,
+    /// Use case internal error.
+    Internal(InternalError),
 }
 
 /// Interactor type which can verify user token provided by client.
 pub trait UserTokenVerifier {
-    /// The type returned when any error occurs.
-    type Error;
-
     /// Verifies user token provided by client.
     ///
-    /// Returns `true` if provided token is valid, `false` otherwise.
-    fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, Self::Error>;
+    /// Returns [token claims](UserTokenClaims) if provided token is valid.
+    fn verify(&self, token: &UserToken) -> Result<UserTokenClaims, UserTokenError>;
 }

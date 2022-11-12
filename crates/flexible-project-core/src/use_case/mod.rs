@@ -4,6 +4,7 @@
 //!
 //! A use case object, or *interactor*, encapsulates and implements use cases of the system.
 
+pub mod error;
 pub mod hasher;
 pub mod id;
 pub mod node;
