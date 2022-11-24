@@ -9,29 +9,25 @@ use fp_core::model::user::{
     User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
 };
 use fp_core::use_case::error::InternalError;
-use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as _};
-use fp_core::use_case::id::IdGenerator as _;
+use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher};
+use fp_core::use_case::id::IdGenerator;
 use fp_core::use_case::user::{
     CurrentUser as CoreCurrentUser, CurrentUserError, DeleteUser as CoreDeleteUser,
     DeleteUserError, FilterUsers as CoreFilterUsers, SignIn as CoreSignIn, SignInError,
     SignUp as CoreSignUp, SignUpError, UserTokenGenerator as CoreUserTokenGenerator,
 };
 use fp_core::use_case::verifier::{
-    UserCredentialsState, UserCredentialsVerifier as CoreUserCredentialsVerifier,
-    UserTokenVerifier as _,
+    UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier,
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
-use crate::interactor::hasher::PasswordHasher;
-use crate::interactor::id::IdGenerator;
 use crate::interactor::token::{secret, UserTokenClaimsData};
-use crate::interactor::verifier::{UserCredentialsVerifier, UserTokenVerifier};
 use crate::repository::user::UserRepository;
 
 /// Interactor used to generate new user token from claims.
 #[derive(Debug, Clone, Default)]
-pub struct UserTokenGenerator;
+pub struct UserTokenGenerator(());
 
 #[async_trait]
 impl CoreUserTokenGenerator for UserTokenGenerator {
@@ -49,27 +45,21 @@ impl CoreUserTokenGenerator for UserTokenGenerator {
 }
 
 /// Interactor used to register new user in the system.
-pub struct SignUp<S>
-where
-    S: UserDataSource,
-{
-    repository: Arc<UserRepository<S>>,
-    password_hasher: Arc<PasswordHasher>,
-    credentials_verifier: UserCredentialsVerifier,
-    id_generator: IdGenerator,
+pub struct SignUp {
+    repository: UserRepository<Arc<dyn UserDataSource>>,
+    password_hasher: Arc<dyn PasswordHasher>,
+    credentials_verifier: Arc<dyn UserCredentialsVerifier>,
+    id_generator: Arc<dyn IdGenerator>,
     token_generator: UserTokenGenerator,
 }
 
-impl<S> SignUp<S>
-where
-    S: UserDataSource,
-{
+impl SignUp {
     /// Creates new sign up interactor.
     pub fn new(
-        repository: Arc<UserRepository<S>>,
-        password_hasher: Arc<PasswordHasher>,
-        credentials_verifier: UserCredentialsVerifier,
-        id_generator: IdGenerator,
+        repository: UserRepository<Arc<dyn UserDataSource>>,
+        password_hasher: Arc<dyn PasswordHasher>,
+        credentials_verifier: Arc<dyn UserCredentialsVerifier>,
+        id_generator: Arc<dyn IdGenerator>,
         token_generator: UserTokenGenerator,
     ) -> Self {
         Self {
@@ -83,10 +73,7 @@ where
 }
 
 #[async_trait]
-impl<S> CoreSignUp for SignUp<S>
-where
-    S: UserDataSource + Send + Sync,
-{
+impl CoreSignUp for SignUp {
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError> {
         match self
             .credentials_verifier
@@ -99,11 +86,11 @@ where
         };
 
         let username = credentials.name;
-        let repository = self.repository.as_ref();
         let filters = UserFilters::builder()
             .name(UsernameFilters::builder().eq(username.clone()).build())
             .build();
-        let username_taken = repository
+        let username_taken = self
+            .repository
             .read(filters)
             .await
             .map_err(InternalError::new)?
@@ -121,7 +108,8 @@ where
             role: UserRole::User,
         };
         let password_hash = self.password_hasher.hash(credentials.password).await?;
-        let user = repository
+        let user = self
+            .repository
             .create(user, password_hash)
             .await
             .map_err(InternalError::new)?;
@@ -132,25 +120,19 @@ where
 }
 
 /// Interactor used to login existing user in the system.
-pub struct SignIn<S>
-where
-    S: UserDataSource,
-{
-    repository: Arc<UserRepository<S>>,
-    password_hasher: Arc<PasswordHasher>,
-    credentials_verifier: UserCredentialsVerifier,
+pub struct SignIn {
+    repository: UserRepository<Arc<dyn UserDataSource>>,
+    password_hasher: Arc<dyn PasswordHashVerifier>,
+    credentials_verifier: Arc<dyn UserCredentialsVerifier>,
     token_generator: UserTokenGenerator,
 }
 
-impl<S> SignIn<S>
-where
-    S: UserDataSource,
-{
+impl SignIn {
     /// Creates new sign in interactor.
     pub fn new(
-        repository: Arc<UserRepository<S>>,
-        password_hasher: Arc<PasswordHasher>,
-        credentials_verifier: UserCredentialsVerifier,
+        repository: UserRepository<Arc<dyn UserDataSource>>,
+        password_hasher: Arc<dyn PasswordHashVerifier>,
+        credentials_verifier: Arc<dyn UserCredentialsVerifier>,
         token_generator: UserTokenGenerator,
     ) -> Self {
         Self {
@@ -163,10 +145,7 @@ where
 }
 
 #[async_trait]
-impl<S> CoreSignIn for SignIn<S>
-where
-    S: UserDataSource + Send + Sync,
-{
+impl CoreSignIn for SignIn {
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError> {
         match self
             .credentials_verifier
@@ -177,12 +156,12 @@ where
             UserCredentialsState::InvalidUsername => return Err(SignInError::InvalidUsername),
             UserCredentialsState::InvalidPassword => return Err(SignInError::InvalidPassword),
         };
-        let repository = self.repository.as_ref();
 
         let filters = UserFilters::builder()
             .name(UsernameFilters::builder().eq(credentials.name).build())
             .build();
-        let user = repository
+        let user = self
+            .repository
             .read(filters)
             .await
             .map_err(InternalError::new)?
@@ -190,7 +169,8 @@ where
             .cloned()
             .ok_or(SignInError::NoUser)?;
 
-        let password_hash = repository
+        let password_hash = self
+            .repository
             .get_password_hash(user.id.clone())
             .await
             .map_err(InternalError::new)?
@@ -208,20 +188,17 @@ where
 }
 
 /// Interactor used to get current user from the token.
-pub struct CurrentUser<S>
-where
-    S: UserDataSource,
-{
-    repository: Arc<UserRepository<S>>,
-    token_verifier: UserTokenVerifier,
+pub struct CurrentUser {
+    repository: UserRepository<Arc<dyn UserDataSource>>,
+    token_verifier: Arc<dyn UserTokenVerifier>,
 }
 
-impl<S> CurrentUser<S>
-where
-    S: UserDataSource,
-{
+impl CurrentUser {
     /// Creates new current user interactor.
-    pub fn new(repository: Arc<UserRepository<S>>, token_verifier: UserTokenVerifier) -> Self {
+    pub fn new(
+        repository: UserRepository<Arc<dyn UserDataSource>>,
+        token_verifier: Arc<dyn UserTokenVerifier>,
+    ) -> Self {
         Self {
             repository,
             token_verifier,
@@ -230,17 +207,14 @@ where
 }
 
 #[async_trait]
-impl<S> CoreCurrentUser for CurrentUser<S>
-where
-    S: UserDataSource + Send + Sync,
-{
+impl CoreCurrentUser for CurrentUser {
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError> {
         let UserTokenClaims { id } = self.token_verifier.verify(token).await?;
-        let repository = self.repository.as_ref();
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(id).build())
             .build();
-        let user = repository
+        let user = self
+            .repository
             .read(filters)
             .await
             .map_err(InternalError::new)?
@@ -251,33 +225,18 @@ where
     }
 }
 
-impl<S> Clone for CurrentUser<S>
-where
-    S: UserDataSource,
-{
-    fn clone(&self) -> Self {
-        Self {
-            repository: self.repository.clone(),
-            token_verifier: self.token_verifier.clone(),
-        }
-    }
-}
-
 /// Interactor used to delete user from the system.
-pub struct DeleteUser<S>
-where
-    S: UserDataSource,
-{
-    repository: Arc<UserRepository<S>>,
-    current_user: CurrentUser<S>,
+pub struct DeleteUser {
+    repository: UserRepository<Arc<dyn UserDataSource>>,
+    current_user: Arc<dyn CoreCurrentUser>,
 }
 
-impl<S> DeleteUser<S>
-where
-    S: UserDataSource,
-{
+impl DeleteUser {
     /// Creates new delete user interactor.
-    pub fn new(repository: Arc<UserRepository<S>>, current_user: CurrentUser<S>) -> Self {
+    pub fn new(
+        repository: UserRepository<Arc<dyn UserDataSource>>,
+        current_user: Arc<dyn CoreCurrentUser>,
+    ) -> Self {
         Self {
             repository,
             current_user,
@@ -286,16 +245,12 @@ where
 }
 
 #[async_trait]
-impl<S> CoreDeleteUser for DeleteUser<S>
-where
-    S: UserDataSource + Send + Sync,
-{
+impl CoreDeleteUser for DeleteUser {
     async fn delete(
         &self,
         token: UserToken,
         user_to_delete: Id<User>,
     ) -> Result<Option<User>, DeleteUserError> {
-        let repository = self.repository.as_ref();
         let current_user = self.current_user.current_user(token).await?;
         if (current_user.id != user_to_delete) || current_user.role.is_user() {
             return Err(DeleteUserError::NotAllowed);
@@ -304,7 +259,8 @@ where
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(user_to_delete).build())
             .build();
-        let user = repository
+        let user = self
+            .repository
             .read(filters)
             .await
             .map_err(InternalError::new)?
@@ -314,48 +270,35 @@ where
             Some(user) => user,
             None => return Ok(None),
         };
-        let user = repository.delete(user).await.map_err(InternalError::new)?;
+        let user = self
+            .repository
+            .delete(user)
+            .await
+            .map_err(InternalError::new)?;
         Ok(user)
     }
 }
 
 /// Interactor used to filter users.
-pub struct FilterUsers<S>
-where
-    S: UserDataSource,
-{
-    repository: Arc<UserRepository<S>>,
+pub struct FilterUsers {
+    repository: UserRepository<Arc<dyn UserDataSource>>,
 }
 
-impl<S> FilterUsers<S>
-where
-    S: UserDataSource,
-{
+impl FilterUsers {
     /// Creates new filter users predicate.
-    pub fn new(repository: Arc<UserRepository<S>>) -> Self {
+    pub fn new(repository: UserRepository<Arc<dyn UserDataSource>>) -> Self {
         Self { repository }
     }
 }
 
 #[async_trait]
-impl<S> CoreFilterUsers for FilterUsers<S>
-where
-    S: UserDataSource + Send + Sync,
-{
+impl CoreFilterUsers for FilterUsers {
     async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, InternalError> {
-        let repository = self.repository.as_ref();
-        let user = repository.read(filters).await.map_err(InternalError::new)?;
+        let user = self
+            .repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?;
         Ok(user)
-    }
-}
-
-impl<S> Clone for FilterUsers<S>
-where
-    S: UserDataSource,
-{
-    fn clone(&self) -> Self {
-        Self {
-            repository: self.repository.clone(),
-        }
     }
 }

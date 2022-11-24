@@ -1,19 +1,17 @@
 //! Definitions of user queries, mutations and subscriptions of the Flexible Project system.
 
+use std::sync::Arc;
+
 use async_graphql::{Context, Object, Result, ID};
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::UserFilters as CoreUserFilters;
-use fp_core::use_case::user::{
-    CurrentUser as _, DeleteUser as _, FilterUsers as _, SignIn as _, SignUp as _,
-};
-use fp_data::data_source::local::LocalUserDataSource;
-use fp_data::interactor::user::{CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp};
+use fp_core::use_case::user::{CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp};
 
 use crate::model::user::{User, UserCredentials, UserFilters, UserToken};
 
 /// User query object of the Flexible Project system.
-#[derive(Default)]
-pub struct UserQuery;
+#[derive(Debug, Default)]
+pub struct UserQuery(());
 
 #[Object]
 impl UserQuery {
@@ -25,7 +23,7 @@ impl UserQuery {
         filters: UserFilters,
     ) -> Result<Vec<User>> {
         let interactor = ctx
-            .data::<FilterUsers<LocalUserDataSource>>()
+            .data::<Arc<dyn FilterUsers>>()
             .expect("filter users interactor should always exist");
         let filters = filters.into();
         let users = interactor.filter(filters).await?;
@@ -40,7 +38,7 @@ impl UserQuery {
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
     ) -> Result<Option<User>> {
         let interactor = ctx
-            .data::<FilterUsers<LocalUserDataSource>>()
+            .data::<Arc<dyn FilterUsers>>()
             .expect("filter users interactor should always exist");
         let id = Id::from(id.to_string());
         let filters = CoreUserFilters::builder()
@@ -55,7 +53,7 @@ impl UserQuery {
     async fn current_user(&self, ctx: &Context<'_>) -> Result<User> {
         let token = require_user_token(ctx)?.into();
         let interactor = ctx
-            .data::<CurrentUser<LocalUserDataSource>>()
+            .data::<Arc<dyn CurrentUser>>()
             .expect("current user interactor should always exist");
         let user = interactor.current_user(token).await?.into();
         Ok(user)
@@ -63,8 +61,8 @@ impl UserQuery {
 }
 
 /// User mutation object of the Flexible Project system.
-#[derive(Default)]
-pub struct UserMutation;
+#[derive(Debug, Default)]
+pub struct UserMutation(());
 
 #[Object]
 impl UserMutation {
@@ -75,7 +73,7 @@ impl UserMutation {
         #[graphql(desc = "User credentials of the new user.")] credentials: UserCredentials,
     ) -> Result<UserToken> {
         let interactor = ctx
-            .data::<SignUp<LocalUserDataSource>>()
+            .data::<Arc<dyn SignUp>>()
             .expect("sign up interactor should always exist");
         let token = interactor.sign_up(credentials.into()).await?.into();
         Ok(token)
@@ -88,7 +86,7 @@ impl UserMutation {
         #[graphql(desc = "User credentials of the existing user.")] credentials: UserCredentials,
     ) -> Result<UserToken> {
         let interactor = ctx
-            .data::<SignIn<LocalUserDataSource>>()
+            .data::<Arc<dyn SignIn>>()
             .expect("sign in interactor should always exist");
         let token = interactor.sign_in(credentials.into()).await?.into();
         Ok(token)
@@ -102,7 +100,7 @@ impl UserMutation {
     ) -> Result<Option<User>> {
         let token = require_user_token(ctx)?.into();
         let interactor = ctx
-            .data::<DeleteUser<LocalUserDataSource>>()
+            .data::<Arc<dyn DeleteUser>>()
             .expect("delete user interactor should always exist");
         let id = id.to_string().into();
         let user = interactor.delete(token, id).await?.map(User::from);

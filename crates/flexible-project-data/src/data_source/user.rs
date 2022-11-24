@@ -1,5 +1,7 @@
 //! Data sources for users of the Flexible Project system.
 
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use fp_core::model::id::Id;
 use fp_core::model::user::{User, UserFilters};
@@ -25,4 +27,56 @@ pub trait UserDataSource: DataSource<Item = User> {
 
     /// Retrieve password hash from the user by its identifier.
     async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>>;
+}
+
+#[async_trait]
+impl<T> UserDataSource for &T
+where
+    T: UserDataSource + ?Sized,
+{
+    async fn create(&self, user: Self::Item, password_hash: String) -> Result<Self::Item> {
+        (*self).create(user, password_hash).await
+    }
+
+    async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
+        (*self).read(filter).await
+    }
+
+    async fn update(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        (*self).update(user).await
+    }
+
+    async fn delete(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        (*self).delete(user).await
+    }
+
+    async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>> {
+        (*self).get_password_hash(id).await
+    }
+}
+
+#[async_trait]
+impl<T> UserDataSource for Arc<T>
+where
+    T: UserDataSource + ?Sized,
+{
+    async fn create(&self, user: Self::Item, password_hash: String) -> Result<Self::Item> {
+        (**self).create(user, password_hash).await
+    }
+
+    async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
+        (**self).read(filter).await
+    }
+
+    async fn update(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        (**self).update(user).await
+    }
+
+    async fn delete(&self, user: Self::Item) -> Result<Option<Self::Item>> {
+        (**self).delete(user).await
+    }
+
+    async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>> {
+        (**self).get_password_hash(id).await
+    }
 }

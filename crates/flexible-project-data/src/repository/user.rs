@@ -7,6 +7,7 @@ use crate::data_source::user::UserDataSource;
 use crate::repository::{Repository, Result};
 
 /// User repository of the Flexible Project system.
+#[derive(Debug, Clone)]
 pub struct UserRepository<S>(S)
 where
     S: UserDataSource;

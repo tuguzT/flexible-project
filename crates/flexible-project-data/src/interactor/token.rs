@@ -25,7 +25,7 @@ impl From<UserTokenClaimsData> for UserTokenClaims {
 }
 
 pub fn secret() -> String {
-    let secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable should be set");
+    let secret = env::var("JWT_SECRET").expect("JWT_SECRET environment variable must be set");
     log::debug!("JWT_SECRET is {}", &secret);
     secret
 }

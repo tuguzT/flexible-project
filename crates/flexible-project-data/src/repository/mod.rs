@@ -10,7 +10,7 @@ mod error;
 ///
 /// It is used as the root trait for all the other repository traits
 /// to share the same [`Item`](Repository::Item) associated type for dependent traits.
-pub trait Repository {
+pub trait Repository: Send + Sync {
     /// Type of item stored in this repository.
     type Item;
 }

@@ -10,7 +10,7 @@ use crate::use_case::error::InternalError;
 
 /// Interactor type which can verify username provided by user.
 #[async_trait]
-pub trait UsernameVerifier {
+pub trait UsernameVerifier: Send + Sync {
     /// Verifies username provided by user.
     ///
     /// Returns `true` if provided username is valid, `false` otherwise.
@@ -19,7 +19,7 @@ pub trait UsernameVerifier {
 
 /// Interactor type which can verify password provided by user.
 #[async_trait]
-pub trait PasswordVerifier {
+pub trait PasswordVerifier: Send + Sync {
     /// Verifies password provided by user.
     ///
     /// Returns `true` if provided password is valid, `false` otherwise.
@@ -40,7 +40,7 @@ pub enum UserCredentialsState {
 
 /// Interactor type which can verify credentials provided by user.
 #[async_trait]
-pub trait UserCredentialsVerifier {
+pub trait UserCredentialsVerifier: Send + Sync {
     /// Verifies credentials provided by user.
     async fn verify(
         &self,
@@ -60,7 +60,7 @@ pub enum UserTokenError {
 
 /// Interactor type which can verify user token provided by client.
 #[async_trait]
-pub trait UserTokenVerifier {
+pub trait UserTokenVerifier: Send + Sync {
     /// Verifies user token provided by client.
     ///
     /// Returns [token claims](UserTokenClaims) if provided token is valid.

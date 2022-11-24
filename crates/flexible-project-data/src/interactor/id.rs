@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 /// Interactor used to generate globally unique identifier.
 #[derive(Debug, Clone, Default)]
-pub struct IdGenerator;
+pub struct IdGenerator(());
 
 #[async_trait]
 impl CoreIdGenerator for IdGenerator {

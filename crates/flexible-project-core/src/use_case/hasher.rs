@@ -6,7 +6,7 @@ use crate::use_case::error::InternalError;
 
 /// Interactor type which can hash password with some algorithm.
 #[async_trait]
-pub trait PasswordHasher {
+pub trait PasswordHasher: Send + Sync {
     /// Hashes provided password with some algorithm.
     ///
     /// Returns [`String`] with hashed password.
@@ -15,7 +15,7 @@ pub trait PasswordHasher {
 
 /// Interactor type which can verify password by its hash.
 #[async_trait]
-pub trait PasswordHashVerifier {
+pub trait PasswordHashVerifier: Send + Sync {
     /// Verifies provided password with its hash.
     ///
     /// Returns `true` if the hash of provided password and

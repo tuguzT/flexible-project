@@ -7,7 +7,7 @@
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use async_graphql::extensions;
 
 use self::config::graphql_config;
@@ -20,11 +20,9 @@ mod schema;
 /// Entry point of the server.
 #[actix_web::main]
 async fn main() -> Result<()> {
-    if dotenv::dotenv().is_err() {
-        log::info!(".env file not found, server may panic unexpectedly");
-    }
+    dotenv::dotenv().with_context(|| ".env file not found")?;
     log_panics::init();
-    pretty_env_logger::try_init()?;
+    pretty_env_logger::try_init().with_context(|| "failed to initialize logger")?;
 
     let schema = build_schema().await?.extension(extensions::Logger).finish();
     let schema = web::Data::new(schema);
