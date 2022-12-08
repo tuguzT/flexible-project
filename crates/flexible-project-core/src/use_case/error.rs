@@ -5,6 +5,9 @@ use std::error::Error;
 
 use derive_more::Display;
 
+/// Boxed error type with all required trait bounds.
+pub type BoxedError = Box<dyn Error + Send + Sync + 'static>;
+
 /// Custom error type (used for use case internal error).
 #[derive(Debug, Display)]
 #[display(fmt = "internal error: {}\ncaptured backtrace: {}", source, backtrace)]
@@ -29,8 +32,6 @@ impl Error for InternalError {
         Some(self.source.as_ref())
     }
 }
-
-type BoxedError = Box<dyn Error + Send + Sync + 'static>;
 
 impl<T> From<Box<T>> for InternalError
 where

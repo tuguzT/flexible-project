@@ -12,19 +12,19 @@ edition = "2021"
 # Flexible Project layer libraries
 fp-core = { path = "../flexible-project-core", package = "flexible-project-core", version = "0.0.0" }
 fp-data = { path = "../flexible-project-data", package = "flexible-project-data", version = "0.0.0" }
-# Actix project
-actix-web = "4.2.1"
-actix-web-lab = "0.18.5"
-actix-cors = "0.6.4"
+# Axum project
+axum = "0.6.1"
+tower-http = { version = "0.3.5", features = ["trace"] }
 # GraphQL
-async-graphql = { version = "4.0.16", features = ["log", "uuid"] }
-async-graphql-actix-web = "4.0.16"
+async-graphql = { version = "5.0.3", features = ["tracing", "uuid"] }
+async-graphql-axum = "5.0.3"
 # Tokio runtime
-tokio = { version = "1.21.2", features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.23.0", features = ["rt-multi-thread", "macros", "sync", "signal"] }
+# Dependency injection
+shaku = "0.6.1"
 # Miscellaneous
 dotenv = "0.15.0"
-log = "0.4.17"
-pretty_env_logger = "0.4.0"
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 derive_more = "0.99.17"
 anyhow = "1.0.66"
-log-panics = "2.1.0"

@@ -23,7 +23,7 @@ pub enum CreateWorkspaceError {
 
 /// Interactor type which can create new workspace.
 #[async_trait]
-pub trait CreateWorkspace: Send + Sync {
+pub trait CreateWorkspace: Send + Sync + 'static {
     /// Creates new workspace with provided name.
     async fn create(
         &self,
@@ -34,7 +34,7 @@ pub trait CreateWorkspace: Send + Sync {
 
 /// Interactor type which can filter all workspaces of the system.
 #[async_trait]
-pub trait FilterWorkspace: Send + Sync {
+pub trait FilterWorkspace: Send + Sync + 'static {
     /// Filters all workspaces with provided [filters](WorkspaceFilters).
     ///
     /// Returns collection of filter results.
@@ -60,7 +60,7 @@ pub enum DeleteWorkspaceError {
 
 /// Interactor type which can delete workspace from the system.
 #[async_trait]
-pub trait DeleteWorkspace: Send + Sync {
+pub trait DeleteWorkspace: Send + Sync + 'static {
     /// Deletes the workspace with provided identifier.
     ///
     /// Returns data of the deleted workspace if present.

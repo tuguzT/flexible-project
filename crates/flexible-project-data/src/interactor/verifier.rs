@@ -106,7 +106,7 @@ pub struct UserTokenVerifier(());
 impl CoreUserTokenVerifier for UserTokenVerifier {
     async fn verify(&self, token: UserToken) -> Result<UserTokenClaims, UserTokenError> {
         let token = token.token;
-        let key = DecodingKey::from_secret(secret().as_bytes());
+        let key = DecodingKey::from_secret(secret()?.as_bytes());
         let validation = Validation::default();
 
         let token_data =

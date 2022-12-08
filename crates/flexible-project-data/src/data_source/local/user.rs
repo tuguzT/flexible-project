@@ -69,7 +69,6 @@ impl UserDataSource for LocalUserDataSource {
 
     async fn read(&self, filter: UserFilters) -> Result<Vec<Self::Item>> {
         let filter = filter.into_document()?;
-        log::debug!("{:#?}", filter);
         let cursor = self
             .collection
             .find(filter, None)
