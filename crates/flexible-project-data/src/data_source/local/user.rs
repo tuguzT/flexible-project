@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use fp_core::model::id::Id;
 use fp_core::model::user::{User, UserFilters};
@@ -21,7 +23,7 @@ pub struct LocalUserDataSource {
 
 impl LocalUserDataSource {
     /// Creates new local user data source.
-    pub async fn new(client: Client) -> Result<Self> {
+    pub async fn new(client: Arc<Client>) -> Result<Self> {
         let database = client.0.database("flexible-project");
         let collection = database.user_collection();
         let indexes = [

@@ -606,6 +606,7 @@ dependencies = [
  "dotenv",
  "flexible-project-core",
  "flexible-project-data",
+ "futures",
  "shaku",
  "tokio",
  "tower-http",

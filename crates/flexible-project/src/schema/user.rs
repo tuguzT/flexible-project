@@ -1,13 +1,13 @@
 //! Definitions of user queries, mutations and subscriptions of the Flexible Project system.
 
-use std::sync::Arc;
-
 use async_graphql::{Context, Object, Result, ID};
 use fp_core::model::id::{Id, IdFilters};
 use fp_core::model::user::UserFilters as CoreUserFilters;
-use fp_core::use_case::user::{CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp};
 
 use crate::model::user::{User, UserCredentials, UserFilters, UserToken};
+
+use super::di::interactor::user::{CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp};
+use super::ext::ContextExt;
 
 /// User query object of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -22,9 +22,7 @@ impl UserQuery {
         #[graphql(desc = "User filters.", default_with = "UserFilters::default()")]
         filters: UserFilters,
     ) -> Result<Vec<User>> {
-        let interactor = ctx
-            .data::<Arc<dyn FilterUsers>>()
-            .expect("filter users interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn FilterUsers>();
         let filters = filters.into();
         let users = interactor.filter(filters).await?;
         let users = users.into_iter().map(User::from).collect();
@@ -37,9 +35,7 @@ impl UserQuery {
         ctx: &Context<'_>,
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
     ) -> Result<Option<User>> {
-        let interactor = ctx
-            .data::<Arc<dyn FilterUsers>>()
-            .expect("filter users interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn FilterUsers>();
         let id = Id::from(id.to_string());
         let filters = CoreUserFilters::builder()
             .id(IdFilters::builder().eq(id).build())
@@ -52,9 +48,7 @@ impl UserQuery {
     /// Data of the current user of the Flexible project system.
     async fn current_user(&self, ctx: &Context<'_>) -> Result<User> {
         let token = require_user_token(ctx)?.into();
-        let interactor = ctx
-            .data::<Arc<dyn CurrentUser>>()
-            .expect("current user interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn CurrentUser>();
         let user = interactor.current_user(token).await?.into();
         Ok(user)
     }
@@ -72,9 +66,7 @@ impl UserMutation {
         ctx: &Context<'_>,
         #[graphql(desc = "User credentials of the new user.")] credentials: UserCredentials,
     ) -> Result<UserToken> {
-        let interactor = ctx
-            .data::<Arc<dyn SignUp>>()
-            .expect("sign up interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn SignUp>();
         let token = interactor.sign_up(credentials.into()).await?.into();
         Ok(token)
     }
@@ -85,9 +77,7 @@ impl UserMutation {
         ctx: &Context<'_>,
         #[graphql(desc = "User credentials of the existing user.")] credentials: UserCredentials,
     ) -> Result<UserToken> {
-        let interactor = ctx
-            .data::<Arc<dyn SignIn>>()
-            .expect("sign in interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn SignIn>();
         let token = interactor.sign_in(credentials.into()).await?.into();
         Ok(token)
     }
@@ -99,9 +89,7 @@ impl UserMutation {
         #[graphql(desc = "Unique identifier of the user.")] id: ID,
     ) -> Result<Option<User>> {
         let token = require_user_token(ctx)?.into();
-        let interactor = ctx
-            .data::<Arc<dyn DeleteUser>>()
-            .expect("delete user interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn DeleteUser>();
         let id = id.to_string().into();
         let user = interactor.delete(token, id).await?.map(User::from);
         Ok(user)

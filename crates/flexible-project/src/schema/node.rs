@@ -1,11 +1,11 @@
 //! Definitions of node queries, mutations and subscriptions of the Flexible Project system.
 
-use std::sync::Arc;
-
 use async_graphql::{Context, Object, Result, ID};
-use fp_core::use_case::node::FindNode;
 
 use crate::model::node::Node;
+
+use super::di::interactor::node::FindNode;
+use super::ext::ContextExt;
 
 /// Node query object of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -19,9 +19,7 @@ impl NodeQuery {
         ctx: &Context<'_>,
         #[graphql(desc = "The ID of the object.")] id: ID,
     ) -> Result<Option<Node>> {
-        let interactor = ctx
-            .data::<Arc<dyn FindNode>>()
-            .expect("find node interactor should always exist");
+        let interactor = ctx.resolve_ref::<dyn FindNode>();
         let id = id.to_string().into();
         let node = interactor.find(id).await?.map(Node::from);
         Ok(node)

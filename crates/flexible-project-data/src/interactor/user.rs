@@ -50,7 +50,7 @@ pub struct SignUp {
     password_hasher: Arc<dyn PasswordHasher>,
     credentials_verifier: Arc<dyn UserCredentialsVerifier>,
     id_generator: Arc<dyn IdGenerator>,
-    token_generator: UserTokenGenerator,
+    token_generator: Arc<dyn CoreUserTokenGenerator>,
 }
 
 impl SignUp {
@@ -60,7 +60,7 @@ impl SignUp {
         password_hasher: Arc<dyn PasswordHasher>,
         credentials_verifier: Arc<dyn UserCredentialsVerifier>,
         id_generator: Arc<dyn IdGenerator>,
-        token_generator: UserTokenGenerator,
+        token_generator: Arc<dyn CoreUserTokenGenerator>,
     ) -> Self {
         Self {
             repository,
@@ -122,22 +122,22 @@ impl CoreSignUp for SignUp {
 /// Interactor used to login existing user in the system.
 pub struct SignIn {
     repository: UserRepository<Arc<dyn UserDataSource>>,
-    password_hasher: Arc<dyn PasswordHashVerifier>,
+    password_hash_verifier: Arc<dyn PasswordHashVerifier>,
     credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-    token_generator: UserTokenGenerator,
+    token_generator: Arc<dyn CoreUserTokenGenerator>,
 }
 
 impl SignIn {
     /// Creates new sign in interactor.
     pub fn new(
         repository: UserRepository<Arc<dyn UserDataSource>>,
-        password_hasher: Arc<dyn PasswordHashVerifier>,
+        password_hash_verifier: Arc<dyn PasswordHashVerifier>,
         credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-        token_generator: UserTokenGenerator,
+        token_generator: Arc<dyn CoreUserTokenGenerator>,
     ) -> Self {
         Self {
             repository,
-            password_hasher,
+            password_hash_verifier,
             credentials_verifier,
             token_generator,
         }
@@ -175,7 +175,7 @@ impl CoreSignIn for SignIn {
             .await
             .map_err(InternalError::new)?
             .ok_or(SignInError::NoUser)?;
-        self.password_hasher
+        self.password_hash_verifier
             .verify(credentials.password, password_hash)
             .await?
             .then_some(())
