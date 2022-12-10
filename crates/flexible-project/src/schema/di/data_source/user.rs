@@ -23,7 +23,7 @@ where
     }
 }
 
-pub struct UserDataSourceImpl(data::LocalUserDataSource);
+pub struct UserDataSourceImpl(());
 
 impl<M> Component<M> for UserDataSourceImpl
 where

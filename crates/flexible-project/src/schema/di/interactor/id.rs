@@ -23,7 +23,7 @@ where
     }
 }
 
-pub struct IdGeneratorImpl(data::IdGenerator);
+pub struct IdGeneratorImpl(());
 
 impl<M> Component<M> for IdGeneratorImpl
 where

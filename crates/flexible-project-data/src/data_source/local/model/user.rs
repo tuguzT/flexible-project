@@ -1,7 +1,7 @@
 use fp_core::model::user::{User, UserRole};
 use serde::{Deserialize, Serialize};
 
-use crate::data_source::local::model::id::IdData;
+use super::id::IdData;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct UserData {

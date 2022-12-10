@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use shaku::{Component, Interface, Module};
+use shaku::{Component, HasComponent, Interface, Module};
+
+use super::token::Secret;
 
 mod core {
     pub use fp_core::use_case::verifier::{
@@ -17,7 +19,7 @@ mod data {
 pub trait PasswordVerifier: core::PasswordVerifier + Interface {}
 impl<T> PasswordVerifier for T where T: ?Sized + core::PasswordVerifier + Interface {}
 
-pub struct PasswordVerifierImpl(data::PasswordVerifier);
+pub struct PasswordVerifierImpl(());
 
 impl<M> Component<M> for PasswordVerifierImpl
 where
@@ -45,7 +47,7 @@ where
     }
 }
 
-pub struct UserCredentialsVerifierImpl(data::UserCredentialsVerifier);
+pub struct UserCredentialsVerifierImpl(());
 
 impl<M> Component<M> for UserCredentialsVerifierImpl
 where
@@ -73,25 +75,29 @@ where
     }
 }
 
-pub struct UserTokenVerifierImpl(data::UserTokenVerifier);
+pub struct UserTokenVerifierImpl(());
 
 impl<M> Component<M> for UserTokenVerifierImpl
 where
-    M: Module,
+    M: Module + HasComponent<Secret>,
 {
     type Interface = dyn UserTokenVerifier;
 
     type Parameters = ();
 
-    fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::UserTokenVerifier::default())
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let secret = M::build_component(context).0.clone();
+        Box::new(data::UserTokenVerifier::new(secret))
     }
 }
 
 pub trait UsernameVerifier: core::UsernameVerifier + Interface {}
 impl<T> UsernameVerifier for T where T: ?Sized + core::UsernameVerifier + Interface {}
 
-pub struct UsernameVerifierImpl(data::UsernameVerifier);
+pub struct UsernameVerifierImpl(());
 
 impl<M> Component<M> for UsernameVerifierImpl
 where

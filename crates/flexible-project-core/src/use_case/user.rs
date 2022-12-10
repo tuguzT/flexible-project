@@ -3,16 +3,16 @@
 use async_trait::async_trait;
 use derive_more::{Display, Error, From};
 
-use crate::model::id::Id;
-use crate::model::user::{
-    User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims,
+use crate::model::{
+    id::Id,
+    user::{User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims},
 };
-use crate::use_case::error::InternalError;
-use crate::use_case::verifier::UserTokenError;
+
+use super::{error::InternalError, verifier::UserTokenError};
 
 /// Interactor type which can generate new user token from the claims.
 #[async_trait]
-pub trait UserTokenGenerator: Send + Sync + 'static {
+pub trait UserTokenGenerator: Send + Sync {
     /// Generates new [user token](UserToken) with data provided in [claims](UserTokenClaims).
     async fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError>;
 }
@@ -35,7 +35,7 @@ pub enum SignUpError {
 
 /// Interactor type which can register new user.
 #[async_trait]
-pub trait SignUp: Send + Sync + 'static {
+pub trait SignUp: Send + Sync {
     /// Registers new user from provided [credentials](UserCredentials)
     /// in the Flexible Project system.
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError>;
@@ -62,7 +62,7 @@ pub enum SignInError {
 
 /// Interactor type which can login existing user.
 #[async_trait]
-pub trait SignIn: Send + Sync + 'static {
+pub trait SignIn: Send + Sync {
     /// Login existing user with provided [credentials](UserCredentials)
     /// in the Flexible Project system.
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError>;
@@ -70,7 +70,7 @@ pub trait SignIn: Send + Sync + 'static {
 
 /// Interactor type which can filter all users of the system.
 #[async_trait]
-pub trait FilterUsers: Send + Sync + 'static {
+pub trait FilterUsers: Send + Sync {
     /// Filters all users with provided [filters](UserFilters).
     ///
     /// Returns collection of filter results.
@@ -91,7 +91,7 @@ pub enum CurrentUserError {
 
 /// Interactor type which can get current user data by [token](UserToken).
 #[async_trait]
-pub trait CurrentUser: Send + Sync + 'static {
+pub trait CurrentUser: Send + Sync {
     /// Get data of current user by provided token.
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError>;
 }
@@ -113,7 +113,7 @@ pub enum UpdateUsernameError {
 
 /// Interactor type which can update current user name.
 #[async_trait]
-pub trait UpdateUsername: Send + Sync + 'static {
+pub trait UpdateUsername: Send + Sync {
     /// Updates current user name with provided name.
     async fn update_name(
         &self,
@@ -142,7 +142,7 @@ pub enum UpdateUserPasswordError {
 
 /// Interactor type which can update current user password.
 #[async_trait]
-pub trait UpdateUserPassword: Send + Sync + 'static {
+pub trait UpdateUserPassword: Send + Sync {
     /// Updates current user password with provided new password.
     async fn update_password(
         &self,
@@ -163,7 +163,7 @@ pub enum UpdateUserDisplayNameError {
 
 /// Interactor type which can update current user display name.
 #[async_trait]
-pub trait UpdateUserDisplayName: Send + Sync + 'static {
+pub trait UpdateUserDisplayName: Send + Sync {
     /// Updates current user display name with provided name.
     async fn update_display_name(
         &self,
@@ -186,7 +186,7 @@ pub enum UpdateUserEmailError {
 
 /// Interactor type which can update current user email.
 #[async_trait]
-pub trait UpdateUserEmail: Send + Sync + 'static {
+pub trait UpdateUserEmail: Send + Sync {
     /// Updates current user display name with provided name.
     async fn update_email(
         &self,
@@ -209,7 +209,7 @@ pub enum GrantUserRoleError {
 
 /// Interactor type which can update role of another user.
 #[async_trait]
-pub trait GrantUserRole: Send + Sync + 'static {
+pub trait GrantUserRole: Send + Sync {
     /// Updates role of another user
     /// if current user is [administrator](UserRole::Administrator).
     async fn grant_role(
@@ -234,7 +234,7 @@ pub enum DeleteUserError {
 
 /// Interactor type which can delete user from the system.
 #[async_trait]
-pub trait DeleteUser: Send + Sync + 'static {
+pub trait DeleteUser: Send + Sync {
     /// Deletes the user with provided identifier.
     ///
     /// Returns data of the deleted user if present.

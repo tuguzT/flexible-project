@@ -15,7 +15,7 @@ mod data {
 pub trait FindNode: core::FindNode + Interface {}
 impl<T> FindNode for T where T: core::FindNode + Interface {}
 
-pub struct FindNodeImpl(data::FindNode);
+pub struct FindNodeImpl(());
 
 impl<M> Component<M> for FindNodeImpl
 where

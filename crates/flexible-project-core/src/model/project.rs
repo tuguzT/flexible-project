@@ -4,9 +4,7 @@
 
 use derive_more::{IsVariant, Unwrap};
 
-use crate::model::id::Id;
-use crate::model::stage::Stage;
-use crate::model::user::User;
+use super::{id::Id, stage::Stage, user::User};
 
 /// Type of [project](Project) identifier.
 pub type ProjectId = Id<Project>;
@@ -15,7 +13,7 @@ pub type ProjectId = Id<Project>;
 /// is a collection of its own [stages](Stage)
 /// with [members](ProjectMember) which have access to this project.
 ///
-/// Project is a part of some [workspace](crate::model::workspace::Workspace).
+/// Project is a part of some [workspace](super::workspace::Workspace).
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Project {
     /// Identifier of the project.

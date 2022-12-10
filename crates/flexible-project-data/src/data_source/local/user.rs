@@ -9,12 +9,14 @@ use mongodb::bson::{doc, to_bson};
 use mongodb::options::IndexOptions;
 use mongodb::{Collection, IndexModel};
 
-use crate::data_source::local::model::{IdData, UserData, UserRoleData};
-use crate::data_source::local::utils::{IntoDocument, UserCollection};
-use crate::data_source::local::Client;
-use crate::data_source::local::Error;
 use crate::data_source::user::UserDataSource;
 use crate::data_source::{DataSource, Result};
+
+use super::{
+    model::{IdData, UserData, UserRoleData},
+    utils::{IntoDocument, UserCollection},
+    Client, Error,
+};
 
 /// Local user data source implementation.
 pub struct LocalUserDataSource {

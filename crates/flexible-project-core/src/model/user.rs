@@ -5,8 +5,10 @@
 use derive_more::{Display, From, IsVariant, Unwrap};
 use typed_builder::TypedBuilder;
 
-use crate::model::filter::{Contains, Equal, In, NotEqual, NotIn, Regex};
-use crate::model::id::{Id, IdFilters};
+use super::{
+    filter::{Contains, Equal, In, NotEqual, NotIn, Regex},
+    id::{Id, IdFilters},
+};
 
 /// Type of [user](User) identifier.
 pub type UserId = Id<User>;

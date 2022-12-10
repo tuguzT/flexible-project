@@ -5,7 +5,7 @@ mod data {
     pub use fp_data::data_source::local::Client;
 }
 
-pub struct ClientImpl(data::Client);
+pub struct ClientImpl(());
 
 impl<M> Component<M> for ClientImpl
 where

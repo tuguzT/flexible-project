@@ -3,12 +3,18 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fp_core::model::id::{ErasedId, IdFilters};
-use fp_core::model::node::Node;
-use fp_core::model::user::UserFilters;
-use fp_core::use_case::error::InternalError;
-use fp_core::use_case::node::FindNode as CoreFindNode;
-use fp_core::use_case::user::FilterUsers;
+use fp_core::{
+    model::{
+        id::{ErasedId, IdFilters},
+        node::Node,
+        user::UserFilters,
+    },
+    use_case::{error::InternalError, user::FilterUsers},
+};
+
+mod core {
+    pub use fp_core::use_case::node::FindNode;
+}
 
 /// Interactor used to find any node of the system by its identifier.
 pub struct FindNode {
@@ -23,7 +29,7 @@ impl FindNode {
 }
 
 #[async_trait]
-impl CoreFindNode for FindNode {
+impl core::FindNode for FindNode {
     async fn find(&self, id: ErasedId) -> Result<Option<Node>, InternalError> {
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(id.with_owner()).build())

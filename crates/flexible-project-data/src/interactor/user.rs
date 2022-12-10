@@ -4,40 +4,56 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use fp_core::model::id::{Id, IdFilters};
-use fp_core::model::user::{
-    User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims, UsernameFilters,
-};
-use fp_core::use_case::error::InternalError;
-use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher};
-use fp_core::use_case::id::IdGenerator;
-use fp_core::use_case::user::{
-    CurrentUser as CoreCurrentUser, CurrentUserError, DeleteUser as CoreDeleteUser,
-    DeleteUserError, FilterUsers as CoreFilterUsers, SignIn as CoreSignIn, SignInError,
-    SignUp as CoreSignUp, SignUpError, UserTokenGenerator as CoreUserTokenGenerator,
-};
-use fp_core::use_case::verifier::{
-    UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier,
+use fp_core::{
+    model::{
+        id::{Id, IdFilters},
+        user::{
+            User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims,
+            UsernameFilters,
+        },
+    },
+    use_case::{
+        error::InternalError,
+        hasher::{PasswordHashVerifier, PasswordHasher},
+        id::IdGenerator,
+        user::{CurrentUserError, DeleteUserError, SignInError, SignUpError},
+        verifier::{UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier},
+    },
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
 
 use crate::data_source::user::UserDataSource;
-use crate::interactor::token::{secret, UserTokenClaimsData};
+use crate::interactor::token::UserTokenClaimsData;
 use crate::repository::user::UserRepository;
 
+mod core {
+    pub use fp_core::use_case::user::{
+        CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp, UserTokenGenerator,
+    };
+}
+
 /// Interactor used to generate new user token from claims.
-#[derive(Debug, Clone, Default)]
-pub struct UserTokenGenerator(());
+#[derive(Debug, Clone)]
+pub struct UserTokenGenerator {
+    secret: String,
+}
+
+impl UserTokenGenerator {
+    /// Creates new user token generator with provided secret.
+    pub fn new(secret: String) -> Self {
+        Self { secret }
+    }
+}
 
 #[async_trait]
-impl CoreUserTokenGenerator for UserTokenGenerator {
+impl core::UserTokenGenerator for UserTokenGenerator {
     async fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError> {
         let claims = UserTokenClaimsData {
             id: claims.id.to_string(),
             exp: Utc::now() + Duration::hours(1),
         };
         let header = &Header::default();
-        let key = &EncodingKey::from_secret(secret()?.as_bytes());
+        let key = &EncodingKey::from_secret(self.secret.as_bytes());
         let token = encode(header, &claims, key).map_err(InternalError::new)?;
         let token = UserToken { token };
         Ok(token)
@@ -50,7 +66,7 @@ pub struct SignUp {
     password_hasher: Arc<dyn PasswordHasher>,
     credentials_verifier: Arc<dyn UserCredentialsVerifier>,
     id_generator: Arc<dyn IdGenerator>,
-    token_generator: Arc<dyn CoreUserTokenGenerator>,
+    token_generator: Arc<dyn core::UserTokenGenerator>,
 }
 
 impl SignUp {
@@ -60,7 +76,7 @@ impl SignUp {
         password_hasher: Arc<dyn PasswordHasher>,
         credentials_verifier: Arc<dyn UserCredentialsVerifier>,
         id_generator: Arc<dyn IdGenerator>,
-        token_generator: Arc<dyn CoreUserTokenGenerator>,
+        token_generator: Arc<dyn core::UserTokenGenerator>,
     ) -> Self {
         Self {
             repository,
@@ -73,7 +89,7 @@ impl SignUp {
 }
 
 #[async_trait]
-impl CoreSignUp for SignUp {
+impl core::SignUp for SignUp {
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError> {
         match self
             .credentials_verifier
@@ -124,7 +140,7 @@ pub struct SignIn {
     repository: UserRepository<Arc<dyn UserDataSource>>,
     password_hash_verifier: Arc<dyn PasswordHashVerifier>,
     credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-    token_generator: Arc<dyn CoreUserTokenGenerator>,
+    token_generator: Arc<dyn core::UserTokenGenerator>,
 }
 
 impl SignIn {
@@ -133,7 +149,7 @@ impl SignIn {
         repository: UserRepository<Arc<dyn UserDataSource>>,
         password_hash_verifier: Arc<dyn PasswordHashVerifier>,
         credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-        token_generator: Arc<dyn CoreUserTokenGenerator>,
+        token_generator: Arc<dyn core::UserTokenGenerator>,
     ) -> Self {
         Self {
             repository,
@@ -145,7 +161,7 @@ impl SignIn {
 }
 
 #[async_trait]
-impl CoreSignIn for SignIn {
+impl core::SignIn for SignIn {
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError> {
         match self
             .credentials_verifier
@@ -207,7 +223,7 @@ impl CurrentUser {
 }
 
 #[async_trait]
-impl CoreCurrentUser for CurrentUser {
+impl core::CurrentUser for CurrentUser {
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError> {
         let UserTokenClaims { id } = self.token_verifier.verify(token).await?;
         let filters = UserFilters::builder()
@@ -228,14 +244,14 @@ impl CoreCurrentUser for CurrentUser {
 /// Interactor used to delete user from the system.
 pub struct DeleteUser {
     repository: UserRepository<Arc<dyn UserDataSource>>,
-    current_user: Arc<dyn CoreCurrentUser>,
+    current_user: Arc<dyn core::CurrentUser>,
 }
 
 impl DeleteUser {
     /// Creates new delete user interactor.
     pub fn new(
         repository: UserRepository<Arc<dyn UserDataSource>>,
-        current_user: Arc<dyn CoreCurrentUser>,
+        current_user: Arc<dyn core::CurrentUser>,
     ) -> Self {
         Self {
             repository,
@@ -245,7 +261,7 @@ impl DeleteUser {
 }
 
 #[async_trait]
-impl CoreDeleteUser for DeleteUser {
+impl core::DeleteUser for DeleteUser {
     async fn delete(
         &self,
         token: UserToken,
@@ -292,7 +308,7 @@ impl FilterUsers {
 }
 
 #[async_trait]
-impl CoreFilterUsers for FilterUsers {
+impl core::FilterUsers for FilterUsers {
     async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, InternalError> {
         let user = self
             .repository

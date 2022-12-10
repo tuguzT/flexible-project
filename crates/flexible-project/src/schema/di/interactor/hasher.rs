@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use shaku::{Component, Interface, Module};
+use shaku::{Component, HasComponent, Interface, Module};
 
 mod core {
     pub use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher};
@@ -8,6 +8,24 @@ mod core {
 
 mod data {
     pub use fp_data::interactor::hasher::PasswordHasher;
+}
+
+pub struct SharedPasswordHasher(());
+
+impl<M> Component<M> for SharedPasswordHasher
+where
+    M: Module,
+{
+    type Interface = data::PasswordHasher;
+
+    type Parameters = data::PasswordHasher;
+
+    fn build(
+        _: &mut shaku::ModuleBuildContext<M>,
+        params: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        Box::new(params)
+    }
 }
 
 pub trait PasswordHasher: core::PasswordHasher + Interface {
@@ -23,18 +41,22 @@ where
     }
 }
 
-pub struct PasswordHasherImpl(data::PasswordHasher);
+pub struct PasswordHasherImpl(());
 
 impl<M> Component<M> for PasswordHasherImpl
 where
-    M: Module,
+    M: Module + HasComponent<data::PasswordHasher>,
 {
     type Interface = dyn PasswordHasher;
 
     type Parameters = ();
 
-    fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::PasswordHasher::default())
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let password_hasher = M::build_component(context);
+        Box::new(password_hasher)
     }
 }
 
@@ -51,17 +73,21 @@ where
     }
 }
 
-pub struct PasswordHashVerifierImpl(data::PasswordHasher);
+pub struct PasswordHashVerifierImpl(());
 
 impl<M> Component<M> for PasswordHashVerifierImpl
 where
-    M: Module,
+    M: Module + HasComponent<data::PasswordHasher>,
 {
     type Interface = dyn PasswordHashVerifier;
 
     type Parameters = ();
 
-    fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::PasswordHasher::default())
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let password_hash_verifier = M::build_component(context);
+        Box::new(password_hash_verifier)
     }
 }

@@ -3,11 +3,13 @@
 use async_trait::async_trait;
 use derive_more::{Display, Error, From};
 
-use crate::model::id::Id;
-use crate::model::user::UserToken;
-use crate::model::workspace::{Workspace, WorkspaceFilters};
-use crate::use_case::error::InternalError;
-use crate::use_case::user::CurrentUserError;
+use crate::model::{
+    id::Id,
+    user::UserToken,
+    workspace::{Workspace, WorkspaceFilters},
+};
+
+use super::{error::InternalError, user::CurrentUserError};
 
 /// Error type of [create workspace](CreateWorkspace) use case.
 #[derive(Debug, Display, From, Error)]
@@ -23,7 +25,7 @@ pub enum CreateWorkspaceError {
 
 /// Interactor type which can create new workspace.
 #[async_trait]
-pub trait CreateWorkspace: Send + Sync + 'static {
+pub trait CreateWorkspace: Send + Sync {
     /// Creates new workspace with provided name.
     async fn create(
         &self,
@@ -34,7 +36,7 @@ pub trait CreateWorkspace: Send + Sync + 'static {
 
 /// Interactor type which can filter all workspaces of the system.
 #[async_trait]
-pub trait FilterWorkspace: Send + Sync + 'static {
+pub trait FilterWorkspace: Send + Sync {
     /// Filters all workspaces with provided [filters](WorkspaceFilters).
     ///
     /// Returns collection of filter results.
@@ -60,7 +62,7 @@ pub enum DeleteWorkspaceError {
 
 /// Interactor type which can delete workspace from the system.
 #[async_trait]
-pub trait DeleteWorkspace: Send + Sync + 'static {
+pub trait DeleteWorkspace: Send + Sync {
     /// Deletes the workspace with provided identifier.
     ///
     /// Returns data of the deleted workspace if present.

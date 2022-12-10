@@ -6,10 +6,13 @@ use argon2::{Algorithm, Argon2, Params, PasswordHasher as _, PasswordVerifier as
 use async_trait::async_trait;
 use derive_more::{Display, Error, From};
 use fp_core::use_case::error::InternalError;
-use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher as CorePasswordHasher};
 use futures::executor::block_on;
 use ouroboros::self_referencing;
 use tokio::runtime::Handle;
+
+mod core {
+    pub use fp_core::use_case::hasher::{PasswordHashVerifier, PasswordHasher};
+}
 
 /// Interactor for password hashing with Argon2 algorithm.
 #[self_referencing]
@@ -55,7 +58,7 @@ impl Default for PasswordHasher {
 }
 
 #[async_trait]
-impl CorePasswordHasher for PasswordHasher {
+impl core::PasswordHasher for PasswordHasher {
     async fn hash(&self, password: String) -> Result<String, InternalError> {
         let password = password.as_bytes();
         let salt = SaltString::generate(&mut OsRng);
@@ -71,7 +74,7 @@ impl CorePasswordHasher for PasswordHasher {
 }
 
 #[async_trait]
-impl PasswordHashVerifier for PasswordHasher {
+impl core::PasswordHashVerifier for PasswordHasher {
     async fn verify(&self, password: String, password_hash: String) -> Result<bool, InternalError> {
         let password = password.as_bytes();
         let password_hash = password_hash

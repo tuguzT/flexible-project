@@ -2,14 +2,16 @@
 
 #![allow(missing_docs)]
 
-use crate::model::id::{ErasedId, Id};
-use crate::model::project::Project;
-use crate::model::stage::Stage;
-use crate::model::task::Task;
-use crate::model::user::User;
-use crate::model::workspace::Workspace;
-
 use derive_more::{Display, From, IsVariant, Unwrap};
+
+use super::{
+    id::{ErasedId, Id},
+    project::Project,
+    stage::Stage,
+    task::Task,
+    user::User,
+    workspace::Workspace,
+};
 
 /// Types which could be identified by its [identifier](Id).
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, From, IsVariant, Unwrap)]

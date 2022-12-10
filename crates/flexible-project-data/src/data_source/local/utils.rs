@@ -9,8 +9,10 @@ use fp_core::model::user::{
 use mongodb::bson::{to_bson, Document};
 use mongodb::{Collection, Database};
 
-use crate::data_source::local::model::{IdData, UserData, UserRoleData};
-use crate::data_source::local::{Error, Result};
+use super::{
+    model::{IdData, UserData, UserRoleData},
+    Error, Result,
+};
 
 pub trait UserCollection {
     fn user_collection(self) -> Collection<UserData>;

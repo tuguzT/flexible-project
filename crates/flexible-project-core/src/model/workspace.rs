@@ -5,9 +5,11 @@
 use derive_more::{IsVariant, Unwrap};
 use typed_builder::TypedBuilder;
 
-use crate::model::id::{Id, IdFilters};
-use crate::model::project::Project;
-use crate::model::user::User;
+use super::{
+    id::{Id, IdFilters},
+    project::Project,
+    user::User,
+};
 
 /// Type of [workspace](Workspace) identifier.
 pub type WorkspaceId = Id<Workspace>;

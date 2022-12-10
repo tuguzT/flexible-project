@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use derive_more::Display;
 use typed_builder::TypedBuilder;
 
-use crate::model::filter::{Equal, In, NotEqual, NotIn};
+use super::filter::{Equal, In, NotEqual, NotIn};
 
 /// Type of identifier which are used to identify objects of the owner type.
 #[repr(transparent)]

@@ -11,6 +11,8 @@ use crate::schema::di::{
     },
 };
 
+use super::token::Secret;
+
 mod core {
     pub use fp_core::use_case::user::{
         CurrentUser, DeleteUser, FilterUsers, GrantUserRole, SignIn, SignUp, UpdateUserDisplayName,
@@ -38,7 +40,7 @@ where
     }
 }
 
-pub struct CurrentUserImpl(data::CurrentUser);
+pub struct CurrentUserImpl(());
 
 impl<M> Component<M> for CurrentUserImpl
 where
@@ -66,7 +68,7 @@ where
 pub trait DeleteUser: core::DeleteUser + Interface {}
 impl<T> DeleteUser for T where T: ?Sized + core::DeleteUser + Interface {}
 
-pub struct DeleteUserImpl(data::DeleteUser);
+pub struct DeleteUserImpl(());
 
 impl<M> Component<M> for DeleteUserImpl
 where
@@ -104,7 +106,7 @@ where
     }
 }
 
-pub struct FilterUsersImpl(data::FilterUsers);
+pub struct FilterUsersImpl(());
 
 impl<M> Component<M> for FilterUsersImpl
 where
@@ -139,25 +141,29 @@ where
     }
 }
 
-pub struct UserTokenGeneratorImpl(data::UserTokenGenerator);
+pub struct UserTokenGeneratorImpl(());
 
 impl<M> Component<M> for UserTokenGeneratorImpl
 where
-    M: Module,
+    M: Module + HasComponent<Secret>,
 {
     type Interface = dyn UserTokenGenerator;
 
     type Parameters = ();
 
-    fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::UserTokenGenerator::default())
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let secret = M::build_component(context).0.clone();
+        Box::new(data::UserTokenGenerator::new(secret))
     }
 }
 
 pub trait SignIn: core::SignIn + Interface {}
 impl<T> SignIn for T where T: ?Sized + core::SignIn + Interface {}
 
-pub struct SignInImpl(data::SignIn);
+pub struct SignInImpl(());
 
 impl<M> Component<M> for SignInImpl
 where
@@ -201,7 +207,7 @@ where
 pub trait SignUp: core::SignUp + Interface {}
 impl<T> SignUp for T where T: ?Sized + core::SignUp + Interface {}
 
-pub struct SignUpImpl(data::SignUp);
+pub struct SignUpImpl(());
 
 impl<M> Component<M> for SignUpImpl
 where
