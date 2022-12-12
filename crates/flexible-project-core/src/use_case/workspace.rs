@@ -1,6 +1,7 @@
 //! Workspace use cases of the Flexible Project system.
 
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
 
 use crate::model::{
@@ -25,6 +26,7 @@ pub enum CreateWorkspaceError {
 
 /// Interactor type which can create new workspace.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait CreateWorkspace: Send + Sync {
     /// Creates new workspace with provided name.
     async fn create(
@@ -36,6 +38,7 @@ pub trait CreateWorkspace: Send + Sync {
 
 /// Interactor type which can filter all workspaces of the system.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait FilterWorkspace: Send + Sync {
     /// Filters all workspaces with provided [filters](WorkspaceFilters).
     ///
@@ -62,6 +65,7 @@ pub enum DeleteWorkspaceError {
 
 /// Interactor type which can delete workspace from the system.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait DeleteWorkspace: Send + Sync {
     /// Deletes the workspace with provided identifier.
     ///

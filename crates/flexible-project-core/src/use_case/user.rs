@@ -1,6 +1,7 @@
 //! User use cases of the Flexible Project system.
 
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
 
 use crate::model::{
@@ -12,6 +13,7 @@ use super::{error::InternalError, verifier::UserTokenError};
 
 /// Interactor type which can generate new user token from the claims.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UserTokenGenerator: Send + Sync {
     /// Generates new [user token](UserToken) with data provided in [claims](UserTokenClaims).
     async fn generate(&self, claims: UserTokenClaims) -> Result<UserToken, InternalError>;
@@ -35,6 +37,7 @@ pub enum SignUpError {
 
 /// Interactor type which can register new user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait SignUp: Send + Sync {
     /// Registers new user from provided [credentials](UserCredentials)
     /// in the Flexible Project system.
@@ -62,6 +65,7 @@ pub enum SignInError {
 
 /// Interactor type which can login existing user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait SignIn: Send + Sync {
     /// Login existing user with provided [credentials](UserCredentials)
     /// in the Flexible Project system.
@@ -70,6 +74,7 @@ pub trait SignIn: Send + Sync {
 
 /// Interactor type which can filter all users of the system.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait FilterUsers: Send + Sync {
     /// Filters all users with provided [filters](UserFilters).
     ///
@@ -91,6 +96,7 @@ pub enum CurrentUserError {
 
 /// Interactor type which can get current user data by [token](UserToken).
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait CurrentUser: Send + Sync {
     /// Get data of current user by provided token.
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError>;
@@ -113,6 +119,7 @@ pub enum UpdateUsernameError {
 
 /// Interactor type which can update current user name.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UpdateUsername: Send + Sync {
     /// Updates current user name with provided name.
     async fn update_name(
@@ -142,6 +149,7 @@ pub enum UpdateUserPasswordError {
 
 /// Interactor type which can update current user password.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UpdateUserPassword: Send + Sync {
     /// Updates current user password with provided new password.
     async fn update_password(
@@ -163,6 +171,7 @@ pub enum UpdateUserDisplayNameError {
 
 /// Interactor type which can update current user display name.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UpdateUserDisplayName: Send + Sync {
     /// Updates current user display name with provided name.
     async fn update_display_name(
@@ -186,6 +195,7 @@ pub enum UpdateUserEmailError {
 
 /// Interactor type which can update current user email.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UpdateUserEmail: Send + Sync {
     /// Updates current user display name with provided name.
     async fn update_email(
@@ -209,6 +219,7 @@ pub enum GrantUserRoleError {
 
 /// Interactor type which can update role of another user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait GrantUserRole: Send + Sync {
     /// Updates role of another user
     /// if current user is [administrator](UserRole::Administrator).
@@ -234,6 +245,7 @@ pub enum DeleteUserError {
 
 /// Interactor type which can delete user from the system.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait DeleteUser: Send + Sync {
     /// Deletes the user with provided identifier.
     ///

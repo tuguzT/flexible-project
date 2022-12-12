@@ -3,6 +3,7 @@
 #![allow(missing_docs)]
 
 use async_trait::async_trait;
+use auto_impl::auto_impl;
 use derive_more::{Display, Error, From, IsVariant, Unwrap};
 
 use crate::model::user::{UserCredentials, UserToken, UserTokenClaims};
@@ -11,6 +12,7 @@ use super::error::InternalError;
 
 /// Interactor type which can verify username provided by user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UsernameVerifier: Send + Sync {
     /// Verifies username provided by user.
     ///
@@ -20,6 +22,7 @@ pub trait UsernameVerifier: Send + Sync {
 
 /// Interactor type which can verify password provided by user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait PasswordVerifier: Send + Sync {
     /// Verifies password provided by user.
     ///
@@ -41,6 +44,7 @@ pub enum UserCredentialsState {
 
 /// Interactor type which can verify credentials provided by user.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UserCredentialsVerifier: Send + Sync {
     /// Verifies credentials provided by user.
     async fn verify(
@@ -61,6 +65,7 @@ pub enum UserTokenError {
 
 /// Interactor type which can verify user token provided by client.
 #[async_trait]
+#[auto_impl(&, Box, Arc)]
 pub trait UserTokenVerifier: Send + Sync {
     /// Verifies user token provided by client.
     ///

@@ -4,11 +4,12 @@ use fp_core::model::id::Id;
 use fp_core::model::user::{User, UserFilters};
 
 use crate::data_source::user::UserDataSource;
-use crate::repository::{Repository, Result};
+
+use super::{Repository, Result};
 
 /// User repository of the Flexible Project system.
 #[derive(Debug, Clone)]
-pub struct UserRepository<S>(S)
+pub struct UserRepository<S>(pub S)
 where
     S: UserDataSource;
 
@@ -16,11 +17,6 @@ impl<S> UserRepository<S>
 where
     S: UserDataSource,
 {
-    /// Creates new repository from provided data source.
-    pub fn new(data_source: S) -> Self {
-        Self(data_source)
-    }
-
     /// Create new user from [user data](User) and password hash
     /// which will be saved for this user.
     pub async fn create(&self, user: User, password_hash: String) -> Result<User> {

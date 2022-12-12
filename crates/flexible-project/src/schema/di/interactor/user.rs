@@ -56,7 +56,7 @@ where
     ) -> Box<Self::Interface> {
         let data_source: Arc<dyn UserDataSource> = M::build_component(context);
         let data_source = data_source.upcast();
-        let repository = data::UserRepository::new(data_source);
+        let repository = data::UserRepository(data_source);
 
         let token_verifier: Arc<dyn UserTokenVerifier> = M::build_component(context);
         let token_verifier = token_verifier.upcast();
@@ -84,7 +84,7 @@ where
     ) -> Box<Self::Interface> {
         let data_source: Arc<dyn UserDataSource> = M::build_component(context);
         let data_source = data_source.upcast();
-        let repository = data::UserRepository::new(data_source);
+        let repository = data::UserRepository(data_source);
 
         let current_user: Arc<dyn CurrentUser> = M::build_component(context);
         let current_user = current_user.upcast();
@@ -122,7 +122,7 @@ where
     ) -> Box<Self::Interface> {
         let data_source: Arc<dyn UserDataSource> = M::build_component(context);
         let data_source = data_source.upcast();
-        let repository = data::UserRepository::new(data_source);
+        let repository = data::UserRepository(data_source);
 
         Box::new(data::FilterUsers::new(repository))
     }
@@ -183,7 +183,7 @@ where
     ) -> Box<Self::Interface> {
         let data_source: Arc<dyn UserDataSource> = M::build_component(context);
         let data_source = data_source.upcast();
-        let repository = data::UserRepository::new(data_source);
+        let repository = data::UserRepository(data_source);
 
         let password_hash_verifier: Arc<dyn PasswordHashVerifier> = M::build_component(context);
         let password_hash_verifier = password_hash_verifier.upcast();
@@ -228,7 +228,7 @@ where
     ) -> Box<Self::Interface> {
         let data_source: Arc<dyn UserDataSource> = M::build_component(context);
         let data_source = data_source.upcast();
-        let repository = data::UserRepository::new(data_source);
+        let repository = data::UserRepository(data_source);
 
         let password_hasher: Arc<dyn PasswordHasher> = M::build_component(context);
         let password_hasher = password_hasher.upcast();
