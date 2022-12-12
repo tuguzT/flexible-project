@@ -1,7 +1,5 @@
 //! Node use case implementations of the Flexible Project system.
 
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use fp_core::{
     model::{
@@ -17,19 +15,28 @@ mod core {
 }
 
 /// Interactor used to find any node of the system by its identifier.
-pub struct FindNode {
-    filter: Arc<dyn FilterUsers>,
+pub struct FindNode<U>
+where
+    U: FilterUsers,
+{
+    filter: U,
 }
 
-impl FindNode {
+impl<U> FindNode<U>
+where
+    U: FilterUsers,
+{
     /// Creates new find node interactor.
-    pub fn new(filter: Arc<dyn FilterUsers>) -> Self {
+    pub fn new(filter: U) -> Self {
         Self { filter }
     }
 }
 
 #[async_trait]
-impl core::FindNode for FindNode {
+impl<U> core::FindNode for FindNode<U>
+where
+    U: FilterUsers,
+{
     async fn find(&self, id: ErasedId) -> Result<Option<Node>, InternalError> {
         let filters = UserFilters::builder()
             .id(IdFilters::builder().eq(id.with_owner()).build())

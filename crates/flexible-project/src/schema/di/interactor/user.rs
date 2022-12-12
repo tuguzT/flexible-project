@@ -11,7 +11,7 @@ use crate::schema::di::{
     },
 };
 
-use super::token::Secret;
+use super::token::TokenSecret;
 
 mod core {
     pub use fp_core::use_case::user::{
@@ -145,7 +145,7 @@ pub struct UserTokenGeneratorImpl(());
 
 impl<M> Component<M> for UserTokenGeneratorImpl
 where
-    M: Module + HasComponent<Secret>,
+    M: Module + HasComponent<TokenSecret>,
 {
     type Interface = dyn UserTokenGenerator;
 

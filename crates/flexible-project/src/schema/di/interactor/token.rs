@@ -1,8 +1,8 @@
 use shaku::{Component, Module};
 
-pub struct Secret(pub String);
+pub struct TokenSecret(pub String);
 
-impl<M> Component<M> for Secret
+impl<M> Component<M> for TokenSecret
 where
     M: Module,
 {

@@ -5,7 +5,7 @@ use async_graphql::{EmptySubscription, MergedObject};
 
 use crate::model::node::Node;
 
-use self::di::{interactor::token::Secret, SchemaModule};
+use self::di::{data_source::client::DatabaseUrl, interactor::token::TokenSecret, SchemaModule};
 
 pub mod di;
 pub mod node;
@@ -23,10 +23,11 @@ pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, Subscript
 ///
 /// Returns a [builder](SchemaBuilder) to allow users to customize it.
 pub async fn build_schema() -> Result<SchemaBuilder> {
-    let token_secret = std::env::var("JWT_SECRET")
-        .with_context(|| "JWT_SECRET environment variable must be set")?;
+    let token_secret = std::env::var("TOKEN_SECRET").with_context(|| "TOKEN_SECRET must be set")?;
+    let database_url = std::env::var("DATABASE_URL").with_context(|| "DATABASE_URL must be set")?;
     let module = SchemaModule::builder()
-        .with_component_parameters::<Secret>(token_secret)
+        .with_component_parameters::<TokenSecret>(token_secret)
+        .with_component_parameters::<DatabaseUrl>(database_url)
         .build();
 
     let query = Query::default();

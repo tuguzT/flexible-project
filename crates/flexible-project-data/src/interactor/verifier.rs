@@ -6,9 +6,7 @@ use fp_core::{
     model::user::{UserCredentials, UserToken, UserTokenClaims},
     use_case::{
         error::InternalError,
-        verifier::{
-            PasswordVerifier as _, UserCredentialsState, UserTokenError, UsernameVerifier as _,
-        },
+        verifier::{UserCredentialsState, UserTokenError},
     },
 };
 use futures::join;
@@ -79,23 +77,49 @@ static PASSWORD_REGEX: Lazy<Regex> = Lazy::new(|| {
 ///
 /// Requirements for username and password are listed in the documentation of
 /// [username verifier](UsernameVerifier) and [password verifier](PasswordVerifier) accordingly.
-#[derive(Debug, Clone, Default)]
-pub struct UserCredentialsVerifier(UsernameVerifier, PasswordVerifier);
+#[derive(Debug, Clone)]
+pub struct UserCredentialsVerifier<U, P>
+where
+    U: core::UsernameVerifier,
+    P: core::PasswordVerifier,
+{
+    username_verifier: U,
+    password_verifier: P,
+}
+
+impl<U, P> UserCredentialsVerifier<U, P>
+where
+    U: core::UsernameVerifier,
+    P: core::PasswordVerifier,
+{
+    /// Creates new user credentials verifier interactor.
+    pub fn new(username_verifier: U, password_verifier: P) -> Self {
+        Self {
+            username_verifier,
+            password_verifier,
+        }
+    }
+}
 
 #[async_trait]
-impl core::UserCredentialsVerifier for UserCredentialsVerifier {
+impl<U, P> core::UserCredentialsVerifier for UserCredentialsVerifier<U, P>
+where
+    U: core::UsernameVerifier,
+    P: core::PasswordVerifier,
+{
     async fn verify(
         &self,
         credentials: UserCredentials,
     ) -> Result<UserCredentialsState, InternalError> {
-        let UserCredentialsVerifier(uv, pv) = self;
         let UserCredentials {
             password,
             name: username,
         } = credentials;
 
-        let is_match = join!(uv.verify(username), pv.verify(password));
-        let (is_match_username, is_match_password) = is_match;
+        let (is_match_username, is_match_password) = join!(
+            self.username_verifier.verify(username),
+            self.password_verifier.verify(password),
+        );
         if !is_match_username? {
             return Ok(UserCredentialsState::InvalidUsername);
         }

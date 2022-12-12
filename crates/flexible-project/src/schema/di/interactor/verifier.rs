@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use shaku::{Component, HasComponent, Interface, Module};
 
-use super::token::Secret;
+use super::token::TokenSecret;
 
 mod core {
     pub use fp_core::use_case::verifier::{
@@ -16,8 +16,18 @@ mod data {
     };
 }
 
-pub trait PasswordVerifier: core::PasswordVerifier + Interface {}
-impl<T> PasswordVerifier for T where T: ?Sized + core::PasswordVerifier + Interface {}
+pub trait PasswordVerifier: core::PasswordVerifier + Interface {
+    fn upcast(self: Arc<Self>) -> Arc<dyn core::PasswordVerifier>;
+}
+
+impl<T> PasswordVerifier for T
+where
+    T: core::PasswordVerifier + Interface,
+{
+    fn upcast(self: Arc<Self>) -> Arc<dyn core::PasswordVerifier> {
+        self
+    }
+}
 
 pub struct PasswordVerifierImpl(());
 
@@ -51,14 +61,25 @@ pub struct UserCredentialsVerifierImpl(());
 
 impl<M> Component<M> for UserCredentialsVerifierImpl
 where
-    M: Module,
+    M: Module + HasComponent<dyn UsernameVerifier> + HasComponent<dyn PasswordVerifier>,
 {
     type Interface = dyn UserCredentialsVerifier;
 
     type Parameters = ();
 
-    fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::UserCredentialsVerifier::default())
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let username_verifier: Arc<dyn UsernameVerifier> = M::build_component(context);
+        let username_verifier = username_verifier.upcast();
+
+        let password_verifier: Arc<dyn PasswordVerifier> = M::build_component(context);
+        let password_verifier = password_verifier.upcast();
+
+        let user_credentials_verifier =
+            data::UserCredentialsVerifier::new(username_verifier, password_verifier);
+        Box::new(user_credentials_verifier)
     }
 }
 
@@ -79,7 +100,7 @@ pub struct UserTokenVerifierImpl(());
 
 impl<M> Component<M> for UserTokenVerifierImpl
 where
-    M: Module + HasComponent<Secret>,
+    M: Module + HasComponent<TokenSecret>,
 {
     type Interface = dyn UserTokenVerifier;
 
@@ -94,8 +115,18 @@ where
     }
 }
 
-pub trait UsernameVerifier: core::UsernameVerifier + Interface {}
-impl<T> UsernameVerifier for T where T: ?Sized + core::UsernameVerifier + Interface {}
+pub trait UsernameVerifier: core::UsernameVerifier + Interface {
+    fn upcast(self: Arc<Self>) -> Arc<dyn core::UsernameVerifier>;
+}
+
+impl<T> UsernameVerifier for T
+where
+    T: core::UsernameVerifier + Interface,
+{
+    fn upcast(self: Arc<Self>) -> Arc<dyn core::UsernameVerifier> {
+        self
+    }
+}
 
 pub struct UsernameVerifierImpl(());
 

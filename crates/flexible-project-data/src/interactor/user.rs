@@ -1,7 +1,5 @@
 //! User use case implementations of the Flexible Project system.
 
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use fp_core::{
@@ -61,22 +59,36 @@ impl core::UserTokenGenerator for UserTokenGenerator {
 }
 
 /// Interactor used to register new user in the system.
-pub struct SignUp {
-    repository: UserRepository<Arc<dyn UserDataSource>>,
-    password_hasher: Arc<dyn PasswordHasher>,
-    credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-    id_generator: Arc<dyn IdGenerator>,
-    token_generator: Arc<dyn core::UserTokenGenerator>,
+pub struct SignUp<U, P, C, I, T>
+where
+    U: UserDataSource,
+    P: PasswordHasher,
+    C: UserCredentialsVerifier,
+    I: IdGenerator,
+    T: core::UserTokenGenerator,
+{
+    repository: UserRepository<U>,
+    password_hasher: P,
+    credentials_verifier: C,
+    id_generator: I,
+    token_generator: T,
 }
 
-impl SignUp {
+impl<U, P, C, I, T> SignUp<U, P, C, I, T>
+where
+    U: UserDataSource,
+    P: PasswordHasher,
+    C: UserCredentialsVerifier,
+    I: IdGenerator,
+    T: core::UserTokenGenerator,
+{
     /// Creates new sign up interactor.
     pub fn new(
-        repository: UserRepository<Arc<dyn UserDataSource>>,
-        password_hasher: Arc<dyn PasswordHasher>,
-        credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-        id_generator: Arc<dyn IdGenerator>,
-        token_generator: Arc<dyn core::UserTokenGenerator>,
+        repository: UserRepository<U>,
+        password_hasher: P,
+        credentials_verifier: C,
+        id_generator: I,
+        token_generator: T,
     ) -> Self {
         Self {
             repository,
@@ -89,7 +101,14 @@ impl SignUp {
 }
 
 #[async_trait]
-impl core::SignUp for SignUp {
+impl<U, P, C, I, T> core::SignUp for SignUp<U, P, C, I, T>
+where
+    U: UserDataSource,
+    P: PasswordHasher,
+    C: UserCredentialsVerifier,
+    I: IdGenerator,
+    T: core::UserTokenGenerator,
+{
     async fn sign_up(&self, credentials: UserCredentials) -> Result<UserToken, SignUpError> {
         match self
             .credentials_verifier
@@ -136,20 +155,32 @@ impl core::SignUp for SignUp {
 }
 
 /// Interactor used to login existing user in the system.
-pub struct SignIn {
-    repository: UserRepository<Arc<dyn UserDataSource>>,
-    password_hash_verifier: Arc<dyn PasswordHashVerifier>,
-    credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-    token_generator: Arc<dyn core::UserTokenGenerator>,
+pub struct SignIn<U, P, C, T>
+where
+    U: UserDataSource,
+    P: PasswordHashVerifier,
+    C: UserCredentialsVerifier,
+    T: core::UserTokenGenerator,
+{
+    repository: UserRepository<U>,
+    password_hash_verifier: P,
+    credentials_verifier: C,
+    token_generator: T,
 }
 
-impl SignIn {
+impl<U, P, C, T> SignIn<U, P, C, T>
+where
+    U: UserDataSource,
+    P: PasswordHashVerifier,
+    C: UserCredentialsVerifier,
+    T: core::UserTokenGenerator,
+{
     /// Creates new sign in interactor.
     pub fn new(
-        repository: UserRepository<Arc<dyn UserDataSource>>,
-        password_hash_verifier: Arc<dyn PasswordHashVerifier>,
-        credentials_verifier: Arc<dyn UserCredentialsVerifier>,
-        token_generator: Arc<dyn core::UserTokenGenerator>,
+        repository: UserRepository<U>,
+        password_hash_verifier: P,
+        credentials_verifier: C,
+        token_generator: T,
     ) -> Self {
         Self {
             repository,
@@ -161,7 +192,13 @@ impl SignIn {
 }
 
 #[async_trait]
-impl core::SignIn for SignIn {
+impl<U, P, C, T> core::SignIn for SignIn<U, P, C, T>
+where
+    U: UserDataSource,
+    P: PasswordHashVerifier,
+    C: UserCredentialsVerifier,
+    T: core::UserTokenGenerator,
+{
     async fn sign_in(&self, credentials: UserCredentials) -> Result<UserToken, SignInError> {
         match self
             .credentials_verifier
@@ -204,17 +241,22 @@ impl core::SignIn for SignIn {
 }
 
 /// Interactor used to get current user from the token.
-pub struct CurrentUser {
-    repository: UserRepository<Arc<dyn UserDataSource>>,
-    token_verifier: Arc<dyn UserTokenVerifier>,
+pub struct CurrentUser<U, T>
+where
+    U: UserDataSource,
+    T: UserTokenVerifier,
+{
+    repository: UserRepository<U>,
+    token_verifier: T,
 }
 
-impl CurrentUser {
+impl<U, T> CurrentUser<U, T>
+where
+    U: UserDataSource,
+    T: UserTokenVerifier,
+{
     /// Creates new current user interactor.
-    pub fn new(
-        repository: UserRepository<Arc<dyn UserDataSource>>,
-        token_verifier: Arc<dyn UserTokenVerifier>,
-    ) -> Self {
+    pub fn new(repository: UserRepository<U>, token_verifier: T) -> Self {
         Self {
             repository,
             token_verifier,
@@ -223,7 +265,11 @@ impl CurrentUser {
 }
 
 #[async_trait]
-impl core::CurrentUser for CurrentUser {
+impl<U, T> core::CurrentUser for CurrentUser<U, T>
+where
+    U: UserDataSource,
+    T: UserTokenVerifier,
+{
     async fn current_user(&self, token: UserToken) -> Result<User, CurrentUserError> {
         let UserTokenClaims { id } = self.token_verifier.verify(token).await?;
         let filters = UserFilters::builder()
@@ -242,17 +288,22 @@ impl core::CurrentUser for CurrentUser {
 }
 
 /// Interactor used to delete user from the system.
-pub struct DeleteUser {
-    repository: UserRepository<Arc<dyn UserDataSource>>,
-    current_user: Arc<dyn core::CurrentUser>,
+pub struct DeleteUser<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    current_user: C,
 }
 
-impl DeleteUser {
+impl<U, C> DeleteUser<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
     /// Creates new delete user interactor.
-    pub fn new(
-        repository: UserRepository<Arc<dyn UserDataSource>>,
-        current_user: Arc<dyn core::CurrentUser>,
-    ) -> Self {
+    pub fn new(repository: UserRepository<U>, current_user: C) -> Self {
         Self {
             repository,
             current_user,
@@ -261,7 +312,11 @@ impl DeleteUser {
 }
 
 #[async_trait]
-impl core::DeleteUser for DeleteUser {
+impl<U, C> core::DeleteUser for DeleteUser<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
     async fn delete(
         &self,
         token: UserToken,
@@ -296,19 +351,28 @@ impl core::DeleteUser for DeleteUser {
 }
 
 /// Interactor used to filter users.
-pub struct FilterUsers {
-    repository: UserRepository<Arc<dyn UserDataSource>>,
+pub struct FilterUsers<U>
+where
+    U: UserDataSource,
+{
+    repository: UserRepository<U>,
 }
 
-impl FilterUsers {
+impl<U> FilterUsers<U>
+where
+    U: UserDataSource,
+{
     /// Creates new filter users predicate.
-    pub fn new(repository: UserRepository<Arc<dyn UserDataSource>>) -> Self {
+    pub fn new(repository: UserRepository<U>) -> Self {
         Self { repository }
     }
 }
 
 #[async_trait]
-impl core::FilterUsers for FilterUsers {
+impl<U> core::FilterUsers for FilterUsers<U>
+where
+    U: UserDataSource,
+{
     async fn filter(&self, filters: UserFilters) -> Result<Vec<User>, InternalError> {
         let user = self
             .repository

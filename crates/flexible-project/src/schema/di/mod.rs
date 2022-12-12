@@ -6,6 +6,7 @@ pub mod interactor;
 module! {
     pub SchemaModule {
         components = [
+            data_source::client::DatabaseUrl,
             data_source::client::ClientImpl,
             data_source::user::UserDataSourceImpl,
 
@@ -16,7 +17,7 @@ module! {
             interactor::user::CurrentUserImpl, interactor::user::DeleteUserImpl,
             interactor::user::FilterUsersImpl, interactor::user::UserTokenGeneratorImpl,
             interactor::user::SignInImpl, interactor::user::SignUpImpl,
-            interactor::token::Secret,
+            interactor::token::TokenSecret,
             interactor::verifier::PasswordVerifierImpl, interactor::verifier::UserCredentialsVerifierImpl,
             interactor::verifier::UserTokenVerifierImpl, interactor::verifier::UsernameVerifierImpl,
         ],

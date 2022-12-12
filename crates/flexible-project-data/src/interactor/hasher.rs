@@ -65,7 +65,7 @@ impl core::PasswordHasher for PasswordHasher {
         let password_hash = self
             .with_hasher(|hasher| {
                 let handle = Handle::current();
-                let _ = handle.enter();
+                let _guard = handle.enter();
                 block_on(async { hasher.hash_password(password, &salt) })
             })
             .map_err(InternalError::new)?;
@@ -83,7 +83,7 @@ impl core::PasswordHashVerifier for PasswordHasher {
             .map_err(InternalError::new)?;
         let result = self.with_hasher(|hasher| {
             let handle = Handle::current();
-            let _ = handle.enter();
+            let _guard = handle.enter();
             block_on(async { hasher.verify_password(password, &password_hash) })
         });
         match result {
