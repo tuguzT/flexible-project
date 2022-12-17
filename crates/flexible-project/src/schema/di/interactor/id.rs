@@ -34,6 +34,6 @@ where
     type Parameters = ();
 
     fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::IdGenerator::default())
+        Box::<data::IdGenerator>::default()
     }
 }

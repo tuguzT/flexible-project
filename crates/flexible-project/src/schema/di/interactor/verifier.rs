@@ -40,7 +40,7 @@ where
     type Parameters = ();
 
     fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::PasswordVerifier::default())
+        Box::<data::PasswordVerifier>::default()
     }
 }
 
@@ -139,6 +139,6 @@ where
     type Parameters = ();
 
     fn build(_: &mut shaku::ModuleBuildContext<M>, _: Self::Parameters) -> Box<Self::Interface> {
-        Box::new(data::UsernameVerifier::default())
+        Box::<data::UsernameVerifier>::default()
     }
 }
