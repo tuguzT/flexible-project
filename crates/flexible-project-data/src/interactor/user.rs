@@ -2,20 +2,28 @@
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
+use derive_more::{Display, Error};
 use fp_core::{
     model::{
         id::{Id, IdFilters},
         user::{
-            User, UserCredentials, UserFilters, UserRole, UserToken, UserTokenClaims,
-            UsernameFilters,
+            User, UserCredentials, UserEmailFilters, UserFilters, UserRole, UserToken,
+            UserTokenClaims, UsernameFilters,
         },
     },
     use_case::{
         error::InternalError,
         hasher::{PasswordHashVerifier, PasswordHasher},
         id::IdGenerator,
-        user::{CurrentUserError, DeleteUserError, SignInError, SignUpError},
-        verifier::{UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier},
+        user::{
+            CurrentUserError, DeleteUserError, GrantUserRoleError, SignInError, SignUpError,
+            UpdateUserDisplayNameError, UpdateUserEmailError, UpdateUserPasswordError,
+            UpdateUsernameError,
+        },
+        verifier::{
+            PasswordVerifier, UserCredentialsState, UserCredentialsVerifier, UserTokenVerifier,
+            UsernameVerifier,
+        },
     },
 };
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -26,7 +34,8 @@ use crate::repository::user::UserRepository;
 
 mod core {
     pub use fp_core::use_case::user::{
-        CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp, UserTokenGenerator,
+        CurrentUser, DeleteUser, FilterUsers, GrantUserRole, SignIn, SignUp, UpdateUserDisplayName,
+        UpdateUserEmail, UpdateUserPassword, UpdateUsername, UserTokenGenerator,
     };
 }
 
@@ -362,7 +371,7 @@ impl<U> FilterUsers<U>
 where
     U: UserDataSource,
 {
-    /// Creates new filter users predicate.
+    /// Creates new filter users interactor.
     pub fn new(repository: UserRepository<U>) -> Self {
         Self { repository }
     }
@@ -380,5 +389,367 @@ where
             .await
             .map_err(InternalError::new)?;
         Ok(user)
+    }
+}
+
+#[derive(Debug, Display, Error)]
+#[display(fmt = "user should present")]
+struct NoUserError;
+
+/// Interactor used to update user display name.
+pub struct UpdateUserDisplayName<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    current_user: C,
+}
+
+impl<U, C> UpdateUserDisplayName<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    /// Creates new update user display name interactor.
+    pub fn new(repository: UserRepository<U>, current_user: C) -> Self {
+        Self {
+            repository,
+            current_user,
+        }
+    }
+}
+
+#[async_trait]
+impl<U, C> core::UpdateUserDisplayName for UpdateUserDisplayName<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    async fn update_display_name(
+        &self,
+        token: UserToken,
+        display_name: String,
+    ) -> Result<User, UpdateUserDisplayNameError> {
+        let current_user = self.current_user.current_user(token).await?;
+        let user = User {
+            display_name,
+            ..current_user
+        };
+        let user = self
+            .repository
+            .update(user)
+            .await
+            .map_err(InternalError::new)?
+            .ok_or(NoUserError)
+            .map_err(InternalError::new)?;
+        Ok(user)
+    }
+}
+
+/// Interactor used to update user email.
+pub struct UpdateUserEmail<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    current_user: C,
+}
+
+impl<U, C> UpdateUserEmail<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    /// Creates new update user email interactor.
+    pub fn new(repository: UserRepository<U>, current_user: C) -> Self {
+        Self {
+            repository,
+            current_user,
+        }
+    }
+}
+
+#[async_trait]
+impl<U, C> core::UpdateUserEmail for UpdateUserEmail<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    async fn update_email(
+        &self,
+        token: UserToken,
+        email: Option<String>,
+    ) -> Result<User, UpdateUserEmailError> {
+        let current_user = self.current_user.current_user(token).await?;
+
+        if let Some(email) = &email {
+            let filters = UserFilters::builder()
+                .email(UserEmailFilters::builder().eq(email.clone()).build())
+                .build();
+            let user = self
+                .repository
+                .read(filters)
+                .await
+                .map_err(InternalError::new)?
+                .first()
+                .cloned();
+            if user.is_some() {
+                return Err(UpdateUserEmailError::AlreadyTaken);
+            }
+        }
+
+        let user = User {
+            email,
+            ..current_user
+        };
+        let user = self
+            .repository
+            .update(user)
+            .await
+            .map_err(InternalError::new)?
+            .ok_or(NoUserError)
+            .map_err(InternalError::new)?;
+        Ok(user)
+    }
+}
+
+/// Interactor used to grant role to the user.
+pub struct GrantUserRole<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    current_user: C,
+}
+
+impl<U, C> GrantUserRole<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    /// Creates new grant user role interactor.
+    pub fn new(repository: UserRepository<U>, current_user: C) -> Self {
+        Self {
+            repository,
+            current_user,
+        }
+    }
+}
+
+#[async_trait]
+impl<U, C> core::GrantUserRole for GrantUserRole<U, C>
+where
+    U: UserDataSource,
+    C: core::CurrentUser,
+{
+    async fn grant_role(
+        &self,
+        token: UserToken,
+        user_to_grant: Id<User>,
+        role: UserRole,
+    ) -> Result<(), GrantUserRoleError> {
+        let current_user = self.current_user.current_user(token).await?;
+        if current_user.role != UserRole::Administrator {
+            return Err(GrantUserRoleError::NotAllowed);
+        }
+
+        let filters = UserFilters::builder()
+            .id(IdFilters::builder().eq(user_to_grant).build())
+            .build();
+        let user = self
+            .repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?
+            .first()
+            .cloned();
+        let Some(user) = user else {
+            return Err(GrantUserRoleError::NoUserToGrant);
+        };
+
+        let user = User { role, ..user };
+        let _ = self
+            .repository
+            .update(user)
+            .await
+            .map_err(InternalError::new)?
+            .ok_or(NoUserError)
+            .map_err(InternalError::new)?;
+        Ok(())
+    }
+}
+
+/// Interactor used to update user name.
+pub struct UpdateUsername<U, V, C>
+where
+    U: UserDataSource,
+    V: UsernameVerifier,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    username_verifier: V,
+    current_user: C,
+}
+
+impl<U, V, C> UpdateUsername<U, V, C>
+where
+    U: UserDataSource,
+    V: UsernameVerifier,
+    C: core::CurrentUser,
+{
+    /// Creates new update username interactor.
+    pub fn new(repository: UserRepository<U>, username_verifier: V, current_user: C) -> Self {
+        Self {
+            repository,
+            username_verifier,
+            current_user,
+        }
+    }
+}
+
+#[async_trait]
+impl<U, V, C> core::UpdateUsername for UpdateUsername<U, V, C>
+where
+    U: UserDataSource,
+    V: UsernameVerifier,
+    C: core::CurrentUser,
+{
+    async fn update_name(
+        &self,
+        token: UserToken,
+        name: String,
+    ) -> Result<User, UpdateUsernameError> {
+        let current_user = self.current_user.current_user(token).await?;
+
+        let verify = self.username_verifier.verify(name.clone()).await?;
+        if !verify {
+            return Err(UpdateUsernameError::InvalidUsername);
+        }
+
+        let filters = UserFilters::builder()
+            .name(UsernameFilters::builder().eq(name.clone()).build())
+            .build();
+        let user = self
+            .repository
+            .read(filters)
+            .await
+            .map_err(InternalError::new)?
+            .first()
+            .cloned();
+        if user.is_some() {
+            return Err(UpdateUsernameError::AlreadyTaken);
+        }
+
+        let user = User {
+            name,
+            ..current_user
+        };
+        let user = self
+            .repository
+            .update(user)
+            .await
+            .map_err(InternalError::new)?
+            .ok_or(NoUserError)
+            .map_err(InternalError::new)?;
+        Ok(user)
+    }
+}
+
+/// Interactor used to update user password.
+pub struct UpdateUserPassword<U, V, H, HV, C>
+where
+    U: UserDataSource,
+    V: PasswordVerifier,
+    H: PasswordHasher,
+    HV: PasswordHashVerifier,
+    C: core::CurrentUser,
+{
+    repository: UserRepository<U>,
+    password_verifier: V,
+    password_hasher: H,
+    password_hash_verifier: HV,
+    current_user: C,
+}
+
+impl<U, V, H, HV, C> UpdateUserPassword<U, V, H, HV, C>
+where
+    U: UserDataSource,
+    V: PasswordVerifier,
+    H: PasswordHasher,
+    HV: PasswordHashVerifier,
+    C: core::CurrentUser,
+{
+    /// Creates new update user password interactor.
+    pub fn new(
+        repository: UserRepository<U>,
+        password_verifier: V,
+        password_hasher: H,
+        password_hash_verifier: HV,
+        current_user: C,
+    ) -> Self {
+        Self {
+            repository,
+            password_verifier,
+            password_hasher,
+            password_hash_verifier,
+            current_user,
+        }
+    }
+}
+
+#[async_trait]
+impl<U, V, H, HV, C> core::UpdateUserPassword for UpdateUserPassword<U, V, H, HV, C>
+where
+    U: UserDataSource,
+    V: PasswordVerifier,
+    H: PasswordHasher,
+    HV: PasswordHashVerifier,
+    C: core::CurrentUser,
+{
+    async fn update_password(
+        &self,
+        token: UserToken,
+        old_password: String,
+        new_password: String,
+    ) -> Result<(), UpdateUserPasswordError> {
+        let current_user = self.current_user.current_user(token).await?;
+
+        if old_password == new_password {
+            return Err(UpdateUserPasswordError::SamePassword);
+        }
+
+        let verify = self.password_verifier.verify(old_password.clone()).await?;
+        if !verify {
+            return Err(UpdateUserPasswordError::InvalidPassword);
+        }
+        let verify = self.password_verifier.verify(new_password.clone()).await?;
+        if !verify {
+            return Err(UpdateUserPasswordError::InvalidPassword);
+        }
+
+        let password_hash = self
+            .repository
+            .get_password_hash(current_user.id.clone())
+            .await
+            .map_err(InternalError::new)?
+            .ok_or(NoUserError)
+            .map_err(InternalError::new)?;
+        let verify = self
+            .password_hash_verifier
+            .verify(old_password, password_hash)
+            .await?;
+        if !verify {
+            return Err(UpdateUserPasswordError::WrongPassword);
+        }
+
+        let password_hash = self.password_hasher.hash(new_password).await?;
+        self.repository
+            .set_password_hash(current_user.id, password_hash)
+            .await
+            .map_err(InternalError::new)?;
+        Ok(())
     }
 }

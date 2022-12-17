@@ -6,7 +6,7 @@ use fp_core::model::user::{User, UserFilters};
 use futures::future;
 use futures::stream::TryStreamExt;
 use mongodb::bson::{doc, to_bson};
-use mongodb::options::IndexOptions;
+use mongodb::options::{FindOneAndUpdateOptions, IndexOptions, ReturnDocument};
 use mongodb::{Collection, IndexModel};
 
 use crate::data_source::user::UserDataSource;
@@ -95,9 +95,12 @@ impl UserDataSource for LocalUserDataSource {
             "email": user.email.as_deref(),
             "role": to_bson(&UserRoleData::from(user.role)).map_err(Error::from)?,
         };
+        let options = FindOneAndUpdateOptions::builder()
+            .return_document(ReturnDocument::After)
+            .build();
         let old_user = self
             .collection
-            .find_one_and_update(filter, update, None)
+            .find_one_and_update(filter, update, options)
             .await
             .map_err(Error::from)?
             .map(Into::into);
@@ -126,6 +129,21 @@ impl UserDataSource for LocalUserDataSource {
             .map_err(Error::from)?;
         let password_hash = user.map(|user| user.password_hash);
         Ok(password_hash)
+    }
+
+    async fn set_password_hash(&self, id: Id<User>, password_hash: String) -> Result<()> {
+        let id = IdData::try_from(id).map_err(Error::from)?;
+        let filter = doc! { "_id": to_bson(&id).map_err(Error::from)? };
+        let update = doc! { "password_hash": password_hash };
+        let options = FindOneAndUpdateOptions::builder()
+            .return_document(ReturnDocument::After)
+            .build();
+        let _ = self
+            .collection
+            .find_one_and_update(filter, update, options)
+            .await
+            .map_err(Error::from)?;
+        Ok(())
     }
 }
 

@@ -9,7 +9,9 @@ use crate::schema::di::{
     interactor::{
         hasher::{PasswordHashVerifier, PasswordHasher},
         id::IdGenerator,
-        verifier::{UserCredentialsVerifier, UserTokenVerifier},
+        verifier::{
+            PasswordVerifier, UserCredentialsVerifier, UserTokenVerifier, UsernameVerifier,
+        },
     },
 };
 
@@ -24,7 +26,8 @@ mod core {
 
 mod data {
     pub use fp_data::interactor::user::{
-        CurrentUser, DeleteUser, FilterUsers, SignIn, SignUp, UserTokenGenerator,
+        CurrentUser, DeleteUser, FilterUsers, GrantUserRole, SignIn, SignUp, UpdateUserDisplayName,
+        UpdateUserEmail, UpdateUserPassword, UpdateUsername, UserTokenGenerator,
     };
     pub use fp_data::repository::user::UserRepository;
 }
@@ -66,7 +69,8 @@ where
         let token_verifier: Arc<dyn UserTokenVerifier> = M::build_component(context);
         let token_verifier = token_verifier.upcast();
 
-        Box::new(data::CurrentUser::new(repository, token_verifier))
+        let current_user = data::CurrentUser::new(repository, token_verifier);
+        Box::new(current_user)
     }
 }
 
@@ -96,7 +100,8 @@ where
         let current_user: Arc<dyn CurrentUser> = M::build_component(context);
         let current_user = current_user.upcast();
 
-        Box::new(data::DeleteUser::new(repository, current_user))
+        let delete_user = data::DeleteUser::new(repository, current_user);
+        Box::new(delete_user)
     }
 }
 
@@ -134,7 +139,8 @@ where
         let data_source = data_source.upcast();
         let repository = data::UserRepository(data_source);
 
-        Box::new(data::FilterUsers::new(repository))
+        let filter_users = data::FilterUsers::new(repository);
+        Box::new(filter_users)
     }
 }
 
@@ -169,7 +175,9 @@ where
         _: Self::Parameters,
     ) -> Box<Self::Interface> {
         let secret = M::build_component(context).0.clone();
-        Box::new(data::UserTokenGenerator::new(secret))
+
+        let user_token_generator = data::UserTokenGenerator::new(secret);
+        Box::new(user_token_generator)
     }
 }
 
@@ -267,5 +275,187 @@ where
             token_generator,
         );
         Box::new(sign_up)
+    }
+}
+
+/// Update user display name interface for dependency injection.
+pub trait UpdateUserDisplayName: core::UpdateUserDisplayName + Interface {}
+impl<T> UpdateUserDisplayName for T where T: core::UpdateUserDisplayName + Interface {}
+
+/// Update user display name component.
+pub struct UpdateUserDisplayNameComponent(());
+
+impl<M> Component<M> for UpdateUserDisplayNameComponent
+where
+    M: Module + HasComponent<dyn UserDataSource> + HasComponent<dyn CurrentUser>,
+{
+    type Interface = dyn UpdateUserDisplayName;
+
+    type Parameters = ();
+
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let data_source: Arc<dyn UserDataSource> = M::build_component(context);
+        let data_source = data_source.upcast();
+        let repository = data::UserRepository(data_source);
+
+        let current_user: Arc<dyn CurrentUser> = M::build_component(context);
+        let current_user = current_user.upcast();
+
+        let update_user_display_name = data::UpdateUserDisplayName::new(repository, current_user);
+        Box::new(update_user_display_name)
+    }
+}
+
+/// Update user email interface for dependency injection.
+pub trait UpdateUserEmail: core::UpdateUserEmail + Interface {}
+impl<T> UpdateUserEmail for T where T: core::UpdateUserEmail + Interface {}
+
+/// Update user email component.
+pub struct UpdateUserEmailComponent(());
+
+impl<M> Component<M> for UpdateUserEmailComponent
+where
+    M: Module + HasComponent<dyn UserDataSource> + HasComponent<dyn CurrentUser>,
+{
+    type Interface = dyn UpdateUserEmail;
+
+    type Parameters = ();
+
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let data_source: Arc<dyn UserDataSource> = M::build_component(context);
+        let data_source = data_source.upcast();
+        let repository = data::UserRepository(data_source);
+
+        let current_user: Arc<dyn CurrentUser> = M::build_component(context);
+        let current_user = current_user.upcast();
+
+        let update_user_email = data::UpdateUserEmail::new(repository, current_user);
+        Box::new(update_user_email)
+    }
+}
+
+/// Grant user role interface for dependency injection.
+pub trait GrantUserRole: core::GrantUserRole + Interface {}
+impl<T> GrantUserRole for T where T: core::GrantUserRole + Interface {}
+
+/// Grant user role component.
+pub struct GrantUserRoleComponent(());
+
+impl<M> Component<M> for GrantUserRoleComponent
+where
+    M: Module + HasComponent<dyn UserDataSource> + HasComponent<dyn CurrentUser>,
+{
+    type Interface = dyn GrantUserRole;
+
+    type Parameters = ();
+
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let data_source: Arc<dyn UserDataSource> = M::build_component(context);
+        let data_source = data_source.upcast();
+        let repository = data::UserRepository(data_source);
+
+        let current_user: Arc<dyn CurrentUser> = M::build_component(context);
+        let current_user = current_user.upcast();
+
+        let grant_user_role = data::GrantUserRole::new(repository, current_user);
+        Box::new(grant_user_role)
+    }
+}
+
+/// Update username interface for dependency injection.
+pub trait UpdateUsername: core::UpdateUsername + Interface {}
+impl<T> UpdateUsername for T where T: core::UpdateUsername + Interface {}
+
+/// Update username component.
+pub struct UpdateUsernameComponent(());
+
+impl<M> Component<M> for UpdateUsernameComponent
+where
+    M: Module
+        + HasComponent<dyn UserDataSource>
+        + HasComponent<dyn CurrentUser>
+        + HasComponent<dyn UsernameVerifier>,
+{
+    type Interface = dyn UpdateUsername;
+
+    type Parameters = ();
+
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let data_source: Arc<dyn UserDataSource> = M::build_component(context);
+        let data_source = data_source.upcast();
+        let repository = data::UserRepository(data_source);
+
+        let current_user: Arc<dyn CurrentUser> = M::build_component(context);
+        let current_user = current_user.upcast();
+
+        let username_verifier: Arc<dyn UsernameVerifier> = M::build_component(context);
+        let username_verifier = username_verifier.upcast();
+
+        let update_username =
+            data::UpdateUsername::new(repository, username_verifier, current_user);
+        Box::new(update_username)
+    }
+}
+
+/// Update user password interface for dependency injection.
+pub trait UpdateUserPassword: core::UpdateUserPassword + Interface {}
+impl<T> UpdateUserPassword for T where T: core::UpdateUserPassword + Interface {}
+
+/// Update user password component.
+pub struct UpdateUserPasswordComponent(());
+
+impl<M> Component<M> for UpdateUserPasswordComponent
+where
+    M: Module
+        + HasComponent<dyn UserDataSource>
+        + HasComponent<dyn CurrentUser>
+        + HasComponent<dyn PasswordVerifier>
+        + HasComponent<dyn PasswordHasher>
+        + HasComponent<dyn PasswordHashVerifier>,
+{
+    type Interface = dyn UpdateUserPassword;
+
+    type Parameters = ();
+
+    fn build(
+        context: &mut shaku::ModuleBuildContext<M>,
+        _: Self::Parameters,
+    ) -> Box<Self::Interface> {
+        let data_source: Arc<dyn UserDataSource> = M::build_component(context);
+        let data_source = data_source.upcast();
+        let repository = data::UserRepository(data_source);
+
+        let password_verifier: Arc<dyn PasswordVerifier> = M::build_component(context);
+        let password_verifier = password_verifier.upcast();
+
+        let password_hasher: Arc<dyn PasswordHasher> = M::build_component(context);
+        let password_hasher = password_hasher.upcast();
+
+        let password_hash_verifier: Arc<dyn PasswordHashVerifier> = M::build_component(context);
+        let password_hash_verifier = password_hash_verifier.upcast();
+
+        let current_user: Arc<dyn CurrentUser> = M::build_component(context);
+        let current_user = current_user.upcast();
+
+        let update_user_password = data::UpdateUserPassword::new(
+            repository,
+            password_verifier,
+            password_hasher,
+            password_hash_verifier,
+            current_user,
+        );
+        Box::new(update_user_password)
     }
 }

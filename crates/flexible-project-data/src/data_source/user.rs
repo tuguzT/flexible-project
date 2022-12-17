@@ -27,4 +27,7 @@ pub trait UserDataSource: DataSource<Item = User> {
 
     /// Retrieve password hash from the user by its identifier.
     async fn get_password_hash(&self, id: Id<User>) -> Result<Option<String>>;
+
+    /// Change password hash of the user by its identifier.
+    async fn set_password_hash(&self, id: Id<User>, password_hash: String) -> Result<()>;
 }

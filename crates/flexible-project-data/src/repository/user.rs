@@ -48,6 +48,12 @@ where
         let password_hash = self.0.get_password_hash(id).await?;
         Ok(password_hash)
     }
+
+    /// Change password hash of the user by its identifier.
+    pub async fn set_password_hash(&self, id: Id<User>, password_hash: String) -> Result<()> {
+        self.0.set_password_hash(id, password_hash).await?;
+        Ok(())
+    }
 }
 
 impl<S> Repository for UserRepository<S>

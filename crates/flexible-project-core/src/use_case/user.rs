@@ -213,6 +213,9 @@ pub enum GrantUserRoleError {
     /// User does not allowed to grant role to another user.
     #[display(fmt = "not allowed to grant role to another user")]
     NotAllowed,
+    /// No user exists to grant role to.
+    #[display(fmt = "no user exist to grant role to")]
+    NoUserToGrant,
     /// Use case internal error.
     Internal(InternalError),
 }
