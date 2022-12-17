@@ -19,9 +19,9 @@ pub trait FindNode: core::FindNode + Interface {}
 impl<T> FindNode for T where T: core::FindNode + Interface {}
 
 /// Find node component.
-pub struct FindNodeImpl(());
+pub struct FindNodeComponent(());
 
-impl<M> Component<M> for FindNodeImpl
+impl<M> Component<M> for FindNodeComponent
 where
     M: Module + HasComponent<dyn FilterUsers>,
 {

@@ -28,9 +28,9 @@ where
 }
 
 /// User data source component.
-pub struct UserDataSourceImpl(());
+pub struct UserDataSourceComponent(());
 
-impl<M> Component<M> for UserDataSourceImpl
+impl<M> Component<M> for UserDataSourceComponent
 where
     M: Module + HasComponent<data::Client>,
 {

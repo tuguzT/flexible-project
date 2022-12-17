@@ -29,9 +29,9 @@ where
 }
 
 /// Database client component.
-pub struct ClientImpl(());
+pub struct ClientComponent(());
 
-impl<M> Component<M> for ClientImpl
+impl<M> Component<M> for ClientComponent
 where
     M: Module + HasComponent<DatabaseUrl>,
 {

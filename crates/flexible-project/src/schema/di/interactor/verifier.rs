@@ -34,9 +34,9 @@ where
 }
 
 /// Password verifier component.
-pub struct PasswordVerifierImpl(());
+pub struct PasswordVerifierComponent(());
 
-impl<M> Component<M> for PasswordVerifierImpl
+impl<M> Component<M> for PasswordVerifierComponent
 where
     M: Module,
 {
@@ -65,9 +65,9 @@ where
 }
 
 /// User credentials verifier component.
-pub struct UserCredentialsVerifierImpl(());
+pub struct UserCredentialsVerifierComponent(());
 
-impl<M> Component<M> for UserCredentialsVerifierImpl
+impl<M> Component<M> for UserCredentialsVerifierComponent
 where
     M: Module + HasComponent<dyn UsernameVerifier> + HasComponent<dyn PasswordVerifier>,
 {
@@ -107,9 +107,9 @@ where
 }
 
 /// User token verifier component.
-pub struct UserTokenVerifierImpl(());
+pub struct UserTokenVerifierComponent(());
 
-impl<M> Component<M> for UserTokenVerifierImpl
+impl<M> Component<M> for UserTokenVerifierComponent
 where
     M: Module + HasComponent<TokenSecret>,
 {
@@ -142,9 +142,9 @@ where
 }
 
 /// Username verifier component.
-pub struct UsernameVerifierImpl(());
+pub struct UsernameVerifierComponent(());
 
-impl<M> Component<M> for UsernameVerifierImpl
+impl<M> Component<M> for UsernameVerifierComponent
 where
     M: Module,
 {

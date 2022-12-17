@@ -28,9 +28,9 @@ where
 }
 
 /// Identifier generator component.
-pub struct IdGeneratorImpl(());
+pub struct IdGeneratorComponent(());
 
-impl<M> Component<M> for IdGeneratorImpl
+impl<M> Component<M> for IdGeneratorComponent
 where
     M: Module,
 {

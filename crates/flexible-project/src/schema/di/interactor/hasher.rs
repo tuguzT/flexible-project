@@ -47,9 +47,9 @@ where
 }
 
 /// Password hasher component.
-pub struct PasswordHasherImpl(());
+pub struct PasswordHasherComponent(());
 
-impl<M> Component<M> for PasswordHasherImpl
+impl<M> Component<M> for PasswordHasherComponent
 where
     M: Module + HasComponent<data::PasswordHasher>,
 {
@@ -82,9 +82,9 @@ where
 }
 
 /// Password hash verifier component.
-pub struct PasswordHashVerifierImpl(());
+pub struct PasswordHashVerifierComponent(());
 
-impl<M> Component<M> for PasswordHashVerifierImpl
+impl<M> Component<M> for PasswordHashVerifierComponent
 where
     M: Module + HasComponent<data::PasswordHasher>,
 {

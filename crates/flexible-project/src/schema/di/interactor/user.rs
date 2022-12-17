@@ -45,9 +45,9 @@ where
 }
 
 /// Current user component.
-pub struct CurrentUserImpl(());
+pub struct CurrentUserComponent(());
 
-impl<M> Component<M> for CurrentUserImpl
+impl<M> Component<M> for CurrentUserComponent
 where
     M: Module + HasComponent<dyn UserDataSource> + HasComponent<dyn UserTokenVerifier>,
 {
@@ -75,9 +75,9 @@ pub trait DeleteUser: core::DeleteUser + Interface {}
 impl<T> DeleteUser for T where T: ?Sized + core::DeleteUser + Interface {}
 
 /// Delete user component.
-pub struct DeleteUserImpl(());
+pub struct DeleteUserComponent(());
 
-impl<M> Component<M> for DeleteUserImpl
+impl<M> Component<M> for DeleteUserComponent
 where
     M: Module + HasComponent<dyn UserDataSource> + HasComponent<dyn CurrentUser>,
 {
@@ -116,9 +116,9 @@ where
 }
 
 /// Filter users component.
-pub struct FilterUsersImpl(());
+pub struct FilterUsersComponent(());
 
-impl<M> Component<M> for FilterUsersImpl
+impl<M> Component<M> for FilterUsersComponent
 where
     M: Module + HasComponent<dyn UserDataSource>,
 {
@@ -154,9 +154,9 @@ where
 }
 
 /// User token generator component.
-pub struct UserTokenGeneratorImpl(());
+pub struct UserTokenGeneratorComponent(());
 
-impl<M> Component<M> for UserTokenGeneratorImpl
+impl<M> Component<M> for UserTokenGeneratorComponent
 where
     M: Module + HasComponent<TokenSecret>,
 {
@@ -178,9 +178,9 @@ pub trait SignIn: core::SignIn + Interface {}
 impl<T> SignIn for T where T: ?Sized + core::SignIn + Interface {}
 
 /// Sign in component.
-pub struct SignInImpl(());
+pub struct SignInComponent(());
 
-impl<M> Component<M> for SignInImpl
+impl<M> Component<M> for SignInComponent
 where
     M: Module
         + HasComponent<dyn UserDataSource>
@@ -224,9 +224,9 @@ pub trait SignUp: core::SignUp + Interface {}
 impl<T> SignUp for T where T: ?Sized + core::SignUp + Interface {}
 
 /// Sign up component.
-pub struct SignUpImpl(());
+pub struct SignUpComponent(());
 
-impl<M> Component<M> for SignUpImpl
+impl<M> Component<M> for SignUpComponent
 where
     M: Module
         + HasComponent<dyn UserDataSource>
