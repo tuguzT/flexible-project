@@ -15,13 +15,13 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use self::route::graphql_routes;
 use self::schema::build_schema;
 
-mod model;
-mod route;
-mod schema;
+pub mod model;
+pub mod route;
+pub mod schema;
 
 /// Entry point of the server.
 #[tokio::main]
-async fn main() -> Result<()> {
+pub async fn main() -> Result<()> {
     if cfg!(debug_assertions) {
         dotenv::dotenv().with_context(|| ".env file not found")?;
     }

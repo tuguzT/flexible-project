@@ -1,3 +1,5 @@
+//! Verifier interactor components and providers for dependency injection.
+
 use std::sync::Arc;
 
 use shaku::{Component, HasComponent, Interface, Module};
@@ -16,7 +18,9 @@ mod data {
     };
 }
 
+/// Password verifier interface for dependency injection.
 pub trait PasswordVerifier: core::PasswordVerifier + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::PasswordVerifier>;
 }
 
@@ -29,6 +33,7 @@ where
     }
 }
 
+/// Password verifier component.
 pub struct PasswordVerifierImpl(());
 
 impl<M> Component<M> for PasswordVerifierImpl
@@ -44,7 +49,9 @@ where
     }
 }
 
+/// User credentials verifier interface for dependency injection.
 pub trait UserCredentialsVerifier: core::UserCredentialsVerifier + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::UserCredentialsVerifier>;
 }
 
@@ -57,6 +64,7 @@ where
     }
 }
 
+/// User credentials verifier component.
 pub struct UserCredentialsVerifierImpl(());
 
 impl<M> Component<M> for UserCredentialsVerifierImpl
@@ -83,7 +91,9 @@ where
     }
 }
 
+/// User token verifier interface for dependency injection.
 pub trait UserTokenVerifier: core::UserTokenVerifier + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::UserTokenVerifier>;
 }
 
@@ -96,6 +106,7 @@ where
     }
 }
 
+/// User token verifier component.
 pub struct UserTokenVerifierImpl(());
 
 impl<M> Component<M> for UserTokenVerifierImpl
@@ -115,7 +126,9 @@ where
     }
 }
 
+/// Username verifier interface for dependency injection.
 pub trait UsernameVerifier: core::UsernameVerifier + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::UsernameVerifier>;
 }
 
@@ -128,6 +141,7 @@ where
     }
 }
 
+/// Username verifier component.
 pub struct UsernameVerifierImpl(());
 
 impl<M> Component<M> for UsernameVerifierImpl

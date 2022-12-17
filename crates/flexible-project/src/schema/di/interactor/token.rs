@@ -1,5 +1,8 @@
+//! Token interactor components and providers for dependency injection.
+
 use shaku::{Component, Module};
 
+/// Token secret component.
 pub struct TokenSecret(pub String);
 
 impl<M> Component<M> for TokenSecret

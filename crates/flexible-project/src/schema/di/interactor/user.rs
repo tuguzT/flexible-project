@@ -1,3 +1,5 @@
+//! User interactor components and providers for dependency injection.
+
 use std::sync::Arc;
 
 use shaku::{Component, HasComponent, Interface, Module};
@@ -27,7 +29,9 @@ mod data {
     pub use fp_data::repository::user::UserRepository;
 }
 
+/// Current user interface for dependency injection.
 pub trait CurrentUser: core::CurrentUser + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::CurrentUser>;
 }
 
@@ -40,6 +44,7 @@ where
     }
 }
 
+/// Current user component.
 pub struct CurrentUserImpl(());
 
 impl<M> Component<M> for CurrentUserImpl
@@ -65,9 +70,11 @@ where
     }
 }
 
+/// Delete user interface for dependency injection.
 pub trait DeleteUser: core::DeleteUser + Interface {}
 impl<T> DeleteUser for T where T: ?Sized + core::DeleteUser + Interface {}
 
+/// Delete user component.
 pub struct DeleteUserImpl(());
 
 impl<M> Component<M> for DeleteUserImpl
@@ -93,7 +100,9 @@ where
     }
 }
 
+/// Filter users interface for dependency injection.
 pub trait FilterUsers: core::FilterUsers + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::FilterUsers>;
 }
 
@@ -106,6 +115,7 @@ where
     }
 }
 
+/// Filter users component.
 pub struct FilterUsersImpl(());
 
 impl<M> Component<M> for FilterUsersImpl
@@ -128,7 +138,9 @@ where
     }
 }
 
+/// User token generator interface for dependency injection.
 pub trait UserTokenGenerator: core::UserTokenGenerator + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::UserTokenGenerator>;
 }
 
@@ -141,6 +153,7 @@ where
     }
 }
 
+/// User token generator component.
 pub struct UserTokenGeneratorImpl(());
 
 impl<M> Component<M> for UserTokenGeneratorImpl
@@ -160,9 +173,11 @@ where
     }
 }
 
+/// Sign in interface for dependency injection.
 pub trait SignIn: core::SignIn + Interface {}
 impl<T> SignIn for T where T: ?Sized + core::SignIn + Interface {}
 
+/// Sign in component.
 pub struct SignInImpl(());
 
 impl<M> Component<M> for SignInImpl
@@ -204,9 +219,11 @@ where
     }
 }
 
+/// Sign up interface for dependency injection.
 pub trait SignUp: core::SignUp + Interface {}
 impl<T> SignUp for T where T: ?Sized + core::SignUp + Interface {}
 
+/// Sign up component.
 pub struct SignUpImpl(());
 
 impl<M> Component<M> for SignUpImpl

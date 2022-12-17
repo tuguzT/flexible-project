@@ -5,7 +5,7 @@ use shaku::{HasComponent, Interface};
 
 use super::di::SchemaModule;
 
-pub trait ContextExt {
+pub(super) trait ContextExt {
     fn resolve<I>(&self) -> Arc<I>
     where
         I: Interface + ?Sized,

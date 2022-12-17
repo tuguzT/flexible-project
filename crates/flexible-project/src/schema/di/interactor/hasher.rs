@@ -1,3 +1,5 @@
+//! Hasher interactor components and providers for dependency injection.
+
 use std::sync::Arc;
 
 use shaku::{Component, HasComponent, Interface, Module};
@@ -10,6 +12,7 @@ mod data {
     pub use fp_data::interactor::hasher::PasswordHasher;
 }
 
+/// Shared password hasher component.
 pub struct SharedPasswordHasher(());
 
 impl<M> Component<M> for SharedPasswordHasher
@@ -28,7 +31,9 @@ where
     }
 }
 
+/// Password hasher interface for dependency injection.
 pub trait PasswordHasher: core::PasswordHasher + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::PasswordHasher>;
 }
 
@@ -41,6 +46,7 @@ where
     }
 }
 
+/// Password hasher component.
 pub struct PasswordHasherImpl(());
 
 impl<M> Component<M> for PasswordHasherImpl
@@ -60,7 +66,9 @@ where
     }
 }
 
+/// Password verifier interface for dependency injection.
 pub trait PasswordHashVerifier: core::PasswordHashVerifier + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn core::PasswordHashVerifier>;
 }
 
@@ -73,6 +81,7 @@ where
     }
 }
 
+/// Password hash verifier component.
 pub struct PasswordHashVerifierImpl(());
 
 impl<M> Component<M> for PasswordHashVerifierImpl

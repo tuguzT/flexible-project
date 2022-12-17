@@ -1,3 +1,5 @@
+//! Database client components and providers for dependency injection.
+
 use anyhow::Context;
 use futures::executor::block_on;
 use shaku::{Component, HasComponent, Module};
@@ -7,6 +9,7 @@ mod data {
     pub use fp_data::data_source::local::Client;
 }
 
+/// Database URL component.
 pub struct DatabaseUrl(pub String);
 
 impl<M> Component<M> for DatabaseUrl
@@ -25,6 +28,7 @@ where
     }
 }
 
+/// Database client component.
 pub struct ClientImpl(());
 
 impl<M> Component<M> for ClientImpl

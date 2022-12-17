@@ -1,3 +1,5 @@
+//! User data source components and providers for dependency injection.
+
 use std::sync::Arc;
 
 use anyhow::Context;
@@ -10,7 +12,9 @@ mod data {
     pub use fp_data::data_source::user::UserDataSource;
 }
 
+/// User data source interface for dependency injection.
 pub trait UserDataSource: data::UserDataSource + Interface {
+    /// Upcasts to the base trait.
     fn upcast(self: Arc<Self>) -> Arc<dyn data::UserDataSource>;
 }
 
@@ -23,6 +27,7 @@ where
     }
 }
 
+/// User data source component.
 pub struct UserDataSourceImpl(());
 
 impl<M> Component<M> for UserDataSourceImpl

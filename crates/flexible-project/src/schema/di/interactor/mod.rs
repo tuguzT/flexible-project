@@ -1,3 +1,5 @@
+//! Interactor components and providers for dependency injection.
+
 pub mod hasher;
 pub mod id;
 pub mod node;

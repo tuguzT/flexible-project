@@ -1,10 +1,12 @@
+//! Dependency injection of the Flexible Project schema.
+
 use shaku::module;
 
 pub mod data_source;
 pub mod interactor;
 
 module! {
-    pub SchemaModule {
+    pub(in crate::schema) SchemaModule {
         components = [
             data_source::client::DatabaseUrl,
             data_source::client::ClientImpl,
