@@ -1,7 +1,7 @@
 [package]
-name = "flexible-project-user"
+name = "flexible-project-user-data"
 version = "0.0.0"
-description = "Flexible Project backend user microservice binary"
+description = "Flexible Project backend user microservice data layer library"
 authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tuguzT/flexible-project"
@@ -9,4 +9,3 @@ edition = "2021"
 
 [dependencies]
 domain = { package = "flexible-project-user-domain", path = "../flexible-project-user-domain" }
-data = { package = "flexible-project-user-data", path = "../flexible-project-user-data" }

@@ -9,6 +9,21 @@ version = "0.0.0"
 [[package]]
 name = "flexible-project-user"
 version = "0.0.0"
+dependencies = [
+ "flexible-project-user-data",
+ "flexible-project-user-domain",
+]
+
+[[package]]
+name = "flexible-project-user-data"
+version = "0.0.0"
+dependencies = [
+ "flexible-project-user-domain",
+]
+
+[[package]]
+name = "flexible-project-user-domain"
+version = "0.0.0"
 
 [[package]]
 name = "flexible-project-workspace"
