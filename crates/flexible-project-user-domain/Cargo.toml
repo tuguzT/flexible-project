@@ -8,3 +8,5 @@ repository = "https://github.com/tuguzT/flexible-project"
 edition = "2021"
 
 [dependencies]
+async-trait = "0.1.67"
+auto_impl = "1.0.1"
