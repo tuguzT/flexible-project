@@ -1,7 +1,7 @@
 [package]
-name = "flexible-project-core"
+name = "flexible-project-user"
 version = "0.0.0"
-description = "Flexible Project backend core library"
+description = "Flexible Project user backend microservice binary"
 authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tuguzT/flexible-project"
