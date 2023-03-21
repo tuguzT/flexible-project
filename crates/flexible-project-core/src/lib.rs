@@ -3,3 +3,5 @@
 #![warn(missing_docs)]
 #![warn(clippy::all)]
 #![forbid(unsafe_code)]
+
+pub mod id;
