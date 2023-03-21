@@ -6,6 +6,11 @@ use std::{
     marker::PhantomData,
 };
 
+use derive_more::{Display, From};
+use typed_builder::TypedBuilder;
+
+use crate::filter::{Equal, Filter, In, NotEqual, NotIn};
+
 /// Type of identifier which are used to identify objects of the owner type.
 pub struct Id<Owner> {
     inner: String,
@@ -96,6 +101,12 @@ impl<Owner> Debug for Id<Owner> {
     }
 }
 
+impl<Owner> From<String> for Id<Owner> {
+    fn from(id: String) -> Self {
+        Id::new(id)
+    }
+}
+
 impl<Owner> Display for Id<Owner> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self { inner, .. } = self;
@@ -104,7 +115,7 @@ impl<Owner> Display for Id<Owner> {
 }
 
 /// Type of identifier with erased (unknown) owner.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, From)]
 pub struct ErasedId {
     inner: String,
 }
@@ -134,9 +145,50 @@ impl ErasedId {
     }
 }
 
-impl Display for ErasedId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self { inner } = self;
-        Display::fmt(inner, f)
+/// Filters for identifiers of the backend.
+#[derive(Debug, TypedBuilder)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct IdFilters<Owner> {
+    /// Equality identifier filter.
+    pub eq: Option<Equal<Id<Owner>>>,
+    /// Inequality identifier filter.
+    pub ne: Option<NotEqual<Id<Owner>>>,
+    /// In identifier filter.
+    pub r#in: Option<In<Id<Owner>>>,
+    /// Not in identifier filter.
+    pub nin: Option<NotIn<Id<Owner>>>,
+}
+
+impl<Owner> Filter for IdFilters<Owner> {
+    type Input<'a> = &'a Id<Owner>
+    where
+        Self: 'a;
+
+    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+        let Self { eq, ne, r#in, nin } = self;
+        eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)
+    }
+}
+
+impl<Owner> Default for IdFilters<Owner> {
+    fn default() -> Self {
+        Self {
+            eq: Default::default(),
+            ne: Default::default(),
+            r#in: Default::default(),
+            nin: Default::default(),
+        }
+    }
+}
+
+impl<Owner> Clone for IdFilters<Owner> {
+    fn clone(&self) -> Self {
+        let Self { eq, ne, r#in, nin } = self;
+        Self {
+            eq: eq.clone(),
+            ne: ne.clone(),
+            r#in: r#in.clone(),
+            nin: nin.clone(),
+        }
     }
 }

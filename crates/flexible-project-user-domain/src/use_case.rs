@@ -6,7 +6,7 @@ use derive_more::{Display, Error, From};
 use fancy_regex::Regex;
 use once_cell::sync::Lazy;
 
-use crate::model::{User, UserData, UserId};
+use crate::model::{NameFilters, User, UserData, UserFilters, UserId, UserIdFilters};
 
 /// Defines operations applicable to the user microservice data.
 #[async_trait]
@@ -21,10 +21,9 @@ pub trait Repository {
     async fn create(&self, id: UserId, data: UserData) -> Result<User, Self::Error>;
 
     /// Type of iterator of filtered repository data.
-    type Users: Iterator<Item = User>;
-    /// Filter users by provided filter object.
-    // TODO replace with actual filter type
-    async fn read(&self, filter: UserId) -> Result<Self::Users, Self::Error>;
+    type Users: IntoIterator<Item = User>;
+    /// Filters users by provided filter object.
+    async fn read(&self, filter: UserFilters) -> Result<Self::Users, Self::Error>;
 
     /// Updates user by provided identifier with provided data.
     ///
@@ -35,6 +34,22 @@ pub trait Repository {
     ///
     /// Returns deleted user or an error if user with such identifier does not exist.
     async fn delete(&self, id: UserId) -> Result<User, Self::Error>;
+}
+
+/// Checks if user name meets all the requirements.
+///
+/// These requirements are:
+/// - must be from 4 to 32 characters in length;
+/// - must contain latin or `-`, `_`, `.` characters;
+/// - must not start or end with `-`, `_`, `.` characters;
+/// - `-`, `_`, `.` characters can't be next to each other;
+/// - `-`, `_`, `.` characters can't be used multiple times in a row.
+pub fn verify_name(name: &str) -> bool {
+    static NAME_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(r"^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
+    });
+
+    NAME_REGEX.is_match(name).expect("regex should be valid")
 }
 
 /// Error type of update user name use case.
@@ -54,24 +69,6 @@ pub enum UpdateNameError<Error> {
     Repository(Error),
 }
 
-/// Checks if user name meets all the requirements.
-///
-/// These requirements are:
-/// - must be from 4 to 32 characters in length;
-/// - must contain latin or `-`, `_`, `.` characters;
-/// - must not start or end with `-`, `_`, `.` characters;
-/// - `-`, `_`, `.` characters can't be next to each other;
-/// - `-`, `_`, `.` characters can't be used multiple times in a row.
-pub fn verify_name(name: &str) -> bool {
-    static USERNAME_REGEX: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
-    });
-
-    USERNAME_REGEX
-        .is_match(name)
-        .expect("regex should be valid")
-}
-
 /// Updates name of the user by its identifier with provided name.
 pub async fn update_name<R>(
     repository: R,
@@ -84,17 +81,34 @@ where
     if verify_name(&name) {
         return Err(UpdateNameError::InvalidName);
     }
-    // TODO check if user with such name does not exist
-    let is_name_unique = true;
+    let is_name_unique = {
+        let filter = UserFilters::builder()
+            .name(NameFilters::builder().eq(name.clone()).build())
+            .build();
+        let users = repository.read(filter).await?;
+        users.into_iter().count() == 0
+    };
     if !is_name_unique {
         return Err(UpdateNameError::AlreadyTaken);
     }
 
     let User { id, data } = {
-        let mut users = repository.read(id).await?;
+        let filter = UserFilters::builder()
+            .id(UserIdFilters::builder().eq(id).build())
+            .build();
+        let users = repository.read(filter).await?;
+        let mut users = users.into_iter();
         users.next().ok_or(UpdateNameError::NoUser)?
     };
     let data = UserData { name, ..data };
     let user = repository.update(id, data).await?;
     Ok(user)
+}
+
+/// Filters users by provided filter object.
+pub async fn filter_users<R>(repository: R, filter: UserFilters) -> Result<R::Users, R::Error>
+where
+    R: Repository,
+{
+    repository.read(filter).await
 }
