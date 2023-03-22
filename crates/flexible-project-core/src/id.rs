@@ -149,18 +149,18 @@ impl ErasedId {
 /// Filters for identifiers of the backend.
 #[derive(Debug, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct IdFilters<Owner> {
+pub struct IdFilters<'a, Owner: 'a> {
     /// Equality identifier filter.
-    pub eq: Option<Equal<Id<Owner>>>,
+    pub eq: Option<Equal<'a, Id<Owner>>>,
     /// Inequality identifier filter.
-    pub ne: Option<NotEqual<Id<Owner>>>,
+    pub ne: Option<NotEqual<'a, Id<Owner>>>,
     /// In identifier filter.
-    pub r#in: Option<In<Id<Owner>>>,
+    pub r#in: Option<In<'a, Id<Owner>>>,
     /// Not in identifier filter.
-    pub nin: Option<NotIn<Id<Owner>>>,
+    pub nin: Option<NotIn<'a, Id<Owner>>>,
 }
 
-impl<Owner> Filter for IdFilters<Owner> {
+impl<Owner> Filter for IdFilters<'_, Owner> {
     type Input = Id<Owner>;
 
     fn satisfies<B>(&self, input: B) -> bool
@@ -173,7 +173,7 @@ impl<Owner> Filter for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Default for IdFilters<Owner> {
+impl<Owner> Default for IdFilters<'_, Owner> {
     fn default() -> Self {
         Self {
             eq: Default::default(),
@@ -184,7 +184,7 @@ impl<Owner> Default for IdFilters<Owner> {
     }
 }
 
-impl<Owner> Clone for IdFilters<Owner> {
+impl<Owner> Clone for IdFilters<'_, Owner> {
     fn clone(&self) -> Self {
         let Self { eq, ne, r#in, nin } = self;
         Self {

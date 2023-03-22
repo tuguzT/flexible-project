@@ -6,4 +6,4 @@ use super::user::User;
 pub type UserId = Id<User>;
 
 /// Filters for user identifiers of the backend.
-pub type UserIdFilters = IdFilters<User>;
+pub type UserIdFilters<'a> = IdFilters<'a, User>;

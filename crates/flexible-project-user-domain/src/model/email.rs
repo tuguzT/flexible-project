@@ -30,20 +30,20 @@ impl Email {
 /// User email filters to be applied on user search process.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct EmailFilters {
+pub struct EmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<Email>>,
+    pub eq: Option<Equal<'a, Email>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<Email>>,
+    pub ne: Option<NotEqual<'a, Email>>,
     /// In user email filter.
-    pub r#in: Option<In<Email>>,
+    pub r#in: Option<In<'a, Email>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<Email>>,
+    pub nin: Option<NotIn<'a, Email>>,
     /// Regex user email filter.
-    pub regex: Option<Regex>,
+    pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for EmailFilters {
+impl Filter for EmailFilters<'_> {
     type Input = Email;
 
     fn satisfies<B>(&self, input: B) -> bool

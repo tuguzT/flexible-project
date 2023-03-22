@@ -63,20 +63,20 @@ pub enum NameError {
 /// User name filters to be applied on user search process.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct NameFilters {
+pub struct NameFilters<'a> {
     /// Equality user name filter.
-    pub eq: Option<Equal<Name>>,
+    pub eq: Option<Equal<'a, Name>>,
     /// Inequality user name filter.
-    pub ne: Option<NotEqual<Name>>,
+    pub ne: Option<NotEqual<'a, Name>>,
     /// In user name filter.
-    pub r#in: Option<In<Name>>,
+    pub r#in: Option<In<'a, Name>>,
     /// Not in user name filter.
-    pub nin: Option<NotIn<Name>>,
+    pub nin: Option<NotIn<'a, Name>>,
     /// Regex user name filter.
-    pub regex: Option<Regex>,
+    pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for NameFilters {
+impl Filter for NameFilters<'_> {
     type Input = Name;
 
     fn satisfies<B>(&self, input: B) -> bool

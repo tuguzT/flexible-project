@@ -30,20 +30,20 @@ impl DisplayName {
 /// User display name filters to be applied on user search process.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct DisplayNameFilters {
+pub struct DisplayNameFilters<'a> {
     /// Equality user display name filter.
-    pub eq: Option<Equal<DisplayName>>,
+    pub eq: Option<Equal<'a, DisplayName>>,
     /// Inequality user display name filter.
-    pub ne: Option<NotEqual<DisplayName>>,
+    pub ne: Option<NotEqual<'a, DisplayName>>,
     /// In user display name filter.
-    pub r#in: Option<In<DisplayName>>,
+    pub r#in: Option<In<'a, DisplayName>>,
     /// Not in user display name filter.
-    pub nin: Option<NotIn<DisplayName>>,
+    pub nin: Option<NotIn<'a, DisplayName>>,
     /// Regex user display name filter.
-    pub regex: Option<Regex>,
+    pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for DisplayNameFilters {
+impl Filter for DisplayNameFilters<'_> {
     type Input = DisplayName;
 
     fn satisfies<B>(&self, input: B) -> bool

@@ -3,6 +3,7 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
+use fp_core::filter::{Borrowed, Owned};
 
 use crate::model::{Name, NameFilters, User, UserData, UserFilters, UserId, UserIdFilters};
 
@@ -21,7 +22,7 @@ pub trait Repository {
     /// Type of iterator of filtered repository data.
     type Users: IntoIterator<Item = User>;
     /// Filters users by provided filter object.
-    async fn read(&self, filter: UserFilters) -> Result<Self::Users, Self::Error>;
+    async fn read(&self, filter: UserFilters<'_>) -> Result<Self::Users, Self::Error>;
 
     /// Updates user by provided identifier with provided data.
     ///
@@ -59,7 +60,7 @@ where
 {
     let is_name_unique = {
         let filter = UserFilters::builder()
-            .name(NameFilters::builder().eq(name.clone()).build())
+            .name(NameFilters::builder().eq(name.borrowed()).build())
             .build();
         let users = repository.read(filter).await?;
         users.into_iter().count() == 0
@@ -70,7 +71,7 @@ where
 
     let User { id, data } = {
         let filter = UserFilters::builder()
-            .id(UserIdFilters::builder().eq(id).build())
+            .id(UserIdFilters::builder().eq(id.owned()).build())
             .build();
         let users = repository.read(filter).await?;
         let mut users = users.into_iter();
@@ -82,7 +83,7 @@ where
 }
 
 /// Filters users by provided filter object.
-pub async fn filter_users<R>(repository: R, filter: UserFilters) -> Result<R::Users, R::Error>
+pub async fn filter_users<R>(repository: R, filter: UserFilters<'_>) -> Result<R::Users, R::Error>
 where
     R: Repository,
 {

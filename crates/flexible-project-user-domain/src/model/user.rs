@@ -53,20 +53,20 @@ pub struct UserData {
 /// Filters to be applied on user search process.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct UserFilters {
+pub struct UserFilters<'a> {
     /// User identifier filters.
-    pub id: Option<UserIdFilters>,
+    pub id: Option<UserIdFilters<'a>>,
     /// User name filters.
-    pub name: Option<NameFilters>,
+    pub name: Option<NameFilters<'a>>,
     /// User display name filters.
-    pub display_name: Option<DisplayNameFilters>,
+    pub display_name: Option<DisplayNameFilters<'a>>,
     /// User role filters.
-    pub role: Option<RoleFilters>,
+    pub role: Option<RoleFilters<'a>>,
     /// User email filters.
-    pub email: Option<EmailFilters>,
+    pub email: Option<EmailFilters<'a>>,
 }
 
-impl Filter for UserFilters {
+impl Filter for UserFilters<'_> {
     type Input = User;
 
     fn satisfies<B>(&self, input: B) -> bool

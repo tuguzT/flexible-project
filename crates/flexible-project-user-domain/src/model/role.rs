@@ -20,18 +20,18 @@ pub enum Role {
 /// User role filters to be applied on user search process.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
-pub struct RoleFilters {
+pub struct RoleFilters<'a> {
     /// Equality user role filter.
-    pub eq: Option<Equal<Role>>,
+    pub eq: Option<Equal<'a, Role>>,
     /// Inequality user role filter.
-    pub ne: Option<NotEqual<Role>>,
+    pub ne: Option<NotEqual<'a, Role>>,
     /// In user role filter.
-    pub r#in: Option<In<Role>>,
+    pub r#in: Option<In<'a, Role>>,
     /// Not in user role filter.
-    pub nin: Option<NotIn<Role>>,
+    pub nin: Option<NotIn<'a, Role>>,
 }
 
-impl Filter for RoleFilters {
+impl Filter for RoleFilters<'_> {
     type Input = Role;
 
     fn satisfies<B>(&self, input: B) -> bool
