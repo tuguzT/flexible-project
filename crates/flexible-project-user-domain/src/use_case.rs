@@ -3,10 +3,8 @@
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
-use fancy_regex::Regex;
-use once_cell::sync::Lazy;
 
-use crate::model::{NameFilters, User, UserData, UserFilters, UserId, UserIdFilters};
+use crate::model::{Name, NameFilters, User, UserData, UserFilters, UserId, UserIdFilters};
 
 /// Defines operations applicable to the user microservice data.
 #[async_trait]
@@ -36,33 +34,14 @@ pub trait Repository {
     async fn delete(&self, id: UserId) -> Result<User, Self::Error>;
 }
 
-/// Checks if user name meets all the requirements.
-///
-/// These requirements are:
-/// - must be from 4 to 32 characters in length;
-/// - must contain latin or `-`, `_`, `.` characters;
-/// - must not start or end with `-`, `_`, `.` characters;
-/// - `-`, `_`, `.` characters can't be next to each other;
-/// - `-`, `_`, `.` characters can't be used multiple times in a row.
-pub fn verify_name(name: &str) -> bool {
-    static NAME_REGEX: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$").unwrap()
-    });
-
-    NAME_REGEX.is_match(name).expect("regex should be valid")
-}
-
 /// Error type of update user name use case.
 #[derive(Debug, Display, From, Error)]
 pub enum UpdateNameError<Error> {
     /// No user was found by provided identifier.
     #[display(fmt = "no user exists by identifier")]
     NoUser,
-    /// Invalid user name was provided.
-    #[display(fmt = "username does not match requirements")]
-    InvalidName,
     /// User with provided name already exists.
-    #[display(fmt = "user name already taken")]
+    #[display(fmt = "user name is already taken")]
     AlreadyTaken,
     /// Repository error.
     #[display(fmt = "repository error: {}", _0)]
@@ -73,14 +52,11 @@ pub enum UpdateNameError<Error> {
 pub async fn update_name<R>(
     repository: R,
     id: UserId,
-    name: String,
+    name: Name,
 ) -> Result<User, UpdateNameError<R::Error>>
 where
     R: Repository,
 {
-    if verify_name(&name) {
-        return Err(UpdateNameError::InvalidName);
-    }
     let is_name_unique = {
         let filter = UserFilters::builder()
             .name(NameFilters::builder().eq(name.clone()).build())
