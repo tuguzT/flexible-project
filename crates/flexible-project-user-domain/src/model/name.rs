@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use derive_more::{Display, Error, From};
 use fancy_regex::Regex as FancyRegex;
 use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
@@ -75,11 +77,12 @@ pub struct NameFilters {
 }
 
 impl Filter for NameFilters {
-    type Input<'a> = &'a Name
-    where
-        Self: 'a;
+    type Input = Name;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self {
             eq,
             ne,
@@ -87,6 +90,7 @@ impl Filter for NameFilters {
             nin,
             regex,
         } = self;
+        let input = input.borrow();
         eq.satisfies(input)
             && ne.satisfies(input)
             && r#in.satisfies(input)

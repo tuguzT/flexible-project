@@ -1,4 +1,7 @@
-use std::hash::{Hash, Hasher};
+use std::{
+    borrow::Borrow,
+    hash::{Hash, Hasher},
+};
 
 use fp_core::filter::Filter;
 use typed_builder::TypedBuilder;
@@ -64,11 +67,12 @@ pub struct UserFilters {
 }
 
 impl Filter for UserFilters {
-    type Input<'a> = &'a User
-    where
-        Self: 'a;
+    type Input = User;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self {
             id,
             name,
@@ -76,6 +80,7 @@ impl Filter for UserFilters {
             role,
             email,
         } = self;
+        let input = input.borrow();
         id.satisfies(&input.id)
             && name.satisfies(&input.data.name)
             && display_name.satisfies(&input.data.display_name)

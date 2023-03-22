@@ -1,29 +1,34 @@
 //! Filter model of the backend.
 
-use std::ops::{Range, RangeInclusive};
+use std::{
+    borrow::Borrow,
+    ops::{Range, RangeInclusive},
+};
 
 use derive_more::From;
 
 /// Defines behavior of filters of the backend.
 pub trait Filter {
     /// Type of input to be checked by filter.
-    type Input<'a>
-    where
-        Self: 'a;
+    type Input: ?Sized;
 
     /// Checks if input satisfies the filter.
-    fn satisfies(&self, input: Self::Input<'_>) -> bool;
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>;
 }
 
+/// Input always satisfies the filter if filter is empty.
 impl<T> Filter for Option<T>
 where
     T: Filter,
 {
-    type Input<'a> = T::Input<'a>
-    where
-        Self: 'a;
+    type Input = T::Input;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         match self {
             Some(filter) => filter.satisfies(input),
             None => true,
@@ -43,11 +48,12 @@ impl<F> Filter for Not<F>
 where
     F: Filter,
 {
-    type Input<'a> = F::Input<'a>
-    where
-        F: 'a;
+    type Input = F::Input;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(filter) = self;
         !filter.satisfies(input)
     }
@@ -65,13 +71,15 @@ impl<T> Filter for Equal<T>
 where
     T: PartialEq,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
-        value == input
+        let input = input.borrow();
+        input == value
     }
 }
 
@@ -87,13 +95,15 @@ impl<T> Filter for NotEqual<T>
 where
     T: PartialEq,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
-        value != input
+        let input = input.borrow();
+        input != value
     }
 }
 
@@ -109,12 +119,14 @@ impl<T> Filter for LessThan<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
+        let input = input.borrow();
         input < value
     }
 }
@@ -131,12 +143,14 @@ impl<T> Filter for LessEqual<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
+        let input = input.borrow();
         input <= value
     }
 }
@@ -153,12 +167,14 @@ impl<T> Filter for GreaterThan<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
+        let input = input.borrow();
         input > value
     }
 }
@@ -175,12 +191,14 @@ impl<T> Filter for GreaterEqual<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-        where
-            Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(value) = self;
+        let input = input.borrow();
         input >= value
     }
 }
@@ -204,12 +222,14 @@ impl<T> Filter for Between<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { min, max } = self;
+        let input = input.borrow();
         min < input && input < max
     }
 }
@@ -246,12 +266,14 @@ impl<T> Filter for NotBetween<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { min, max } = self;
+        let input = input.borrow();
         input < min || max < input
     }
 }
@@ -288,12 +310,14 @@ impl<T> Filter for BetweenEqual<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { min, max } = self;
+        let input = input.borrow();
         min <= input && input <= max
     }
 }
@@ -330,12 +354,14 @@ impl<T> Filter for NotBetweenEqual<T>
 where
     T: PartialOrd,
 {
-    type Input<'a> = &'a T
-    where
-        Self: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { min, max } = self;
+        let input = input.borrow();
         input <= min || max <= input
     }
 }
@@ -365,12 +391,14 @@ impl<T> Filter for In<T>
 where
     T: PartialEq,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(vec) = self;
+        let input = input.borrow();
         vec.contains(input)
     }
 }
@@ -387,12 +415,14 @@ impl<T> Filter for NotIn<T>
 where
     T: PartialEq,
 {
-    type Input<'a> = &'a T
-    where
-        T: 'a;
+    type Input = T;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(vec) = self;
+        let input = input.borrow();
         !vec.contains(input)
     }
 }
@@ -404,12 +434,14 @@ where
 pub struct Regex(pub String);
 
 impl Filter for Regex {
-    type Input<'a> = &'a str
-    where
-        Self: 'a;
+    type Input = str;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self(regex) = self;
+        let input = input.borrow();
         let Ok(regex) = fancy_regex::Regex::new(regex) else {
             return false;
         };

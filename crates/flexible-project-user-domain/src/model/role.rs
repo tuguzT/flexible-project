@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use derive_more::Display;
 use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
@@ -30,12 +32,14 @@ pub struct RoleFilters {
 }
 
 impl Filter for RoleFilters {
-    type Input<'a> = &'a Role
-    where
-        Self: 'a;
+    type Input = Role;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { eq, ne, r#in, nin } = self;
+        let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)
     }
 }

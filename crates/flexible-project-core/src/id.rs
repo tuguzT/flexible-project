@@ -1,6 +1,7 @@
 //! Data model of identifier of the backend.
 
 use std::{
+    borrow::Borrow,
     fmt::{Debug, Display},
     hash::Hash,
     marker::PhantomData,
@@ -160,12 +161,14 @@ pub struct IdFilters<Owner> {
 }
 
 impl<Owner> Filter for IdFilters<Owner> {
-    type Input<'a> = &'a Id<Owner>
-    where
-        Self: 'a;
+    type Input = Id<Owner>;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self { eq, ne, r#in, nin } = self;
+        let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)
     }
 }

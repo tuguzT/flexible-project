@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use derive_more::Display;
 use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
@@ -42,11 +44,12 @@ pub struct EmailFilters {
 }
 
 impl Filter for EmailFilters {
-    type Input<'a> = &'a Email
-    where
-        Self: 'a;
+    type Input = Email;
 
-    fn satisfies(&self, input: Self::Input<'_>) -> bool {
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
         let Self {
             eq,
             ne,
@@ -54,6 +57,7 @@ impl Filter for EmailFilters {
             nin,
             regex,
         } = self;
+        let input = input.borrow();
         eq.satisfies(input)
             && ne.satisfies(input)
             && r#in.satisfies(input)
