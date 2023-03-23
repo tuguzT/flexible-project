@@ -6,8 +6,9 @@ pub use self::{
     read::filter_users,
     repository::Repository,
     update::{
-        update_display_name, update_email, update_name, update_role, UpdateDisplayNameError,
-        UpdateEmailError, UpdateNameError, UpdateRoleError,
+        update_display_name, update_email, update_name, update_role, update_user,
+        UpdateDisplayNameError, UpdateEmailError, UpdateNameError, UpdateRoleError,
+        UpdateUserError,
     },
 };
 

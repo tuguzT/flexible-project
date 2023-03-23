@@ -4,6 +4,60 @@ use crate::model::{DisplayName, Email, Name, Role, User, UserData, UserId};
 
 use super::repository::{find_one_by_email, find_one_by_id, find_one_by_name, Repository};
 
+/// Error type of update user use case.
+#[derive(Debug, Display, From, Error)]
+pub enum UpdateUserError<Error> {
+    /// No user was found by provided identifier.
+    #[display(fmt = "no user exists by identifier")]
+    NoUser,
+    /// User with provided name already exists.
+    #[display(fmt = "user name is already taken")]
+    NameAlreadyTaken,
+    /// User with provided email already exists.
+    #[display(fmt = "user email is already taken")]
+    EmailAlreadyTaken,
+    /// Repository error.
+    #[display(fmt = "repository error: {}", _0)]
+    Repository(Error),
+}
+
+/// Updates user by its identifier with provided data.
+pub async fn update_user<R>(
+    repository: R,
+    id: UserId,
+    data: UserData,
+) -> Result<User, UpdateUserError<R::Error>>
+where
+    R: Repository,
+{
+    let UserData { ref name, .. } = data;
+    let is_name_unique = {
+        let user_by_name = find_one_by_name(&repository, name).await?;
+        user_by_name.is_none()
+    };
+    if !is_name_unique {
+        return Err(UpdateUserError::NameAlreadyTaken);
+    }
+
+    let UserData { ref email, .. } = data;
+    if let Some(email) = email {
+        let is_email_unique = {
+            let user_by_email = find_one_by_email(&repository, email).await?;
+            user_by_email.is_none()
+        };
+        if !is_email_unique {
+            return Err(UpdateUserError::EmailAlreadyTaken);
+        }
+    }
+
+    let User { id, .. } = {
+        let user_by_id = find_one_by_id(&repository, id).await?;
+        user_by_id.ok_or(UpdateUserError::NoUser)?
+    };
+    let user = repository.update(id, data).await?;
+    Ok(user)
+}
+
 /// Error type of update user name use case.
 #[derive(Debug, Display, From, Error)]
 pub enum UpdateNameError<Error> {
