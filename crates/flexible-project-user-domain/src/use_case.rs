@@ -1,11 +1,12 @@
 //! Use cases of the user microservice domain layer.
 
-use std::borrow::Borrow;
+use std::{borrow::Borrow, pin::pin};
 
 use async_trait::async_trait;
 use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
 use fp_core::filter::Borrowed;
+use futures::{Stream, StreamExt};
 
 use crate::model::{
     DisplayName, Email, Name, NameFilters, Role, User, UserData, UserFilters, UserId, UserIdFilters,
@@ -23,9 +24,8 @@ pub trait Repository {
     /// Returns new user or an error if user with such identifier already exists.
     async fn create(&self, id: UserId, data: UserData) -> Result<User, Self::Error>;
 
-    /// Type of iterator of filtered repository data.
-    // TODO turn into stream
-    type Users: IntoIterator<Item = User>;
+    /// Type of stream which produces filtered repository data.
+    type Users: Stream<Item = User>;
     /// Filters users by provided filter object.
     async fn read(&self, filter: UserFilters<'_>) -> Result<Self::Users, Self::Error>;
 
@@ -58,10 +58,10 @@ where
         .id(UserIdFilters::builder().eq(id.borrowed()).build())
         .build();
     let users = repository.read(filter).await?;
-    let mut users = users.into_iter();
-    let user = users.next();
+    let mut users = pin!(users);
+    let user = users.next().await;
     debug_assert!(
-        users.count() == 0,
+        users.count().await == 0,
         "exactly one user should present with id {id}",
     );
     Ok(user)
@@ -77,10 +77,10 @@ where
         .name(NameFilters::builder().eq(name.borrowed()).build())
         .build();
     let users = repository.read(filter).await?;
-    let mut users = users.into_iter();
-    let user = users.next();
+    let mut users = pin!(users);
+    let user = users.next().await;
     debug_assert!(
-        users.count() == 0,
+        users.count().await == 0,
         "exactly one user should present with name {name}",
     );
     Ok(user)
