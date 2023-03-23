@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use auto_impl::auto_impl;
 use derive_more::{Display, Error, From};
 use fp_core::filter::Borrowed;
-use futures::{Stream, StreamExt};
+use futures::{Stream, StreamExt, TryStreamExt};
 
 use crate::model::{
     DisplayName, Email, Name, NameFilters, Role, User, UserData, UserFilters, UserId, UserIdFilters,
@@ -19,13 +19,13 @@ pub trait Repository {
     /// The type returned when a repository fails to apply an operation.
     type Error;
 
-    /// Create new user from provided identifier and user data.
+    /// Creates new user from provided identifier and user data.
     ///
     /// Returns new user or an error if user with such identifier already exists.
     async fn create(&self, id: UserId, data: UserData) -> Result<User, Self::Error>;
 
     /// Type of stream which produces filtered repository data.
-    type Users: Stream<Item = User>;
+    type Users: Stream<Item = Result<User, Self::Error>>;
     /// Filters users by provided filter object.
     async fn read(&self, filter: UserFilters<'_>) -> Result<Self::Users, Self::Error>;
 
@@ -38,6 +38,50 @@ pub trait Repository {
     ///
     /// Returns deleted user or an error if user with such identifier does not exist.
     async fn delete(&self, id: UserId) -> Result<User, Self::Error>;
+}
+
+/// Error type of create user use case.
+#[derive(Debug, Display, From, Error)]
+pub enum CreateUserError<Error> {
+    /// User with provided identifier already exists.
+    #[display(fmt = "identifier is already taken")]
+    IdAlreadyTaken,
+    /// User with provided name already exists.
+    #[display(fmt = "user name is already taken")]
+    NameAlreadyTaken,
+    /// Repository error.
+    #[display(fmt = "repository error: {}", _0)]
+    Repository(Error),
+}
+
+/// Creates new user from provided identifier and user data.
+pub async fn create_user<R>(
+    repository: R,
+    id: UserId,
+    data: UserData,
+) -> Result<User, CreateUserError<R::Error>>
+where
+    R: Repository,
+{
+    let id_exists = {
+        let user_by_id = find_one_by_id(&repository, &id).await?;
+        user_by_id.is_some()
+    };
+    if id_exists {
+        return Err(CreateUserError::IdAlreadyTaken);
+    }
+
+    let UserData { ref name, .. } = data;
+    let is_name_unique = {
+        let user_by_name = find_one_by_name(&repository, name).await?;
+        user_by_name.is_none()
+    };
+    if !is_name_unique {
+        return Err(CreateUserError::NameAlreadyTaken);
+    }
+
+    let user = repository.create(id, data).await?;
+    Ok(user)
 }
 
 /// Filters users by provided filter object.
@@ -59,7 +103,7 @@ where
         .build();
     let users = repository.read(filter).await?;
     let mut users = pin!(users);
-    let user = users.next().await;
+    let user = users.try_next().await?;
     debug_assert!(
         users.count().await == 0,
         "exactly one user should present with id {id}",
@@ -78,7 +122,7 @@ where
         .build();
     let users = repository.read(filter).await?;
     let mut users = pin!(users);
-    let user = users.next().await;
+    let user = users.try_next().await?;
     debug_assert!(
         users.count().await == 0,
         "exactly one user should present with name {name}",
@@ -216,5 +260,34 @@ where
     };
     let data = UserData { email, ..data };
     let user = repository.update(id, data).await?;
+    Ok(user)
+}
+
+/// Error type of delete user use case.
+#[derive(Debug, Display, From, Error)]
+pub enum DeleteUserError<Error> {
+    /// No user was found by provided identifier.
+    #[display(fmt = "no user exists by identifier")]
+    #[from(ignore)]
+    NoUser,
+    /// Repository error.
+    #[display(fmt = "repository error: {}", _0)]
+    Repository(Error),
+}
+
+/// Deletes user by provided identifier.
+pub async fn delete_user<R>(repository: R, id: UserId) -> Result<User, DeleteUserError<R::Error>>
+where
+    R: Repository,
+{
+    let id_exists = {
+        let user_by_id = find_one_by_id(&repository, &id).await?;
+        user_by_id.is_some()
+    };
+    if !id_exists {
+        return Err(DeleteUserError::NoUser);
+    }
+
+    let user = repository.delete(id).await?;
     Ok(user)
 }
