@@ -2,7 +2,7 @@ use derive_more::{Display, Error, From};
 
 use crate::model::{DisplayName, Email, Name, Role, User, UserData, UserId};
 
-use super::repository::{find_one_by_id, find_one_by_name, Repository};
+use super::repository::{find_one_by_email, find_one_by_id, find_one_by_name, Repository};
 
 /// Error type of update user name use case.
 #[derive(Debug, Display, From, Error)]
@@ -112,8 +112,10 @@ where
 pub enum UpdateEmailError<Error> {
     /// No user was found by provided identifier.
     #[display(fmt = "no user exists by identifier")]
-    #[from(ignore)]
     NoUser,
+    /// User with provided email already exists.
+    #[display(fmt = "user email is already taken")]
+    AlreadyTaken,
     /// Repository error.
     #[display(fmt = "repository error: {}", _0)]
     Repository(Error),
@@ -128,6 +130,16 @@ pub async fn update_email<R>(
 where
     R: Repository,
 {
+    if let Some(ref email) = email {
+        let is_email_unique = {
+            let user_by_email = find_one_by_email(&repository, email).await?;
+            user_by_email.is_none()
+        };
+        if !is_email_unique {
+            return Err(UpdateEmailError::AlreadyTaken);
+        }
+    }
+
     let User { id, data } = {
         let user_by_id = find_one_by_id(&repository, id).await?;
         user_by_id.ok_or(UpdateEmailError::NoUser)?

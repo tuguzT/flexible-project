@@ -5,7 +5,9 @@ use auto_impl::auto_impl;
 use fp_core::filter::Borrowed;
 use futures::{Stream, StreamExt, TryStreamExt};
 
-use crate::model::{Name, NameFilters, User, UserData, UserFilters, UserId, UserIdFilters};
+use crate::model::{
+    Email, EmailFilters, Name, NameFilters, User, UserData, UserFilters, UserId, UserIdFilters,
+};
 
 /// Defines operations applicable to the user microservice data.
 #[async_trait]
@@ -69,6 +71,25 @@ where
     debug_assert!(
         users.count().await == 0,
         "exactly one user should present with name {name}",
+    );
+    Ok(user)
+}
+
+pub async fn find_one_by_email<R, E>(repository: R, email: E) -> Result<Option<User>, R::Error>
+where
+    R: Repository,
+    E: Borrow<Email>,
+{
+    let email = email.borrow();
+    let filter = UserFilters::builder()
+        .email(EmailFilters::builder().eq(email.borrowed()).build())
+        .build();
+    let users = repository.read(filter).await?;
+    let mut users = pin!(users);
+    let user = users.try_next().await?;
+    debug_assert!(
+        users.count().await == 0,
+        "exactly one user should present with email {email}",
     );
     Ok(user)
 }

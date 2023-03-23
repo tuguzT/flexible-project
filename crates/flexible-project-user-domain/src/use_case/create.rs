@@ -2,17 +2,20 @@ use derive_more::{Display, Error, From};
 
 use crate::model::{User, UserData, UserId};
 
-use super::repository::{find_one_by_id, find_one_by_name, Repository};
+use super::repository::{find_one_by_email, find_one_by_id, find_one_by_name, Repository};
 
 /// Error type of create user use case.
 #[derive(Debug, Display, From, Error)]
 pub enum CreateUserError<Error> {
     /// User with provided identifier already exists.
-    #[display(fmt = "identifier is already taken")]
+    #[display(fmt = "user identifier is already taken")]
     IdAlreadyTaken,
     /// User with provided name already exists.
     #[display(fmt = "user name is already taken")]
     NameAlreadyTaken,
+    /// User with provided email already exists.
+    #[display(fmt = "user email is already taken")]
+    EmailAlreadyTaken,
     /// Repository error.
     #[display(fmt = "repository error: {}", _0)]
     Repository(Error),
@@ -42,6 +45,17 @@ where
     };
     if !is_name_unique {
         return Err(CreateUserError::NameAlreadyTaken);
+    }
+
+    let UserData { ref email, .. } = data;
+    if let Some(email) = email {
+        let is_email_unique = {
+            let user_by_email = find_one_by_email(&repository, email).await?;
+            user_by_email.is_none()
+        };
+        if !is_email_unique {
+            return Err(CreateUserError::EmailAlreadyTaken);
+        }
     }
 
     let user = repository.create(id, data).await?;
