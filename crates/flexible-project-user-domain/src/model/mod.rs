@@ -1,11 +1,13 @@
 //! Model of the user microservice domain layer.
 
-pub use self::display_name::*;
-pub use self::email::*;
-pub use self::id::*;
-pub use self::name::*;
-pub use self::role::*;
-pub use self::user::*;
+pub use self::{
+    display_name::{DisplayName, DisplayNameFilters},
+    email::{Email, EmailFilters},
+    id::{UserId, UserIdFilters},
+    name::{Name, NameError, NameFilters},
+    role::{Role, RoleFilters},
+    user::{User, UserData, UserFilters},
+};
 
 mod display_name;
 mod email;
