@@ -10,7 +10,8 @@ pub struct Email(String);
 
 impl Email {
     /// Creates new user email from input string.
-    pub fn new(email: String) -> Self {
+    pub fn new(email: impl Into<String>) -> Self {
+        let email = email.into();
         Self(email)
     }
 

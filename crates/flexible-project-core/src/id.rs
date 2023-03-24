@@ -7,7 +7,7 @@ use std::{
     marker::PhantomData,
 };
 
-use derive_more::{Display, From};
+use derive_more::Display;
 use typed_builder::TypedBuilder;
 
 use crate::filter::{Equal, Filter, In, NotEqual, NotIn};
@@ -20,9 +20,9 @@ pub struct Id<Owner> {
 
 impl<Owner> Id<Owner> {
     /// Creates new identifier from the string.
-    pub fn new(id: String) -> Self {
+    pub fn new(id: impl Into<String>) -> Self {
         Self {
-            inner: id,
+            inner: id.into(),
             _owner: PhantomData,
         }
     }
@@ -102,12 +102,6 @@ impl<Owner> Debug for Id<Owner> {
     }
 }
 
-impl<Owner> From<String> for Id<Owner> {
-    fn from(id: String) -> Self {
-        Id::new(id)
-    }
-}
-
 impl<Owner> Display for Id<Owner> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self { inner, .. } = self;
@@ -116,15 +110,15 @@ impl<Owner> Display for Id<Owner> {
 }
 
 /// Type of identifier with erased (unknown) owner.
-#[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, From)]
+#[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ErasedId {
     inner: String,
 }
 
 impl ErasedId {
     /// Creates new erased identifier from the string.
-    pub fn new(id: String) -> Self {
-        Self { inner: id }
+    pub fn new(id: impl Into<String>) -> Self {
+        Self { inner: id.into() }
     }
 
     /// Extracts a string slice from the entire identifier.

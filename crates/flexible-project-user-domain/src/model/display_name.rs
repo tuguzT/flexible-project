@@ -1,17 +1,40 @@
 use std::borrow::Borrow;
 
-use derive_more::Display;
+use derive_more::{Display, Error};
+use fancy_regex::Regex as FancyRegex;
 use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
-/// Display name of the user in the system.
+/// Display name of the user in the system with strong requirements about its content.
+///
+/// These requirements are:
+/// - must not be empty;
+/// - must not be larger than 128 characters in length;
+/// - must contain at least one letter.
 #[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct DisplayName(String);
 
 impl DisplayName {
     /// Creates new user display name from input string.
-    pub fn new(display_name: String) -> Self {
-        Self(display_name)
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error
+    /// if input string does not match user display name requirements.
+    pub fn new(display_name: impl Into<String>) -> Result<Self, DisplayNameError> {
+        static REGEX: Lazy<FancyRegex> = Lazy::new(|| {
+            FancyRegex::new(r"^(?=.*?\p{L}).{1,128}$").expect("regex pattern should be parsed")
+        });
+
+        let display_name = display_name.into();
+        let is_valid = REGEX
+            .is_match(&display_name)
+            .expect("input name matching should be successful");
+        if !is_valid {
+            return Err(DisplayNameError::Invalid);
+        }
+        Ok(Self(display_name))
     }
 
     /// Extracts string slice from a user display name.
@@ -25,6 +48,14 @@ impl DisplayName {
         let Self(display_name) = self;
         display_name
     }
+}
+
+/// Type of error which is returned when input does not meet user display name requirements.
+#[derive(Debug, Display, Clone, Copy, Error)]
+pub enum DisplayNameError {
+    /// User display name does not meet requirements.
+    #[display(fmt = "user display name does not meet requirements")]
+    Invalid,
 }
 
 /// User display name filters to be applied on user search process.
@@ -63,5 +94,30 @@ impl Filter for DisplayNameFilters<'_> {
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && regex.satisfies(input.as_str())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{DisplayName, DisplayNameError};
+
+    #[test]
+    fn valid_ones() {
+        let DisplayName(_) = DisplayName::new("Тимур Тугушев").unwrap();
+        let DisplayName(_) = DisplayName::new("Timur_Tugushev").unwrap();
+        let DisplayName(_) = DisplayName::new("__ёжик__").unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn empty() {
+        let DisplayName(_) = DisplayName::new("").unwrap();
+    }
+
+    #[test]
+    fn no_letters() {
+        let _: DisplayNameError = DisplayName::new("__1__").unwrap_err();
+        let _: DisplayNameError = DisplayName::new("0123456789").unwrap_err();
+        let _: DisplayNameError = DisplayName::new("&%!@@(*&@$@*").unwrap_err();
     }
 }

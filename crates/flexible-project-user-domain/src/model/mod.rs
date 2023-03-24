@@ -1,7 +1,7 @@
 //! Model of the user microservice domain layer.
 
 pub use self::{
-    display_name::{DisplayName, DisplayNameFilters},
+    display_name::{DisplayName, DisplayNameError, DisplayNameFilters},
     email::{Email, EmailFilters},
     id::{UserId, UserIdFilters},
     name::{Name, NameError, NameFilters},
