@@ -12,12 +12,15 @@ use futures::{stream::Map, Stream, StreamExt};
 use mongodb::{
     bson::{doc, ser, to_bson},
     error::Error,
-    options::{FindOneAndUpdateOptions, ReturnDocument},
+    options::{FindOneAndUpdateOptions, IndexOptions, ReturnDocument},
     results::InsertOneResult,
-    Collection, Cursor,
+    Collection, Cursor, IndexModel,
 };
 
-use crate::model::{LocalUser, LocalUserData, LocalUserDataError, LocalUserId, LocalUserIdError};
+use crate::{
+    client::Client,
+    model::{LocalUser, LocalUserData, LocalUserDataError, LocalUserId, LocalUserIdError},
+};
 
 /// Local repository of user data.
 pub struct LocalRepository {
@@ -25,7 +28,32 @@ pub struct LocalRepository {
 }
 
 impl LocalRepository {
-    // TODO constructor with MongoDB indexes setup
+    /// Creates new local user repository instance.
+    pub async fn new(client: Client) -> Result<Self, LocalError> {
+        let database = client.inner.database("flexible-project");
+        let collection = database.collection("user");
+
+        let indexes = [
+            IndexModel::builder()
+                .keys(doc! { "name": 1 })
+                .options(IndexOptions::builder().unique(true).build())
+                .build(),
+            IndexModel::builder()
+                .keys(doc! { "email": 1 })
+                .options(
+                    IndexOptions::builder()
+                        .unique(true)
+                        .partial_filter_expression(
+                            doc! { "email": { "$exists": true, "$type": "string" } },
+                        )
+                        .build(),
+                )
+                .build(),
+        ];
+        collection.create_indexes(indexes, None).await?;
+
+        Ok(Self { collection })
+    }
 }
 
 #[async_trait]

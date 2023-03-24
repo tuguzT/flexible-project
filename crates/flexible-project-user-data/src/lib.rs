@@ -4,6 +4,7 @@
 #![warn(clippy::all)]
 #![forbid(unsafe_code)]
 
+pub mod client;
 pub mod repository;
 
 mod model;
