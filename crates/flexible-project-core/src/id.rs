@@ -15,7 +15,7 @@ use crate::filter::{Equal, Filter, In, NotEqual, NotIn};
 /// Type of identifier which are used to identify objects of the owner type.
 pub struct Id<Owner> {
     inner: String,
-    _owner: PhantomData<fn() -> Owner>,
+    owner: PhantomData<fn() -> Owner>,
 }
 
 impl<Owner> Id<Owner> {
@@ -23,7 +23,7 @@ impl<Owner> Id<Owner> {
     pub fn new(id: impl Into<String>) -> Self {
         Self {
             inner: id.into(),
-            _owner: PhantomData,
+            owner: PhantomData,
         }
     }
 
@@ -80,11 +80,9 @@ impl<Owner> Ord for Id<Owner> {
 
 impl<Owner> Clone for Id<Owner> {
     fn clone(&self) -> Self {
-        let Self { inner, _owner } = self;
-        Self {
-            inner: inner.clone(),
-            _owner: *_owner,
-        }
+        let Self { ref inner, owner } = *self;
+        let inner = inner.clone();
+        Self { inner, owner }
     }
 }
 
@@ -111,32 +109,31 @@ impl<Owner> Display for Id<Owner> {
 
 /// Type of identifier with erased (unknown) owner.
 #[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ErasedId {
-    inner: String,
-}
+pub struct ErasedId(String);
 
 impl ErasedId {
     /// Creates new erased identifier from the string.
     pub fn new(id: impl Into<String>) -> Self {
-        Self { inner: id.into() }
+        let id = id.into();
+        Self(id)
     }
 
     /// Extracts a string slice from the entire identifier.
     pub fn as_str(&self) -> &str {
-        let Self { inner } = self;
-        inner.as_str()
+        let Self(id) = self;
+        id.as_str()
     }
 
     /// Converts an identifier into a [`String`].
     pub fn into_inner(self) -> String {
-        let Self { inner } = self;
-        inner
+        let Self(id) = self;
+        id
     }
 
     /// Sets the owner type for an identifier, turning it into [`Id`].
     pub fn with_owner<Owner>(self) -> Id<Owner> {
-        let Self { inner } = self;
-        Id::new(inner)
+        let Self(id) = self;
+        Id::new(id)
     }
 }
 
