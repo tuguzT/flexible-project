@@ -22,6 +22,10 @@ use crate::{
     model::{LocalUser, LocalUserData, LocalUserDataError, LocalUserId, LocalUserIdError},
 };
 
+use self::filter::IntoDocument;
+
+mod filter;
+
 /// Local repository of user data.
 pub struct LocalRepository {
     collection: Collection<LocalUser>,
@@ -30,7 +34,7 @@ pub struct LocalRepository {
 impl LocalRepository {
     /// Creates new local user repository instance.
     pub async fn new(client: Client) -> Result<Self, LocalError> {
-        let database = client.inner.database("flexible-project");
+        let database = client.inner.database("flexible-project-user");
         let collection = database.collection("user");
 
         let name_index = {
@@ -77,9 +81,9 @@ impl Repository for LocalRepository {
     }
 
     type Users = LocalUsers;
-    async fn read(&self, _filter: UserFilters<'_>) -> Result<Self::Users, Self::Error> {
+    async fn read(&self, filter: UserFilters<'_>) -> Result<Self::Users, Self::Error> {
         let Self { collection } = self;
-        let filter = doc! {}; // TODO document from UserFilters object
+        let filter = filter.into_document()?;
         let users = LocalUsers {
             cursor: collection.find(filter, None).await?,
         };
