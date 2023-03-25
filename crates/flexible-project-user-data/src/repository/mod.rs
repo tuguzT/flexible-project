@@ -8,7 +8,7 @@ use domain::{
     model::{User, UserData, UserFilters, UserId},
     use_case::Repository,
 };
-use futures::{stream::Map, Stream, StreamExt};
+use futures::Stream;
 use mongodb::{
     bson::{doc, ser, to_bson},
     error::Error,
@@ -33,24 +33,26 @@ impl LocalRepository {
         let database = client.inner.database("flexible-project");
         let collection = database.collection("user");
 
-        let indexes = [
+        let name_index = {
+            let options = IndexOptions::builder().unique(true).build();
             IndexModel::builder()
                 .keys(doc! { "name": 1 })
-                .options(IndexOptions::builder().unique(true).build())
-                .build(),
+                .options(options)
+                .build()
+        };
+        let email_index = {
+            let options = IndexOptions::builder()
+                .unique(true)
+                .partial_filter_expression(doc! { "email": { "$exists": true, "$type": "string" } })
+                .build();
             IndexModel::builder()
                 .keys(doc! { "email": 1 })
-                .options(
-                    IndexOptions::builder()
-                        .unique(true)
-                        .partial_filter_expression(
-                            doc! { "email": { "$exists": true, "$type": "string" } },
-                        )
-                        .build(),
-                )
-                .build(),
-        ];
-        collection.create_indexes(indexes, None).await?;
+                .options(options)
+                .build()
+        };
+        collection
+            .create_indexes([name_index, email_index], None)
+            .await?;
 
         Ok(Self { collection })
     }
@@ -76,17 +78,10 @@ impl Repository for LocalRepository {
 
     type Users = LocalUsers;
     async fn read(&self, _filter: UserFilters<'_>) -> Result<Self::Users, Self::Error> {
-        fn to_user(result: Result<LocalUser, Error>) -> Result<User, LocalError> {
-            match result {
-                Ok(user) => User::try_from(user).map_err(LocalError::from),
-                Err(e) => Err(LocalError::from(e)),
-            }
-        }
-
         let Self { collection } = self;
         let filter = doc! {}; // TODO document from UserFilters object
         let users = LocalUsers {
-            stream: collection.find(filter, None).await?.map(to_user),
+            cursor: collection.find(filter, None).await?,
         };
         Ok(users)
     }
@@ -99,7 +94,7 @@ impl Repository for LocalRepository {
             display_name,
             role,
             email,
-        } = LocalUserData::from(data);
+        } = data.into();
 
         let filter = doc! { "_id": to_bson(&id)? };
         let update = doc! {
@@ -147,11 +142,10 @@ enum LocalErrorKind {
 }
 
 /// Stream of filtered user data from local repository.
+#[derive(Debug)]
 pub struct LocalUsers {
-    stream: Map<Cursor<LocalUser>, FnToUser>,
+    cursor: Cursor<LocalUser>,
 }
-
-type FnToUser = fn(Result<LocalUser, Error>) -> Result<User, LocalError>;
 
 impl Stream for LocalUsers {
     type Item = Result<User, LocalError>;
@@ -160,7 +154,14 @@ impl Stream for LocalUsers {
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        let stream = pin!(&mut self.stream);
-        stream.poll_next(cx)
+        fn to_user(result: Result<LocalUser, Error>) -> Result<User, LocalError> {
+            match result {
+                Ok(user) => user.try_into().map_err(Into::into),
+                Err(error) => Err(error.into()),
+            }
+        }
+
+        let cursor = pin!(&mut self.cursor);
+        cursor.poll_next(cx).map(|user| user.map(to_user))
     }
 }
