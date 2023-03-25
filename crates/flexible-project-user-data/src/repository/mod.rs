@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use derive_more::{Display, Error, From};
 use domain::{
     model::{User, UserData, UserFilters, UserId},
-    use_case::Repository,
+    repository::UserDatabase,
 };
 use futures::Stream;
 use mongodb::{
@@ -26,12 +26,12 @@ use self::filter::IntoDocument;
 
 mod filter;
 
-/// Local repository of user data.
-pub struct LocalRepository {
+/// Local database of user data.
+pub struct LocalUserDatabase {
     collection: Collection<LocalUser>,
 }
 
-impl LocalRepository {
+impl LocalUserDatabase {
     /// Creates new local user repository instance.
     pub async fn new(client: Client) -> Result<Self, LocalError> {
         let database = client.inner.database("flexible-project-user");
@@ -62,8 +62,8 @@ impl LocalRepository {
     }
 }
 
-#[async_trait]
-impl Repository for LocalRepository {
+#[async_trait(?Send)]
+impl UserDatabase for LocalUserDatabase {
     type Error = LocalError;
 
     async fn create(&self, id: UserId, data: UserData) -> Result<User, Self::Error> {
