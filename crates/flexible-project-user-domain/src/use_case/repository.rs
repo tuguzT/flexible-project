@@ -78,7 +78,7 @@ where
 pub async fn find_one_by_email<R, E>(repository: R, email: E) -> Result<Option<User>, R::Error>
 where
     R: Repository,
-    E: Borrow<Email>,
+    E: Borrow<Option<Email>>,
 {
     let email = email.borrow();
     let filter = UserFilters::builder()
@@ -87,9 +87,11 @@ where
     let users = repository.read(filter).await?;
     let mut users = pin!(users);
     let user = users.try_next().await?;
-    debug_assert!(
-        users.count().await == 0,
-        "exactly one user should present with email {email}",
-    );
+    if let Some(email) = email {
+        debug_assert!(
+            users.count().await == 0,
+            "exactly one user should present with email {email}",
+        );
+    }
     Ok(user)
 }

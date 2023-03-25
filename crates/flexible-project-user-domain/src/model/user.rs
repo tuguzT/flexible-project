@@ -85,11 +85,6 @@ impl Filter for UserFilters<'_> {
             && name.satisfies(&input.data.name)
             && display_name.satisfies(&input.data.display_name)
             && role.satisfies(&input.data.role)
-            && input
-                .data
-                .email
-                .as_ref()
-                .map(|input| email.satisfies(input))
-                .unwrap_or(true)
+            && email.satisfies(&input.data.email)
     }
 }

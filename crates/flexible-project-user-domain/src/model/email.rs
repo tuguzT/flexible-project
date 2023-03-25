@@ -33,19 +33,19 @@ impl Email {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct EmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<'a, Email>>,
+    pub eq: Option<Equal<'a, Option<Email>>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<'a, Email>>,
+    pub ne: Option<NotEqual<'a, Option<Email>>>,
     /// In user email filter.
-    pub r#in: Option<In<'a, Email>>,
+    pub r#in: Option<In<'a, Option<Email>>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<'a, Email>>,
+    pub nin: Option<NotIn<'a, Option<Email>>>,
     /// Regex user email filter.
     pub regex: Option<Regex<'a>>,
 }
 
 impl Filter for EmailFilters<'_> {
-    type Input = Email;
+    type Input = Option<Email>;
 
     fn satisfies<B>(&self, input: B) -> bool
     where
@@ -63,6 +63,9 @@ impl Filter for EmailFilters<'_> {
             && ne.satisfies(input)
             && r#in.satisfies(input)
             && nin.satisfies(input)
-            && regex.satisfies(input.as_str())
+            && input
+                .as_ref()
+                .map(|input| regex.satisfies(input.as_str()))
+                .unwrap_or(true)
     }
 }

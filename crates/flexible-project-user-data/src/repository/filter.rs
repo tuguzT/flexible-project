@@ -207,22 +207,28 @@ impl IntoDocument for EmailFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let name: &Email = eq.0.borrow();
-            document.insert("$eq", name.as_str());
+            let email: &Option<Email> = eq.0.borrow();
+            document.insert("$eq", email.as_ref().map(Email::as_str));
         }
         if let Some(ne) = ne {
-            let name: &Email = ne.0.borrow();
-            document.insert("$ne", name.as_str());
+            let email: &Option<Email> = ne.0.borrow();
+            document.insert("$ne", email.as_ref().map(Email::as_str));
         }
         if let Some(r#in) = r#in {
-            let ids: &[_] = r#in.0.borrow();
-            let ids: Vec<_> = ids.iter().map(Email::as_str).collect();
-            document.insert("$in", ids);
+            let emails: &[_] = r#in.0.borrow();
+            let emails: Vec<_> = emails
+                .iter()
+                .map(|email| email.as_ref().map(Email::as_str))
+                .collect();
+            document.insert("$in", emails);
         }
         if let Some(nin) = nin {
-            let ids: &[_] = nin.0.borrow();
-            let ids: Vec<_> = ids.iter().map(Email::as_str).collect();
-            document.insert("$nin", ids);
+            let emails: &[_] = nin.0.borrow();
+            let emails: Vec<_> = emails
+                .iter()
+                .map(|email| email.as_ref().map(Email::as_str))
+                .collect();
+            document.insert("$nin", emails);
         }
         if let Some(regex) = regex {
             let regex: &str = regex.0.borrow();

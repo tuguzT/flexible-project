@@ -40,7 +40,7 @@ where
     }
 
     let UserData { ref email, .. } = data;
-    if let Some(email) = email {
+    if email.is_some() {
         let is_email_unique = {
             let user_by_email = find_one_by_email(&repository, email).await?;
             user_by_email.is_none()
@@ -184,9 +184,9 @@ pub async fn update_email<R>(
 where
     R: Repository,
 {
-    if let Some(ref email) = email {
+    if email.is_some() {
         let is_email_unique = {
-            let user_by_email = find_one_by_email(&repository, email).await?;
+            let user_by_email = find_one_by_email(&repository, &email).await?;
             user_by_email.is_none()
         };
         if !is_email_unique {
