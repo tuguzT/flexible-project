@@ -9,6 +9,13 @@ pub struct LocalUserId {
     inner: Uuid,
 }
 
+impl LocalUserId {
+    pub(crate) fn new() -> Self {
+        let inner = Uuid::new();
+        Self { inner }
+    }
+}
+
 impl TryFrom<UserId> for LocalUserId {
     type Error = LocalUserIdError;
 

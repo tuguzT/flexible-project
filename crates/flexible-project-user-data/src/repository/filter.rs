@@ -8,7 +8,7 @@ use mongodb::bson::{to_bson, Bson, Document};
 
 use crate::model::{LocalRole, LocalUserId};
 
-use super::LocalError;
+use super::user::LocalError;
 
 pub trait IntoDocument {
     fn into_document(self) -> Result<Document, LocalError>;
