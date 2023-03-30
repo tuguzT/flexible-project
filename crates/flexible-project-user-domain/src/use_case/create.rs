@@ -5,7 +5,7 @@ use crate::{
     repository::{IdGenerator, UserDatabase},
 };
 
-use super::ext::UserDatabaseExt;
+use super::find_one::{find_one_by_email, find_one_by_name};
 
 /// Error type of create user use case.
 #[derive(Debug, Display, Error)]
@@ -63,8 +63,7 @@ where
 
         let UserData { ref name, .. } = data;
         let is_name_unique = {
-            let user_by_name = database
-                .find_one_by_name(name)
+            let user_by_name = find_one_by_name(database, name)
                 .await
                 .map_err(CreateUserError::Database)?;
             user_by_name.is_none()
@@ -76,8 +75,7 @@ where
         let UserData { ref email, .. } = data;
         if email.is_some() {
             let is_email_unique = {
-                let user_by_email = database
-                    .find_one_by_email(email)
+                let user_by_email = find_one_by_email(database, email)
                     .await
                     .map_err(CreateUserError::Database)?;
                 user_by_email.is_none()

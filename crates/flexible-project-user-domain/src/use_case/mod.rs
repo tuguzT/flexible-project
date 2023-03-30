@@ -15,6 +15,6 @@ pub use self::{
 
 mod create;
 mod delete;
-mod ext;
+mod find_one;
 mod read;
 mod update;

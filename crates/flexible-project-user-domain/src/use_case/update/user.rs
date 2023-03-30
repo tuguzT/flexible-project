@@ -3,7 +3,7 @@ use derive_more::{Display, Error, From};
 use crate::{
     model::{User, UserData, UserId},
     repository::UserDatabase,
-    use_case::ext::UserDatabaseExt,
+    use_case::find_one::{find_one_by_email, find_one_by_id, find_one_by_name},
 };
 
 /// Error type of update user use case.
@@ -50,7 +50,7 @@ where
 
         let UserData { ref name, .. } = data;
         let is_name_unique = {
-            let user_by_name = database.find_one_by_name(name).await?;
+            let user_by_name = find_one_by_name(database, name).await?;
             user_by_name.is_none()
         };
         if !is_name_unique {
@@ -60,7 +60,7 @@ where
         let UserData { ref email, .. } = data;
         if email.is_some() {
             let is_email_unique = {
-                let user_by_email = database.find_one_by_email(email).await?;
+                let user_by_email = find_one_by_email(database, email).await?;
                 user_by_email.is_none()
             };
             if !is_email_unique {
@@ -69,7 +69,7 @@ where
         }
 
         let User { id, .. } = {
-            let user_by_id = database.find_one_by_id(id).await?;
+            let user_by_id = find_one_by_id(database, id).await?;
             user_by_id.ok_or(UpdateUserError::NoUser)?
         };
         let user = database.update(id, data).await?;

@@ -5,7 +5,7 @@ use crate::{
     repository::UserDatabase,
 };
 
-use super::ext::UserDatabaseExt;
+use super::find_one::find_one_by_id;
 
 /// Error type of delete user use case.
 #[derive(Debug, Display, From, Error)]
@@ -41,7 +41,7 @@ where
         let Self { database } = self;
 
         let id_exists = {
-            let user_by_id = database.find_one_by_id(&id).await?;
+            let user_by_id = find_one_by_id(database, &id).await?;
             user_by_id.is_some()
         };
         if !id_exists {

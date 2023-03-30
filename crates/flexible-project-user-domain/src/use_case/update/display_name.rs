@@ -3,7 +3,7 @@ use derive_more::{Display, Error, From};
 use crate::{
     model::{DisplayName, User, UserData, UserId},
     repository::UserDatabase,
-    use_case::ext::UserDatabaseExt,
+    use_case::find_one::find_one_by_id,
 };
 
 /// Error type of update user display name use case.
@@ -44,7 +44,7 @@ where
         let Self { database } = self;
 
         let User { id, data } = {
-            let user_by_id = database.find_one_by_id(id).await?;
+            let user_by_id = find_one_by_id(database, id).await?;
             user_by_id.ok_or(UpdateDisplayNameError::NoUser)?
         };
         let data = UserData {
