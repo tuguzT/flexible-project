@@ -7,3 +7,14 @@ authors = ["tuguzT <timurka.tugushev@gmail.com>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
 repository = "https://github.com/tuguzT/flexible-project"
+
+[workspace.dependencies]
+typed-builder = "0.14.0"
+derive_more = "0.99.17"
+auto_impl = "1.0.1"
+async-trait = "0.1.68"
+futures = "0.3.27"
+fancy-regex = "0.11.0"
+once_cell = "1.17.1"
+serde = "1.0.159"
+mongodb = "2.4.0"

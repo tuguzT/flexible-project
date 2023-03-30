@@ -9,8 +9,8 @@ repository.workspace = true
 
 [dependencies]
 domain = { package = "flexible-project-user-domain", path = "../flexible-project-user-domain" }
-async-trait = "0.1.67"
-derive_more = "0.99.17"
-futures = "0.3.27"
-serde = "1.0.158"
-mongodb = { version = "2.4.0", features = ["bson-uuid-1"] }
+async-trait = { workspace = true }
+derive_more = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+mongodb = { workspace = true, features = ["bson-uuid-1"] }

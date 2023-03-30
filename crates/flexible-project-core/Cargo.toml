@@ -8,6 +8,6 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-derive_more = "0.99.17"
-fancy-regex = "0.11.0"
-typed-builder = "0.14.0"
+derive_more = { workspace = true }
+fancy-regex = { workspace = true }
+typed-builder = { workspace = true }
