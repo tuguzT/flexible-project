@@ -1,11 +1,11 @@
 [package]
 name = "flexible-project-core"
-version = "0.0.0"
 description = "Flexible Project backend core library"
-authors = ["tuguzT <timurka.tugushev@gmail.com>"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/tuguzT/flexible-project"
-edition = "2021"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
 
 [dependencies]
 derive_more = "0.99.17"
