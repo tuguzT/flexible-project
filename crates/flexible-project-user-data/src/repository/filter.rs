@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, convert::identity};
 
-use domain::model::{
+use fp_user_domain::model::{
     DisplayName, DisplayNameFilters, Email, EmailFilters, Name, NameFilters, Role, RoleFilters,
     UserFilters, UserId, UserIdFilters,
 };

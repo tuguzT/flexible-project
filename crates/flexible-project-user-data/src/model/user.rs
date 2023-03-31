@@ -1,7 +1,9 @@
 use std::hash::{Hash, Hasher};
 
 use derive_more::{Display, Error, From};
-use domain::model::{DisplayName, DisplayNameError, Email, Name, NameError, User, UserData};
+use fp_user_domain::model::{
+    DisplayName, DisplayNameError, Email, Name, NameError, User, UserData,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{

@@ -2,7 +2,7 @@ use std::pin::pin;
 
 use async_trait::async_trait;
 use derive_more::{Display, Error, From};
-use domain::{
+use fp_user_domain::{
     model::{User, UserData, UserFilters, UserId},
     repository::UserDatabase,
 };

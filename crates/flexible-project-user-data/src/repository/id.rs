@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 
-use domain::{model::UserId, repository::IdGenerator};
+use fp_user_domain::{model::UserId, repository::IdGenerator};
 
 use crate::model::LocalUserId;
 

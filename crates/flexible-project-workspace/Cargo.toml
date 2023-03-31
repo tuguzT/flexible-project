@@ -1,6 +1,6 @@
 [package]
 name = "flexible-project-workspace"
-description = "Flexible Project workspace backend microservice binary"
+description = "Flexible Project backend workspace microservice binary"
 version.workspace = true
 authors.workspace = true
 license.workspace = true

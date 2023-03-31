@@ -8,7 +8,7 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-domain = { package = "flexible-project-user-domain", path = "../flexible-project-user-domain" }
+fp-user-domain = { workspace = true }
 async-trait = { workspace = true }
 derive_more = { workspace = true }
 futures = { workspace = true }

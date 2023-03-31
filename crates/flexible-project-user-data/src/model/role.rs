@@ -1,5 +1,5 @@
 use derive_more::Display;
-use domain::model::Role;
+use fp_user_domain::model::Role;
 use serde::{Deserialize, Serialize};
 
 #[derive(

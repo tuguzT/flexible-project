@@ -8,5 +8,5 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-domain = { package = "flexible-project-user-domain", path = "../flexible-project-user-domain" }
-data = { package = "flexible-project-user-data", path = "../flexible-project-user-data" }
+fp-user-domain = { workspace = true }
+fp-user-data = { workspace = true }

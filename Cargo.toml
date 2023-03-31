@@ -9,11 +9,16 @@ edition = "2021"
 repository = "https://github.com/tuguzT/flexible-project"
 
 [workspace.dependencies]
+# local crates (domain and data layers, various helpers, utilities, etc.)
+fp-core = { package = "flexible-project-core", path = "crates/flexible-project-core" }
+fp-user-domain = { package = "flexible-project-user-domain", path = "crates/flexible-project-user-domain" }
+fp-user-data = { package = "flexible-project-user-data", path = "crates/flexible-project-user-data" }
+# external crates (macros, databases, serialization, etc.)
 typed-builder = "0.14.0"
 derive_more = "0.99.17"
 auto_impl = "1.0.1"
 async-trait = "0.1.68"
-futures = "0.3.27"
+futures = "0.3.28"
 fancy-regex = "0.11.0"
 once_cell = "1.17.1"
 serde = "1.0.159"

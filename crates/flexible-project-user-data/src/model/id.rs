@@ -1,5 +1,5 @@
 use derive_more::{Display, Error, From};
-use domain::model::UserId;
+use fp_user_domain::model::UserId;
 use mongodb::bson::uuid::{Error, Uuid};
 use serde::{Deserialize, Serialize};
 
