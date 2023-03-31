@@ -1,6 +1,6 @@
 [package]
-name = "flexible-project-workspace"
-description = "Flexible Project backend workspace microservice binary"
+name = "flexible-project-workspace-data"
+description = "Flexible Project backend workspace microservice data layer library"
 version.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -9,4 +9,3 @@ repository.workspace = true
 
 [dependencies]
 fp-workspace-domain = { workspace = true }
-fp-workspace-data = { workspace = true }

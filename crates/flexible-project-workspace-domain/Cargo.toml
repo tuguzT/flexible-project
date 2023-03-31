@@ -1,0 +1,11 @@
+[package]
+name = "flexible-project-workspace-domain"
+description = "Flexible Project backend workspace microservice domain layer library"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+fp-core = { workspace = true }

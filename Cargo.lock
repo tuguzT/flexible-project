@@ -407,6 +407,24 @@ dependencies = [
 [[package]]
 name = "flexible-project-workspace"
 version = "0.0.0"
+dependencies = [
+ "flexible-project-workspace-data",
+ "flexible-project-workspace-domain",
+]
+
+[[package]]
+name = "flexible-project-workspace-data"
+version = "0.0.0"
+dependencies = [
+ "flexible-project-workspace-domain",
+]
+
+[[package]]
+name = "flexible-project-workspace-domain"
+version = "0.0.0"
+dependencies = [
+ "flexible-project-core",
+]
 
 [[package]]
 name = "fnv"
