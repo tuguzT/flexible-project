@@ -2,7 +2,7 @@ use std::hash::{Hash, Hasher};
 
 use derive_more::{Display, Error, From};
 use fp_user_domain::model::{
-    DisplayName, DisplayNameError, Email, Name, NameError, User, UserData,
+    DisplayName, DisplayNameError, Email, EmailError, Name, NameError, User, UserData,
 };
 use serde::{Deserialize, Serialize};
 
@@ -95,7 +95,7 @@ impl TryFrom<LocalUserData> for UserData {
             name: Name::new(name)?,
             display_name: DisplayName::new(display_name)?,
             role: role.into(),
-            email: email.map(Email::new),
+            email: email.map(Email::new).transpose()?,
         };
         Ok(user_data)
     }
@@ -103,6 +103,7 @@ impl TryFrom<LocalUserData> for UserData {
 
 #[derive(Debug, Display, Clone, Copy, From, Error)]
 pub enum LocalUserDataError {
-    InvalidName(NameError),
-    InvalidDisplayName(DisplayNameError),
+    Name(NameError),
+    DisplayName(DisplayNameError),
+    Email(EmailError),
 }

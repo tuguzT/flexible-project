@@ -2,7 +2,7 @@
 
 pub use self::{
     display_name::{DisplayName, DisplayNameError, DisplayNameFilters},
-    email::{Email, EmailFilters},
+    email::{Email, EmailError, EmailFilters},
     id::{UserId, UserIdFilters},
     name::{Name, NameError, NameFilters},
     role::{Role, RoleFilters},

@@ -1,18 +1,23 @@
 use std::borrow::Borrow;
 
-use derive_more::Display;
+use derive_more::{Display, Error};
+use email_address::EmailAddress;
 use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 
-/// Email of the user in the system.
+/// Email of the user in the system with strong requirements about its content.
 #[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Email(String);
 
 impl Email {
     /// Creates new user email from input string.
-    pub fn new(email: impl Into<String>) -> Self {
+    pub fn new(email: impl Into<String>) -> Result<Self, EmailError> {
         let email = email.into();
-        Self(email)
+        let is_valid = EmailAddress::is_valid(&email);
+        if !is_valid {
+            return Err(EmailError::Invalid);
+        }
+        Ok(Self(email))
     }
 
     /// Extracts string slice from a user email.
@@ -26,6 +31,14 @@ impl Email {
         let Self(email) = self;
         email
     }
+}
+
+/// Type of error which is returned when input does not meet user email requirements.
+#[derive(Debug, Display, Clone, Copy, Error)]
+pub enum EmailError {
+    /// User email does not meet requirements.
+    #[display(fmt = "user email does not meet requirements")]
+    Invalid,
 }
 
 /// User email filters to be applied on user search process.

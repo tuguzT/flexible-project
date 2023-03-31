@@ -333,6 +333,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "email_address"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2153bd83ebc09db15bcbdc3e2194d901804952e3dc96967e1cd3b0c5c32d112"
+
+[[package]]
 name = "enum-as-inner"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -390,6 +396,7 @@ dependencies = [
  "async-trait",
  "auto_impl",
  "derive_more",
+ "email_address",
  "fancy-regex",
  "flexible-project-core",
  "futures",
