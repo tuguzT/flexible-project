@@ -9,3 +9,8 @@ repository.workspace = true
 
 [dependencies]
 fp-core = { workspace = true }
+fp-user-domain = { workspace = true }
+typed-builder = { workspace = true }
+derive_more = { workspace = true }
+fancy-regex = { workspace = true }
+once_cell = { workspace = true }

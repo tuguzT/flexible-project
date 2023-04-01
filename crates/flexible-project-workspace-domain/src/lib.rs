@@ -4,4 +4,6 @@
 #![warn(clippy::all)]
 #![forbid(unsafe_code)]
 
-// TODO model, use case, repository modules
+pub mod model;
+
+// TODO use case, repository modules

@@ -424,7 +424,12 @@ dependencies = [
 name = "flexible-project-workspace-domain"
 version = "0.0.0"
 dependencies = [
+ "derive_more",
+ "fancy-regex",
  "flexible-project-core",
+ "flexible-project-user-domain",
+ "once_cell",
+ "typed-builder 0.14.0",
 ]
 
 [[package]]

@@ -11,6 +11,11 @@ pub struct Email(String);
 
 impl Email {
     /// Creates new user email from input string.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error
+    /// if input string does not match user email requirements.
     pub fn new(email: impl Into<String>) -> Result<Self, EmailError> {
         let email = email.into();
         let is_valid = EmailAddress::is_valid(&email);
