@@ -4,28 +4,33 @@ use std::borrow::Borrow;
 
 use auto_impl::auto_impl;
 
-pub use self::between::*;
-pub use self::between_eq::*;
-pub use self::eq::*;
-pub use self::ge::*;
-pub use self::gt::*;
-pub use self::helpers::*;
-pub use self::le::*;
-pub use self::lt::*;
-pub use self::ne::*;
-pub use self::not::*;
-pub use self::not_between::*;
-pub use self::not_between_eq::*;
-pub use self::not_in::*;
-pub use self::r#in::*;
-pub use self::regex::*;
+pub use self::{
+    between::Between,
+    between_eq::BetweenEqual,
+    contains::Contains,
+    cow::{Borrowed, Owned},
+    eq::Equal,
+    ge::GreaterEqual,
+    gt::GreaterThan,
+    le::LessEqual,
+    lt::LessThan,
+    ne::NotEqual,
+    not::Not,
+    not_between::NotBetween,
+    not_between_eq::NotBetweenEqual,
+    not_contains::NotContains,
+    not_in::NotIn,
+    r#in::In,
+    regex::Regex,
+};
 
 mod between;
 mod between_eq;
+mod contains;
+mod cow;
 mod eq;
 mod ge;
 mod gt;
-mod helpers;
 mod r#in;
 mod le;
 mod lt;
@@ -33,6 +38,7 @@ mod ne;
 mod not;
 mod not_between;
 mod not_between_eq;
+mod not_contains;
 mod not_in;
 mod regex;
 

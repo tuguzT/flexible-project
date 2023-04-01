@@ -4,12 +4,16 @@ use std::{
 };
 
 use fp_core::filter::Filter;
+use indexmap::IndexSet;
 use typed_builder::TypedBuilder;
 
 use super::{
+    description::{Description, DescriptionFilters},
     id::{WorkspaceId, WorkspaceIdFilters},
-    member::MemberId,
+    member::Member,
     name::{Name, NameFilters},
+    role::Role,
+    visibility::{Visibility, VisibilityFilters},
 };
 
 /// Model of workspace in the system.
@@ -36,12 +40,18 @@ impl Hash for Workspace {
 }
 
 /// Data of the workspace in the system.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkspaceData {
     /// Name of the workspace.
     pub name: Name,
-    /// Members of the workspace.
-    pub members: Vec<MemberId>,
+    /// Description of the workspace.
+    pub description: Description,
+    /// Visibility of the workspace.
+    pub visibility: Visibility,
+    /// Set of roles of the workspace.
+    pub roles: IndexSet<Role>,
+    /// Set of members of the workspace.
+    pub members: IndexSet<Member>,
 }
 
 /// Filters for workspaces of the backend.
@@ -76,7 +86,11 @@ impl Filter for WorkspaceFilters<'_> {
 pub struct WorkspaceDataFilters<'a> {
     /// Workspace name filters.
     pub name: Option<NameFilters<'a>>,
-    // TODO workspace members filters
+    /// Workspace description filters.
+    pub description: Option<DescriptionFilters<'a>>,
+    /// Workspace visibility filters.
+    pub visibility: Option<VisibilityFilters<'a>>,
+    // TODO role filters, member filters
 }
 
 impl Filter for WorkspaceDataFilters<'_> {
@@ -86,8 +100,19 @@ impl Filter for WorkspaceDataFilters<'_> {
     where
         B: Borrow<Self::Input>,
     {
-        let Self { name: name_filter } = self;
-        let WorkspaceData { name, .. } = input.borrow();
+        let Self {
+            name: name_filter,
+            description: description_filter,
+            visibility: visibility_filter,
+        } = self;
+        let WorkspaceData {
+            name,
+            description,
+            visibility,
+            ..
+        } = input.borrow();
         name_filter.satisfies(name)
+            && visibility_filter.satisfies(visibility)
+            && description_filter.satisfies(description)
     }
 }

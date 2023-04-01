@@ -23,11 +23,9 @@ pub trait Owned: ToOwned {
 
 impl<T> Owned for T
 where
-    T: ToOwned,
+    T: ToOwned<Owned = T>,
 {
-    #[allow(clippy::redundant_clone)]
     fn owned(self) -> Cow<'static, Self> {
-        let owned = self.to_owned(); // false-positive?
-        Cow::Owned(owned)
+        Cow::Owned(self)
     }
 }

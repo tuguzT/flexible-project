@@ -14,3 +14,4 @@ typed-builder = { workspace = true }
 derive_more = { workspace = true }
 fancy-regex = { workspace = true }
 once_cell = { workspace = true }
+indexmap = { workspace = true }
