@@ -82,3 +82,25 @@ impl Filter for EmailFilters<'_> {
                 .unwrap_or(true)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::{Email, EmailError};
+
+    #[test]
+    fn valid_ones() {
+        let Email(_) = Email::new("example@email.com").unwrap();
+        let Email(_) = Email::new("example.firstname-lastname@email.com").unwrap();
+        let Email(_) = Email::new("timurka.tugushev@gmail.com").unwrap();
+        let Email(_) = Email::new("tugushev.t.r@edu.mirea.ru").unwrap();
+        let Email(_) = Email::new("nik.3989@mail.ru").unwrap();
+    }
+
+    #[test]
+    fn invalid() {
+        let _: EmailError = Email::new("John Doe <example@email.com>").unwrap_err();
+        let _: EmailError = Email::new("plaintext").unwrap_err();
+        let _: EmailError = Email::new("@email.com").unwrap_err();
+        let _: EmailError = Email::new(r#"is"especially"not\allowed@email.com"#).unwrap_err();
+    }
+}
