@@ -4,7 +4,10 @@ use fp_core::filter::Borrowed;
 use futures::{StreamExt, TryStreamExt};
 
 use crate::{
-    model::{Email, EmailFilters, Name, NameFilters, User, UserFilters, UserId, UserIdFilters},
+    model::{
+        Email, EmailFilters, Name, NameFilters, User, UserDataFilters, UserFilters, UserId,
+        UserIdFilters,
+    },
     repository::UserDatabase,
 };
 
@@ -14,9 +17,10 @@ where
     Db: UserDatabase,
 {
     let id = id.borrow();
-    let filter = UserFilters::builder()
-        .id(UserIdFilters::builder().eq(id.borrowed()).build())
-        .build();
+    let filter = {
+        let id = UserIdFilters::builder().eq(id.borrowed()).build();
+        UserFilters::builder().id(id).build()
+    };
     let users = database.read(filter).await?;
     let mut users = pin!(users);
     let user = users.try_next().await?;
@@ -33,9 +37,11 @@ where
     Db: UserDatabase,
 {
     let name = name.borrow();
-    let filter = UserFilters::builder()
-        .name(NameFilters::builder().eq(name.borrowed()).build())
-        .build();
+    let filter = {
+        let name = NameFilters::builder().eq(name.borrowed()).build();
+        let data = UserDataFilters::builder().name(name).build();
+        UserFilters::builder().data(data).build()
+    };
     let users = database.read(filter).await?;
     let mut users = pin!(users);
     let user = users.try_next().await?;
@@ -52,9 +58,11 @@ where
     Db: UserDatabase,
 {
     let email = email.borrow();
-    let filter = UserFilters::builder()
-        .email(EmailFilters::builder().eq(email.borrowed()).build())
-        .build();
+    let filter = {
+        let email = EmailFilters::builder().eq(email.borrowed()).build();
+        let data = UserDataFilters::builder().email(email).build();
+        UserFilters::builder().data(data).build()
+    };
     let users = database.read(filter).await?;
     let mut users = pin!(users);
     let user = users.try_next().await?;

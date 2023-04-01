@@ -17,7 +17,7 @@ pub enum Role {
     Administrator,
 }
 
-/// User role filters to be applied on user search process.
+/// Filters for user role of the backend.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleFilters<'a> {

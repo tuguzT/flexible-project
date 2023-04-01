@@ -58,7 +58,7 @@ pub enum DisplayNameError {
     Invalid,
 }
 
-/// User display name filters to be applied on user search process.
+/// Filters for user display name of the backend.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct DisplayNameFilters<'a> {

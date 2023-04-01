@@ -61,7 +61,7 @@ pub enum NameError {
     Invalid,
 }
 
-/// User name filters to be applied on user search process.
+/// Filters for user name of the backend.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct NameFilters<'a> {

@@ -2,7 +2,7 @@ use std::{borrow::Borrow, convert::identity};
 
 use fp_user_domain::model::{
     DisplayName, DisplayNameFilters, Email, EmailFilters, Name, NameFilters, Role, RoleFilters,
-    UserFilters, UserId, UserIdFilters,
+    UserDataFilters, UserFilters, UserId, UserIdFilters,
 };
 use mongodb::bson::{to_bson, Bson, Document};
 
@@ -16,8 +16,22 @@ pub trait IntoDocument {
 
 impl IntoDocument for UserFilters<'_> {
     fn into_document(self) -> Result<Document, LocalError> {
+        let Self { id, data } = self;
+
+        let mut document = Document::new();
+        if let Some(id) = id {
+            document.insert("_id", id.into_document()?);
+        }
+        if let Some(data) = data {
+            document.insert("data", data.into_document()?);
+        }
+        Ok(document)
+    }
+}
+
+impl IntoDocument for UserDataFilters<'_> {
+    fn into_document(self) -> Result<Document, LocalError> {
         let Self {
-            id,
             name,
             display_name,
             role,
@@ -25,9 +39,6 @@ impl IntoDocument for UserFilters<'_> {
         } = self;
 
         let mut document = Document::new();
-        if let Some(id) = id {
-            document.insert("_id", id.into_document()?);
-        }
         if let Some(name) = name {
             document.insert("name", name.into_document()?);
         }

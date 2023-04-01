@@ -50,20 +50,14 @@ pub struct UserData {
     pub email: Option<Email>,
 }
 
-/// Filters to be applied on user search process.
+/// Filters for user of the backend.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct UserFilters<'a> {
     /// User identifier filters.
     pub id: Option<UserIdFilters<'a>>,
-    /// User name filters.
-    pub name: Option<NameFilters<'a>>,
-    /// User display name filters.
-    pub display_name: Option<DisplayNameFilters<'a>>,
-    /// User role filters.
-    pub role: Option<RoleFilters<'a>>,
-    /// User email filters.
-    pub email: Option<EmailFilters<'a>>,
+    /// User data filters.
+    pub data: Option<UserDataFilters<'a>>,
 }
 
 impl Filter for UserFilters<'_> {
@@ -74,17 +68,50 @@ impl Filter for UserFilters<'_> {
         B: Borrow<Self::Input>,
     {
         let Self {
-            id,
+            id: id_filter,
+            data: data_filter,
+        } = self;
+        let User { id, data } = input.borrow();
+        id_filter.satisfies(id) && data_filter.satisfies(data)
+    }
+}
+
+/// Filters for user data of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct UserDataFilters<'a> {
+    /// User name filters.
+    pub name: Option<NameFilters<'a>>,
+    /// User display name filters.
+    pub display_name: Option<DisplayNameFilters<'a>>,
+    /// User role filters.
+    pub role: Option<RoleFilters<'a>>,
+    /// User email filters.
+    pub email: Option<EmailFilters<'a>>,
+}
+
+impl Filter for UserDataFilters<'_> {
+    type Input = UserData;
+
+    fn satisfies<B>(&self, input: B) -> bool
+    where
+        B: Borrow<Self::Input>,
+    {
+        let Self {
+            name: name_filter,
+            display_name: display_name_filter,
+            role: role_filter,
+            email: email_filter,
+        } = self;
+        let UserData {
             name,
             display_name,
             role,
             email,
-        } = self;
-        let input = input.borrow();
-        id.satisfies(&input.id)
-            && name.satisfies(&input.data.name)
-            && display_name.satisfies(&input.data.display_name)
-            && role.satisfies(&input.data.role)
-            && email.satisfies(&input.data.email)
+        } = input.borrow();
+        name_filter.satisfies(name)
+            && display_name_filter.satisfies(display_name)
+            && role_filter.satisfies(role)
+            && email_filter.satisfies(email)
     }
 }

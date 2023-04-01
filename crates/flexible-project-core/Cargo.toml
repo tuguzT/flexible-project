@@ -11,3 +11,4 @@ repository.workspace = true
 derive_more = { workspace = true }
 fancy-regex = { workspace = true }
 typed-builder = { workspace = true }
+auto_impl = { workspace = true }

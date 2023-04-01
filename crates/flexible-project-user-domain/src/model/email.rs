@@ -41,7 +41,7 @@ pub enum EmailError {
     Invalid,
 }
 
-/// User email filters to be applied on user search process.
+/// Filters for user email of the backend.
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct EmailFilters<'a> {

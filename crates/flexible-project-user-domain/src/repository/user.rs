@@ -6,7 +6,7 @@ use crate::model::{User, UserData, UserFilters, UserId};
 
 /// Database of user microservice data.
 #[async_trait(?Send)]
-#[auto_impl(&, Box, Arc)]
+#[auto_impl(&, Box, Rc, Arc)]
 pub trait UserDatabase {
     /// The type returned when a repository fails to apply an operation.
     type Error;

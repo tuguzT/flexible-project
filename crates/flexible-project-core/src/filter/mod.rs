@@ -2,6 +2,8 @@
 
 use std::borrow::Borrow;
 
+use auto_impl::auto_impl;
+
 pub use self::between::*;
 pub use self::between_eq::*;
 pub use self::eq::*;
@@ -35,6 +37,7 @@ mod not_in;
 mod regex;
 
 /// Defines behavior of filters of the backend.
+#[auto_impl(&, Box, Rc, Arc)]
 pub trait Filter {
     /// Type of input to be checked by filter.
     type Input: ?Sized;

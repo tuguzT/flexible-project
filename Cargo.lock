@@ -364,6 +364,7 @@ dependencies = [
 name = "flexible-project-core"
 version = "0.0.0"
 dependencies = [
+ "auto_impl",
  "derive_more",
  "fancy-regex",
  "typed-builder 0.14.0",
