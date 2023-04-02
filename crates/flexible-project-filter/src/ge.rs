@@ -25,3 +25,18 @@ where
         input >= value
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, GreaterEqual};
+
+    #[test]
+    fn it_works() {
+        let filter = GreaterEqual(1);
+        assert!(filter.satisfies(2));
+        assert!(filter.satisfies(1));
+        assert!(filter.satisfies(0).not());
+    }
+}

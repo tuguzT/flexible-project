@@ -31,3 +31,17 @@ where
         regex.is_match(input).unwrap_or(false)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, Regex};
+
+    #[test]
+    fn it_works() {
+        let filter = Regex(r#"^((?=\S*?[A-Z])(?=\S*?[a-z])(?=\S*?[0-9]).{6,})\S$"#);
+        assert!(filter.satisfies("Catcat1"));
+        assert!(filter.satisfies("smol").not());
+    }
+}

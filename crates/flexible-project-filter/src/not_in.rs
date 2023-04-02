@@ -29,6 +29,25 @@ where
         let Self(value) = self;
         let mut iter = value.clone().into_iter();
         let input = input.borrow();
-        iter.any(|item| &item == input)
+        !iter.any(|item| &item == input)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, NotIn};
+
+    #[test]
+    fn it_works() {
+        let filter = NotIn([1, 3, 5]);
+        assert!(filter.satisfies(0));
+        assert!(filter.satisfies(1).not());
+        assert!(filter.satisfies(2));
+        assert!(filter.satisfies(3).not());
+        assert!(filter.satisfies(4));
+        assert!(filter.satisfies(5).not());
+        assert!(filter.satisfies(6));
     }
 }

@@ -25,3 +25,18 @@ where
         input <= value
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, LessEqual};
+
+    #[test]
+    fn it_works() {
+        let filter = LessEqual(1);
+        assert!(filter.satisfies(0));
+        assert!(filter.satisfies(1));
+        assert!(filter.satisfies(2).not());
+    }
+}

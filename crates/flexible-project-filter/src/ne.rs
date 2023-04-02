@@ -25,3 +25,17 @@ where
         input != value
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, NotEqual};
+
+    #[test]
+    fn it_works() {
+        let filter = NotEqual(1);
+        assert!(filter.satisfies(1).not());
+        assert!(filter.satisfies(0));
+    }
+}

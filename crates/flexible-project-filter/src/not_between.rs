@@ -35,3 +35,21 @@ where
         input < min || max < input
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Filter, NotBetween};
+
+    #[test]
+    fn it_works() {
+        let filter = NotBetween::from(1..4);
+        assert!(filter.satisfies(0));
+        assert!(filter.satisfies(1).not());
+        assert!(filter.satisfies(2).not());
+        assert!(filter.satisfies(3).not());
+        assert!(filter.satisfies(4).not());
+        assert!(filter.satisfies(5));
+    }
+}

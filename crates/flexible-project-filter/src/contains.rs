@@ -26,3 +26,19 @@ where
         input.any(|item| item.borrow() == value)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::{iter::once_with, ops::Not};
+
+    use super::{Contains, Filter};
+
+    #[test]
+    fn it_works() {
+        let filter = Contains(1);
+        assert!(filter.satisfies(once_with(|| 1)));
+        assert!(filter.satisfies(once_with(|| 2)).not());
+        assert!(filter.satisfies([1, 2, 3, 4]));
+        assert!(filter.satisfies([2, 3, 4, 5]).not());
+    }
+}

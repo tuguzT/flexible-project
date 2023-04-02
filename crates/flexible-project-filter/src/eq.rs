@@ -25,3 +25,17 @@ where
         input == value
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use core::ops::Not;
+
+    use super::{Equal, Filter};
+
+    #[test]
+    fn it_works() {
+        let filter = Equal(1);
+        assert!(filter.satisfies(1));
+        assert!(filter.satisfies(0).not());
+    }
+}
