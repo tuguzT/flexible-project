@@ -3,7 +3,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use fp_core::filter::Filter;
+use fp_filter::Filter;
 use typed_builder::TypedBuilder;
 
 use super::{

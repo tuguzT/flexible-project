@@ -3,7 +3,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
-use fp_core::filter::Filter;
+use fp_filter::Filter;
 use indexmap::IndexSet;
 use typed_builder::TypedBuilder;
 

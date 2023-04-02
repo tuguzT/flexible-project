@@ -1,16 +1,23 @@
-use std::borrow::Borrow;
-
-use derive_more::From;
+use core::borrow::Borrow;
 
 use super::Filter;
 
 /// In filter of the backend.
 ///
 /// Checks if a set of values contains an input.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct In<T>(pub T)
 where
     T: IntoIterator;
+
+impl<T> From<T> for In<T>
+where
+    T: IntoIterator,
+{
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
 
 impl<T, Input, Item> Filter<Input> for In<T>
 where

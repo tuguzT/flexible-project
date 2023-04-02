@@ -1,6 +1,5 @@
-use std::borrow::Borrow;
+use core::borrow::Borrow;
 
-use derive_more::From;
 use fancy_regex::Regex as FancyRegex;
 
 use super::Filter;
@@ -8,8 +7,14 @@ use super::Filter;
 /// Regex filter of the backend.
 ///
 /// Checks if input matches given regex pattern.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Regex<R>(pub R);
+
+impl<R> From<R> for Regex<R> {
+    fn from(value: R) -> Self {
+        Self(value)
+    }
+}
 
 impl<S, Input> Filter<Input> for Regex<S>
 where

@@ -1,6 +1,8 @@
-//! Filter model of the backend.
+//! Flexible Project backend general filtering library.
 
-use auto_impl::auto_impl;
+#![warn(missing_docs)]
+#![warn(clippy::all)]
+#![forbid(unsafe_code)]
 
 pub use self::{
     between::Between, between_eq::BetweenEqual, contains::Contains, eq::Equal, ge::GreaterEqual,
@@ -26,8 +28,8 @@ mod not_contains;
 mod not_in;
 mod regex;
 
-/// Defines behavior of filters of the backend.
-#[auto_impl(&, Box, Rc, Arc)]
+/// Defines behavior for filters of the backend.
+#[auto_impl::auto_impl(&, &mut, Box, Rc, Arc)]
 pub trait Filter<Input> {
     /// Checks if input satisfies the filter.
     fn satisfies(&self, input: Input) -> bool;

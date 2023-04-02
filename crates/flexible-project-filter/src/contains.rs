@@ -1,14 +1,18 @@
-use std::borrow::Borrow;
-
-use derive_more::From;
+use core::borrow::Borrow;
 
 use super::Filter;
 
 /// Contains filter of the backend.
 ///
 /// Checks if an input contains a value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Contains<T>(pub T);
+
+impl<T> From<T> for Contains<T> {
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
 
 impl<T, Input> Filter<Input> for Contains<T>
 where

@@ -4,5 +4,4 @@
 #![warn(clippy::all)]
 #![forbid(unsafe_code)]
 
-pub mod filter;
 pub mod id;

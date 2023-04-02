@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use derive_more::{Display, Error};
-use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use fp_user_domain::model::Name as UserName;
 use typed_builder::TypedBuilder;
 

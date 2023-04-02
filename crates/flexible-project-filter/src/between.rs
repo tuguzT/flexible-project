@@ -1,6 +1,4 @@
-use std::{borrow::Borrow, ops::Range};
-
-use derive_more::From;
+use core::{borrow::Borrow, ops::Range};
 
 use super::Filter;
 
@@ -8,7 +6,7 @@ use super::Filter;
 ///
 /// Checks if input is bigger than (`>`) lower bound
 /// and less than (`<`) higher bound.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Between<T> {
     /// Lower bound of the range.
     pub min: T,

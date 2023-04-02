@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use derive_more::Display;
-use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use indexmap::IndexSet;
 use typed_builder::TypedBuilder;
 

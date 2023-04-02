@@ -1,6 +1,6 @@
 [package]
-name = "flexible-project-core"
-description = "Flexible Project backend core library"
+name = "flexible-project-filter"
+description = "Flexible Project backend general filtering library"
 version.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -8,8 +8,5 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
-fp-filter = { workspace = true }
-derive_more = { workspace = true }
 fancy-regex = { workspace = true }
-typed-builder = { workspace = true }
 auto_impl = { workspace = true }

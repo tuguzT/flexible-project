@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 
 use derive_more::Display;
-use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
 /// Visibility level of the workspace from outside of it.

@@ -1,6 +1,4 @@
-use std::{borrow::Borrow, ops::RangeInclusive};
-
-use derive_more::From;
+use core::{borrow::Borrow, ops::RangeInclusive};
 
 use super::Filter;
 
@@ -8,7 +6,7 @@ use super::Filter;
 ///
 /// Checks if input is less than or equal to (`<=`) lower bound
 /// or bigger than or equal to (`>=`) higher bound.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct NotBetweenEqual<T> {
     /// Lower bound of the range.
     pub min: T,

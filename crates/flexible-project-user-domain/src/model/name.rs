@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use derive_more::{Display, Error};
 use fancy_regex::Regex as FancyRegex;
-use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 

@@ -367,7 +367,16 @@ dependencies = [
  "auto_impl",
  "derive_more",
  "fancy-regex",
+ "flexible-project-filter",
  "typed-builder 0.14.0",
+]
+
+[[package]]
+name = "flexible-project-filter"
+version = "0.0.0"
+dependencies = [
+ "auto_impl",
+ "fancy-regex",
 ]
 
 [[package]]
@@ -400,6 +409,7 @@ dependencies = [
  "email_address",
  "fancy-regex",
  "flexible-project-core",
+ "flexible-project-filter",
  "futures",
  "once_cell",
  "typed-builder 0.14.0",
@@ -427,6 +437,7 @@ dependencies = [
  "derive_more",
  "fancy-regex",
  "flexible-project-core",
+ "flexible-project-filter",
  "flexible-project-user-domain",
  "indexmap",
  "once_cell",

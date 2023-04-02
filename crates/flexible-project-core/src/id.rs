@@ -8,9 +8,8 @@ use std::{
 };
 
 use derive_more::Display;
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
-
-use crate::filter::{Equal, Filter, In, NotEqual, NotIn};
 
 /// Type of identifier which are used to identify objects of the owner type.
 pub struct Id<Owner> {

@@ -11,6 +11,7 @@ repository = "https://github.com/tuguzT/flexible-project"
 [workspace.dependencies]
 # local crates (domain and data layers, various helpers, utilities, etc.)
 fp-core = { package = "flexible-project-core", path = "crates/flexible-project-core" }
+fp-filter = { package = "flexible-project-filter", path = "crates/flexible-project-filter" }
 fp-user-domain = { package = "flexible-project-user-domain", path = "crates/flexible-project-user-domain" }
 fp-user-data = { package = "flexible-project-user-data", path = "crates/flexible-project-user-data" }
 fp-workspace-domain = { package = "flexible-project-workspace-domain", path = "crates/flexible-project-workspace-domain" }

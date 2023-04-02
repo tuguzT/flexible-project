@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use derive_more::{Display, Error};
 use email_address::EmailAddress;
-use fp_core::filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 
 /// Email of the user in the system with strong requirements about its content.

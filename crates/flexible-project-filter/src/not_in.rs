@@ -1,16 +1,23 @@
-use std::borrow::Borrow;
-
-use derive_more::From;
+use core::borrow::Borrow;
 
 use super::Filter;
 
 /// Not in filter of the backend.
 ///
 /// Checks if a set of values does not contain an input.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct NotIn<T>(pub T)
 where
     T: IntoIterator;
+
+impl<T> From<T> for NotIn<T>
+where
+    T: IntoIterator,
+{
+    fn from(value: T) -> Self {
+        Self(value)
+    }
+}
 
 impl<T, Input, Item> Filter<Input> for NotIn<T>
 where
