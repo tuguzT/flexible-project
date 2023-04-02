@@ -59,19 +59,19 @@ pub enum DisplayNameError {
 }
 
 /// Filters for user display name of the backend.
-#[derive(Debug, Clone, Default, TypedBuilder)]
+#[derive(Debug, Clone, Copy, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct DisplayNameFilters<'a> {
     /// Equality user display name filter.
-    pub eq: Option<Equal<'a, DisplayName>>,
+    pub eq: Option<Equal<&'a DisplayName>>,
     /// Inequality user display name filter.
-    pub ne: Option<NotEqual<'a, DisplayName>>,
+    pub ne: Option<NotEqual<&'a DisplayName>>,
     /// In user display name filter.
-    pub r#in: Option<In<'a, DisplayName>>,
+    pub r#in: Option<In<&'a [DisplayName]>>,
     /// Not in user display name filter.
-    pub nin: Option<NotIn<'a, DisplayName>>,
+    pub nin: Option<NotIn<&'a [DisplayName]>>,
     /// Regex user display name filter.
-    pub regex: Option<Regex<'a>>,
+    pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for DisplayNameFilters<'_>

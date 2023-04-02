@@ -51,15 +51,15 @@ pub enum EmailError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct EmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<'a, Option<Email>>>,
+    pub eq: Option<Equal<&'a Option<Email>>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<'a, Option<Email>>>,
+    pub ne: Option<NotEqual<&'a Option<Email>>>,
     /// In user email filter.
-    pub r#in: Option<In<'a, Option<Email>>>,
+    pub r#in: Option<In<&'a [Option<Email>]>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<'a, Option<Email>>>,
+    pub nin: Option<NotIn<&'a [Option<Email>]>>,
     /// Regex user email filter.
-    pub regex: Option<Regex<'a>>,
+    pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for EmailFilters<'_>

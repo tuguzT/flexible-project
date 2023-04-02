@@ -1,8 +1,4 @@
-use std::{
-    borrow::{Borrow, Cow},
-    fmt::Debug,
-    ops::Range,
-};
+use std::{borrow::Borrow, ops::Range};
 
 use derive_more::From;
 
@@ -12,68 +8,32 @@ use super::Filter;
 ///
 /// Checks if input is bigger than (`>`) lower bound
 /// and less than (`<`) higher bound.
-#[derive(From)]
-#[from(forward)]
-pub struct Between<'a, T>
-where
-    T: PartialOrd + ToOwned,
-{
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+pub struct Between<T> {
     /// Lower bound of the range.
-    pub min: Cow<'a, T>,
+    pub min: T,
     /// Higher bound of the range.
-    pub max: Cow<'a, T>,
+    pub max: T,
 }
 
-impl<T> Clone for Between<'_, T>
-where
-    T: PartialOrd + ToOwned,
-{
-    fn clone(&self) -> Self {
-        let Self { min, max } = self;
-        Self {
-            min: min.clone(),
-            max: max.clone(),
-        }
-    }
-}
-
-impl<'a, T> Debug for Between<'a, T>
-where
-    T: PartialOrd + ToOwned + Debug,
-    <T as ToOwned>::Owned: Debug,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self { min, max } = self;
-        f.debug_struct("Between")
-            .field("min", min)
-            .field("max", max)
-            .finish()
-    }
-}
-
-impl<T, Input> Filter<Input> for Between<'_, T>
-where
-    T: PartialOrd + ToOwned,
-    Input: Borrow<T>,
-{
-    fn satisfies(&self, input: Input) -> bool {
-        let Self { min, max } = self;
-        let min: &T = min.borrow();
-        let max: &T = max.borrow();
-        let input = input.borrow();
-        min < input && input < max
-    }
-}
-
-impl<'a, T> From<Range<Cow<'a, T>>> for Between<'a, T>
-where
-    T: PartialOrd + ToOwned,
-{
-    fn from(range: Range<Cow<'a, T>>) -> Self {
+impl<T> From<Range<T>> for Between<T> {
+    fn from(range: Range<T>) -> Self {
         let Range { start, end } = range;
         Self {
             min: start,
             max: end,
         }
+    }
+}
+
+impl<T, Input> Filter<Input> for Between<T>
+where
+    T: PartialOrd,
+    Input: Borrow<T>,
+{
+    fn satisfies(&self, input: Input) -> bool {
+        let Self { min, max } = self;
+        let input = input.borrow();
+        min < input && input < max
     }
 }

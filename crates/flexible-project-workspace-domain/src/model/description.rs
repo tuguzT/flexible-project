@@ -33,15 +33,15 @@ impl Description {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct DescriptionFilters<'a> {
     /// Equality workspace description filter.
-    pub eq: Option<Equal<'a, Description>>,
+    pub eq: Option<Equal<&'a Description>>,
     /// Inequality workspace description filter.
-    pub ne: Option<NotEqual<'a, Description>>,
+    pub ne: Option<NotEqual<&'a Description>>,
     /// In workspace description filter.
-    pub r#in: Option<In<'a, Description>>,
+    pub r#in: Option<In<&'a [Description]>>,
     /// Not in workspace description filter.
-    pub nin: Option<NotIn<'a, Description>>,
+    pub nin: Option<NotIn<&'a [Description]>>,
     /// Regex workspace description filter.
-    pub regex: Option<Regex<'a>>,
+    pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for DescriptionFilters<'_>

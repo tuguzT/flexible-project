@@ -63,15 +63,15 @@ pub enum NameError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct NameFilters<'a> {
     /// Equality user name filter.
-    pub eq: Option<Equal<'a, Name>>,
+    pub eq: Option<Equal<&'a Name>>,
     /// Inequality user name filter.
-    pub ne: Option<NotEqual<'a, Name>>,
+    pub ne: Option<NotEqual<&'a Name>>,
     /// In user name filter.
-    pub r#in: Option<In<'a, Name>>,
+    pub r#in: Option<In<&'a [Name]>>,
     /// Not in user name filter.
-    pub nin: Option<NotIn<'a, Name>>,
+    pub nin: Option<NotIn<&'a [Name]>>,
     /// Regex user name filter.
-    pub regex: Option<Regex<'a>>,
+    pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for NameFilters<'_>

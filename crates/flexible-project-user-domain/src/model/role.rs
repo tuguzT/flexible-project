@@ -18,17 +18,17 @@ pub enum Role {
 }
 
 /// Filters for user role of the backend.
-#[derive(Debug, Clone, Default, TypedBuilder)]
+#[derive(Debug, Clone, Copy, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleFilters<'a> {
     /// Equality user role filter.
-    pub eq: Option<Equal<'a, Role>>,
+    pub eq: Option<Equal<&'a Role>>,
     /// Inequality user role filter.
-    pub ne: Option<NotEqual<'a, Role>>,
+    pub ne: Option<NotEqual<&'a Role>>,
     /// In user role filter.
-    pub r#in: Option<In<'a, Role>>,
+    pub r#in: Option<In<&'a [Role]>>,
     /// Not in user role filter.
-    pub nin: Option<NotIn<'a, Role>>,
+    pub nin: Option<NotIn<&'a [Role]>>,
 }
 
 impl<Input> Filter<Input> for RoleFilters<'_>

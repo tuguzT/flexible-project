@@ -49,15 +49,15 @@ pub enum RoleNameError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleNameFilters<'a> {
     /// Equality workspace role name filter.
-    pub eq: Option<Equal<'a, RoleName>>,
+    pub eq: Option<Equal<&'a RoleName>>,
     /// Inequality workspace role name filter.
-    pub ne: Option<NotEqual<'a, RoleName>>,
+    pub ne: Option<NotEqual<&'a RoleName>>,
     /// In workspace role name filter.
-    pub r#in: Option<In<'a, RoleName>>,
+    pub r#in: Option<In<&'a [RoleName]>>,
     /// Not in workspace role name filter.
-    pub nin: Option<NotIn<'a, RoleName>>,
+    pub nin: Option<NotIn<&'a [RoleName]>>,
     /// Regex workspace role name filter.
-    pub regex: Option<Regex<'a>>,
+    pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for RoleNameFilters<'_>

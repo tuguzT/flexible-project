@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, convert::identity};
+use std::convert::identity;
 
 use fp_user_domain::model::{
     DisplayName, DisplayNameFilters, Email, EmailFilters, Name, NameFilters, Role, RoleFilters,
@@ -57,7 +57,13 @@ impl IntoDocument for UserDataFilters<'_> {
 
 impl IntoDocument for UserIdFilters<'_> {
     fn into_document(self) -> Result<Document, LocalError> {
-        let Self { eq, ne, r#in, nin } = self;
+        let Self {
+            owner: _,
+            eq,
+            ne,
+            r#in,
+            nin,
+        } = self;
 
         fn ids_to_bson(ids: &[UserId]) -> impl Iterator<Item = Result<Bson, LocalError>> + '_ {
             ids.iter()
@@ -72,22 +78,22 @@ impl IntoDocument for UserIdFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let id = eq.0.into_owned();
+            let id = eq.0.clone();
             let id = LocalUserId::try_from(id)?;
             document.insert("$eq", to_bson(&id)?);
         }
         if let Some(ne) = ne {
-            let id = ne.0.into_owned();
+            let id = ne.0.clone();
             let id = LocalUserId::try_from(id)?;
             document.insert("$ne", to_bson(&id)?);
         }
         if let Some(r#in) = r#in {
-            let ids: &[_] = r#in.0.borrow();
+            let ids = r#in.0;
             let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", ids);
         }
         if let Some(nin) = nin {
-            let ids: &[_] = nin.0.borrow();
+            let ids = nin.0;
             let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", ids);
         }
@@ -107,25 +113,25 @@ impl IntoDocument for NameFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let name: &Name = eq.0.borrow();
+            let name = eq.0;
             document.insert("$eq", name.as_str());
         }
         if let Some(ne) = ne {
-            let name: &Name = ne.0.borrow();
+            let name = ne.0;
             document.insert("$ne", name.as_str());
         }
         if let Some(r#in) = r#in {
-            let ids: &[_] = r#in.0.borrow();
+            let ids = r#in.0;
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$in", ids);
         }
         if let Some(nin) = nin {
-            let ids: &[_] = nin.0.borrow();
+            let ids = nin.0;
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$nin", ids);
         }
         if let Some(regex) = regex {
-            let regex: &str = regex.0.borrow();
+            let regex = regex.0;
             document.insert("$regex", regex);
         }
         Ok(document)
@@ -144,25 +150,25 @@ impl IntoDocument for DisplayNameFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let name: &DisplayName = eq.0.borrow();
+            let name = eq.0;
             document.insert("$eq", name.as_str());
         }
         if let Some(ne) = ne {
-            let name: &DisplayName = ne.0.borrow();
+            let name = ne.0;
             document.insert("$ne", name.as_str());
         }
         if let Some(r#in) = r#in {
-            let ids: &[_] = r#in.0.borrow();
+            let ids = r#in.0;
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$in", ids);
         }
         if let Some(nin) = nin {
-            let ids: &[_] = nin.0.borrow();
+            let ids = nin.0;
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$nin", ids);
         }
         if let Some(regex) = regex {
-            let regex: &str = regex.0.borrow();
+            let regex = regex.0;
             document.insert("$regex", regex);
         }
         Ok(document)
@@ -183,22 +189,22 @@ impl IntoDocument for RoleFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let role = eq.0.into_owned();
+            let role = *eq.0;
             let role = LocalRole::from(role);
             document.insert("$eq", to_bson(&role)?);
         }
         if let Some(ne) = ne {
-            let role = ne.0.into_owned();
+            let role = *ne.0;
             let role = LocalRole::from(role);
             document.insert("$ne", to_bson(&role)?);
         }
         if let Some(r#in) = r#in {
-            let roles: &[_] = r#in.0.borrow();
+            let roles = r#in.0;
             let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", roles);
         }
         if let Some(nin) = nin {
-            let roles: &[_] = nin.0.borrow();
+            let roles = nin.0;
             let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", roles);
         }
@@ -218,15 +224,15 @@ impl IntoDocument for EmailFilters<'_> {
 
         let mut document = Document::new();
         if let Some(eq) = eq {
-            let email: &Option<Email> = eq.0.borrow();
+            let email = eq.0;
             document.insert("$eq", email.as_ref().map(Email::as_str));
         }
         if let Some(ne) = ne {
-            let email: &Option<Email> = ne.0.borrow();
+            let email = ne.0;
             document.insert("$ne", email.as_ref().map(Email::as_str));
         }
         if let Some(r#in) = r#in {
-            let emails: &[_] = r#in.0.borrow();
+            let emails = r#in.0;
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
@@ -234,7 +240,7 @@ impl IntoDocument for EmailFilters<'_> {
             document.insert("$in", emails);
         }
         if let Some(nin) = nin {
-            let emails: &[_] = nin.0.borrow();
+            let emails = nin.0;
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
@@ -242,7 +248,7 @@ impl IntoDocument for EmailFilters<'_> {
             document.insert("$nin", emails);
         }
         if let Some(regex) = regex {
-            let regex: &str = regex.0.borrow();
+            let regex = regex.0;
             document.insert("$regex", regex);
         }
         Ok(document)

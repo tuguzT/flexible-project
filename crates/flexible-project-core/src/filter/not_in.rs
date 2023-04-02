@@ -1,4 +1,4 @@
-use std::borrow::{Borrow, Cow};
+use std::borrow::Borrow;
 
 use derive_more::From;
 
@@ -7,20 +7,21 @@ use super::Filter;
 /// Not in filter of the backend.
 ///
 /// Checks if a set of values does not contain an input.
-#[derive(Debug, Clone, From)]
-#[from(forward)]
-pub struct NotIn<'a, T>(pub Cow<'a, [T]>)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+pub struct NotIn<T>(pub T)
 where
-    T: PartialEq + Clone;
+    T: IntoIterator;
 
-impl<T, Input> Filter<Input> for NotIn<'_, T>
+impl<T, Input, Item> Filter<Input> for NotIn<T>
 where
-    T: PartialEq + Clone,
-    Input: Borrow<T>,
+    T: IntoIterator<Item = Item> + Clone,
+    Input: Borrow<Item>,
+    Item: PartialEq,
 {
     fn satisfies(&self, input: Input) -> bool {
-        let Self(slice) = self;
+        let Self(value) = self;
+        let mut iter = value.clone().into_iter();
         let input = input.borrow();
-        !slice.contains(input)
+        iter.any(|item| &item == input)
     }
 }

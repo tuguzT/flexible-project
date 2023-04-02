@@ -1,6 +1,5 @@
 use std::{borrow::Borrow, pin::pin};
 
-use fp_core::filter::Borrowed;
 use futures::{StreamExt, TryStreamExt};
 
 use crate::{
@@ -18,7 +17,7 @@ where
 {
     let id = id.borrow();
     let filter = {
-        let id = UserIdFilters::builder().eq(id.borrowed()).build();
+        let id = UserIdFilters::builder().eq(id).build();
         UserFilters::builder().id(id).build()
     };
     let users = database.read(filter).await?;
@@ -38,7 +37,7 @@ where
 {
     let name = name.borrow();
     let filter = {
-        let name = NameFilters::builder().eq(name.borrowed()).build();
+        let name = NameFilters::builder().eq(name).build();
         let data = UserDataFilters::builder().name(name).build();
         UserFilters::builder().data(data).build()
     };
@@ -59,7 +58,7 @@ where
 {
     let email = email.borrow();
     let filter = {
-        let email = EmailFilters::builder().eq(email.borrowed()).build();
+        let email = EmailFilters::builder().eq(email).build();
         let data = UserDataFilters::builder().email(email).build();
         UserFilters::builder().data(data).build()
     };

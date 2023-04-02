@@ -23,9 +23,9 @@ pub enum RoleAccessLevel {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleAccessLevelFilters<'a> {
     /// Equality workspace role role access level filter.
-    pub eq: Option<Equal<'a, RoleAccessLevel>>,
+    pub eq: Option<Equal<&'a RoleAccessLevel>>,
     /// Inequality workspace role role access level filter.
-    pub ne: Option<NotEqual<'a, RoleAccessLevel>>,
+    pub ne: Option<NotEqual<&'a RoleAccessLevel>>,
 }
 
 impl<Input> Filter<Input> for RoleAccessLevelFilters<'_>
@@ -57,13 +57,13 @@ pub enum RoleUpdateOperation {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleUpdateOperationFilters<'a> {
     /// Equality workspace role update operation filter.
-    pub eq: Option<Equal<'a, RoleUpdateOperation>>,
+    pub eq: Option<Equal<&'a RoleUpdateOperation>>,
     /// Inequality workspace role update operation filter.
-    pub ne: Option<NotEqual<'a, RoleUpdateOperation>>,
+    pub ne: Option<NotEqual<&'a RoleUpdateOperation>>,
     /// In workspace role update operation filter.
-    pub r#in: Option<In<'a, RoleUpdateOperation>>,
+    pub r#in: Option<In<&'a [RoleUpdateOperation]>>,
     /// Not in workspace role update operation filter.
-    pub nin: Option<NotIn<'a, RoleUpdateOperation>>,
+    pub nin: Option<NotIn<&'a [RoleUpdateOperation]>>,
 }
 
 impl<Input> Filter<Input> for RoleUpdateOperationFilters<'_>
