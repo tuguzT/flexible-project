@@ -31,13 +31,11 @@ pub struct RoleFilters<'a> {
     pub nin: Option<NotIn<'a, Role>>,
 }
 
-impl Filter for RoleFilters<'_> {
-    type Input = Role;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for RoleFilters<'_>
+where
+    Input: Borrow<Role>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne, r#in, nin } = self;
         let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)

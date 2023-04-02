@@ -13,16 +13,12 @@ pub struct In<'a, T>(pub Cow<'a, [T]>)
 where
     T: PartialEq + Clone;
 
-impl<T> Filter for In<'_, T>
+impl<T, Input> Filter<Input> for In<'_, T>
 where
     T: PartialEq + Clone,
+    Input: Borrow<T>,
 {
-    type Input = T;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         let Self(slice) = self;
         let input = input.borrow();
         slice.contains(input)

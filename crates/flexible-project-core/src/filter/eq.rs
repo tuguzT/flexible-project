@@ -37,16 +37,12 @@ where
     }
 }
 
-impl<T> Filter for Equal<'_, T>
+impl<T, Input> Filter<Input> for Equal<'_, T>
 where
     T: PartialEq + ToOwned,
+    Input: Borrow<T>,
 {
-    type Input = T;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         let Self(value) = self;
         input.borrow() == value.borrow()
     }

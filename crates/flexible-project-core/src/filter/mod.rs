@@ -1,7 +1,5 @@
 //! Filter model of the backend.
 
-use std::borrow::Borrow;
-
 use auto_impl::auto_impl;
 
 pub use self::{
@@ -44,27 +42,17 @@ mod regex;
 
 /// Defines behavior of filters of the backend.
 #[auto_impl(&, Box, Rc, Arc)]
-pub trait Filter {
-    /// Type of input to be checked by filter.
-    type Input: ?Sized;
-
+pub trait Filter<Input> {
     /// Checks if input satisfies the filter.
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>;
+    fn satisfies(&self, input: Input) -> bool;
 }
 
 /// Input always satisfies the filter if filter is empty.
-impl<T> Filter for Option<T>
+impl<F, Input> Filter<Input> for Option<F>
 where
-    T: Filter,
+    F: Filter<Input>,
 {
-    type Input = T::Input;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         match self {
             Some(filter) => filter.satisfies(input),
             None => true,

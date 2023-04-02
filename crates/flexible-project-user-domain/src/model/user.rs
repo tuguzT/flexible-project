@@ -60,13 +60,11 @@ pub struct UserFilters<'a> {
     pub data: Option<UserDataFilters<'a>>,
 }
 
-impl Filter for UserFilters<'_> {
-    type Input = User;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for UserFilters<'_>
+where
+    Input: Borrow<User>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             id: id_filter,
             data: data_filter,
@@ -90,13 +88,11 @@ pub struct UserDataFilters<'a> {
     pub email: Option<EmailFilters<'a>>,
 }
 
-impl Filter for UserDataFilters<'_> {
-    type Input = UserData;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for UserDataFilters<'_>
+where
+    Input: Borrow<UserData>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             name: name_filter,
             display_name: display_name_filter,

@@ -64,13 +64,11 @@ pub struct WorkspaceFilters<'a> {
     pub data: Option<WorkspaceDataFilters<'a>>,
 }
 
-impl Filter for WorkspaceFilters<'_> {
-    type Input = Workspace;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for WorkspaceFilters<'_>
+where
+    Input: Borrow<Workspace>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             id: id_filter,
             data: data_filter,
@@ -93,13 +91,11 @@ pub struct WorkspaceDataFilters<'a> {
     // TODO role filters, member filters
 }
 
-impl Filter for WorkspaceDataFilters<'_> {
-    type Input = WorkspaceData;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for WorkspaceDataFilters<'_>
+where
+    Input: Borrow<WorkspaceData>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             name: name_filter,
             description: description_filter,

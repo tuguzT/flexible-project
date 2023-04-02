@@ -28,13 +28,11 @@ pub struct VisibilityFilters<'a> {
     pub nin: Option<NotIn<'a, Visibility>>,
 }
 
-impl Filter for VisibilityFilters<'_> {
-    type Input = Visibility;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for VisibilityFilters<'_>
+where
+    Input: Borrow<Visibility>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne, r#in, nin } = self;
         let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)

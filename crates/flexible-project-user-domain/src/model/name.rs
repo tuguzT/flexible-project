@@ -77,13 +77,11 @@ pub struct NameFilters<'a> {
     pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for NameFilters<'_> {
-    type Input = Name;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for NameFilters<'_>
+where
+    Input: Borrow<Name>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             eq,
             ne,

@@ -60,13 +60,11 @@ pub struct RoleNameFilters<'a> {
     pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for RoleNameFilters<'_> {
-    type Input = RoleName;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for RoleNameFilters<'_>
+where
+    Input: Borrow<RoleName>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             eq,
             ne,

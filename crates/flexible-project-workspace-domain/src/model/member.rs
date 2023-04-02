@@ -42,13 +42,11 @@ pub struct MemberFilters<'a> {
     pub role_name: Option<RoleNameFilters<'a>>,
 }
 
-impl Filter for MemberFilters<'_> {
-    type Input = Member;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for MemberFilters<'_>
+where
+    Input: Borrow<Member>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             user_id: user_id_filter,
             role_name: role_name_filter,

@@ -46,13 +46,11 @@ pub struct RoleFilters<'a> {
     pub access_level: Option<RoleAccessLevelFilters<'a>>,
 }
 
-impl Filter for RoleFilters<'_> {
-    type Input = Role;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for RoleFilters<'_>
+where
+    Input: Borrow<Role>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             name: name_filter,
             access_level: access_level_filter,

@@ -62,13 +62,11 @@ pub struct EmailFilters<'a> {
     pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for EmailFilters<'_> {
-    type Input = Option<Email>;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for EmailFilters<'_>
+where
+    Input: Borrow<Option<Email>>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             eq,
             ne,

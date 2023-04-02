@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use derive_more::From;
 
 use super::Filter;
@@ -7,21 +5,14 @@ use super::Filter;
 /// Negation filter of the backend.
 ///
 /// Checks if input does not satisfy the inner filter.
-#[derive(Debug, Clone, Copy, From)]
-pub struct Not<F>(pub F)
-where
-    F: Filter;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, From)]
+pub struct Not<F>(pub F);
 
-impl<F> Filter for Not<F>
+impl<F, Input> Filter<Input> for Not<F>
 where
-    F: Filter,
+    F: Filter<Input>,
 {
-    type Input = F::Input;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         let Self(filter) = self;
         !filter.satisfies(input)
     }

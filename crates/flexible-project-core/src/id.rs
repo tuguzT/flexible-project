@@ -151,13 +151,11 @@ pub struct IdFilters<'a, Owner: 'a> {
     pub nin: Option<NotIn<'a, Id<Owner>>>,
 }
 
-impl<Owner> Filter for IdFilters<'_, Owner> {
-    type Input = Id<Owner>;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Owner, Input> Filter<Input> for IdFilters<'_, Owner>
+where
+    Input: Borrow<Id<Owner>>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne, r#in, nin } = self;
         let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)

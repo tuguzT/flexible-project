@@ -51,16 +51,12 @@ where
     }
 }
 
-impl<T> Filter for NotBetweenEqual<'_, T>
+impl<T, Input> Filter<Input> for NotBetweenEqual<'_, T>
 where
     T: PartialOrd + ToOwned,
+    Input: Borrow<T>,
 {
-    type Input = T;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         let Self { min, max } = self;
         let min: &T = min.borrow();
         let max: &T = max.borrow();

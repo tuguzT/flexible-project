@@ -28,13 +28,11 @@ pub struct RoleAccessLevelFilters<'a> {
     pub ne: Option<NotEqual<'a, RoleAccessLevel>>,
 }
 
-impl Filter for RoleAccessLevelFilters<'_> {
-    type Input = RoleAccessLevel;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for RoleAccessLevelFilters<'_>
+where
+    Input: Borrow<RoleAccessLevel>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne } = self;
         let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input)
@@ -68,13 +66,11 @@ pub struct RoleUpdateOperationFilters<'a> {
     pub nin: Option<NotIn<'a, RoleUpdateOperation>>,
 }
 
-impl Filter for RoleUpdateOperationFilters<'_> {
-    type Input = RoleUpdateOperation;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for RoleUpdateOperationFilters<'_>
+where
+    Input: Borrow<RoleUpdateOperation>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne, r#in, nin } = self;
         let input = input.borrow();
         eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)

@@ -37,16 +37,12 @@ where
     }
 }
 
-impl<T> Filter for GreaterThan<'_, T>
+impl<T, Input> Filter<Input> for GreaterThan<'_, T>
 where
     T: PartialOrd + ToOwned,
+    Input: Borrow<T>,
 {
-    type Input = T;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+    fn satisfies(&self, input: Input) -> bool {
         let Self(value) = self;
         input.borrow() > value.borrow()
     }

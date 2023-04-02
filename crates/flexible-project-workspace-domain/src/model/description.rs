@@ -44,13 +44,11 @@ pub struct DescriptionFilters<'a> {
     pub regex: Option<Regex<'a>>,
 }
 
-impl Filter for DescriptionFilters<'_> {
-    type Input = Description;
-
-    fn satisfies<B>(&self, input: B) -> bool
-    where
-        B: Borrow<Self::Input>,
-    {
+impl<Input> Filter<Input> for DescriptionFilters<'_>
+where
+    Input: Borrow<Description>,
+{
+    fn satisfies(&self, input: Input) -> bool {
         let Self {
             eq,
             ne,
