@@ -4,7 +4,7 @@ use futures::{StreamExt, TryStreamExt};
 
 use crate::{
     model::{
-        Email, EmailFilters, Name, NameFilters, User, UserDataFilters, UserFilters, UserId,
+        Email, Name, NameFilters, OptionEmailFilters, User, UserDataFilters, UserFilters, UserId,
         UserIdFilters,
     },
     repository::UserDatabase,
@@ -58,7 +58,7 @@ where
 {
     let email = email.borrow();
     let filter = {
-        let email = EmailFilters::builder().eq(email).build();
+        let email = OptionEmailFilters::builder().eq(email).build();
         let data = UserDataFilters::builder().email(email).build();
         UserFilters::builder().data(data).build()
     };

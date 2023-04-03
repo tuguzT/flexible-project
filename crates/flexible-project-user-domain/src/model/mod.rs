@@ -6,7 +6,7 @@ pub use self::{
     id::{UserId, UserIdFilters},
     name::{Name, NameError, NameFilters},
     role::{Role, RoleFilters},
-    user::{User, UserData, UserDataFilters, UserFilters},
+    user::{OptionEmailFilters, User, UserData, UserDataFilters, UserFilters},
 };
 
 mod display_name;

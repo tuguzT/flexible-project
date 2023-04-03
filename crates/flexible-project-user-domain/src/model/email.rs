@@ -51,20 +51,20 @@ pub enum EmailError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct EmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<&'a Option<Email>>>,
+    pub eq: Option<Equal<&'a Email>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<&'a Option<Email>>>,
+    pub ne: Option<NotEqual<&'a Email>>,
     /// In user email filter.
-    pub r#in: Option<In<&'a [Option<Email>]>>,
+    pub r#in: Option<In<&'a [Email]>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<&'a [Option<Email>]>>,
+    pub nin: Option<NotIn<&'a [Email]>>,
     /// Regex user email filter.
     pub regex: Option<Regex<&'a str>>,
 }
 
 impl<Input> Filter<Input> for EmailFilters<'_>
 where
-    Input: Borrow<Option<Email>>,
+    Input: Borrow<Email>,
 {
     fn satisfies(&self, input: Input) -> bool {
         let Self {
@@ -79,10 +79,7 @@ where
             && ne.satisfies(input)
             && r#in.satisfies(input)
             && nin.satisfies(input)
-            && input
-                .as_ref()
-                .map(|input| regex.satisfies(input.as_str()))
-                .unwrap_or(true)
+            && regex.satisfies(input.as_str())
     }
 }
 

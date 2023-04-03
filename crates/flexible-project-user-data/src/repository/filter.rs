@@ -1,8 +1,8 @@
 use std::convert::identity;
 
 use fp_user_domain::model::{
-    DisplayName, DisplayNameFilters, Email, EmailFilters, Name, NameFilters, Role, RoleFilters,
-    UserDataFilters, UserFilters, UserId, UserIdFilters,
+    DisplayName, DisplayNameFilters, Email, Name, NameFilters, OptionEmailFilters, Role,
+    RoleFilters, UserDataFilters, UserFilters, UserId, UserIdFilters,
 };
 use mongodb::bson::{to_bson, Bson, Document};
 
@@ -212,7 +212,7 @@ impl IntoDocument for RoleFilters<'_> {
     }
 }
 
-impl IntoDocument for EmailFilters<'_> {
+impl IntoDocument for OptionEmailFilters<'_> {
     fn into_document(self) -> Result<Document, LocalError> {
         let Self {
             eq,
