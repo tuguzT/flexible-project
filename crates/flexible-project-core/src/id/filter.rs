@@ -1,12 +1,15 @@
-use std::{borrow::Borrow, marker::PhantomData};
+use std::{borrow::Borrow, fmt::Debug, marker::PhantomData};
 
 use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
-use super::model::Id;
+use super::model::{ErasedOwner, Id};
 
-/// Filters for identifiers of the backend.
-#[derive(Debug, TypedBuilder)]
+/// Filters for erased identifier of the backend.
+pub type ErasedIdFilters<'a> = IdFilters<'a, ErasedOwner>;
+
+/// Filters for identifier of the backend.
+#[derive(TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct IdFilters<'a, Owner: 'a> {
     /// Owner of the identifier.
@@ -39,6 +42,26 @@ where
     }
 }
 
+impl<Owner> Debug for IdFilters<'_, Owner> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("IdFilters")
+            .field("owner", &self.owner)
+            .field("eq", &self.eq)
+            .field("ne", &self.ne)
+            .field("r#in", &self.r#in)
+            .field("nin", &self.nin)
+            .finish()
+    }
+}
+
+impl<Owner> Clone for IdFilters<'_, Owner> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<Owner> Copy for IdFilters<'_, Owner> {}
+
 impl<Owner> Default for IdFilters<'_, Owner> {
     fn default() -> Self {
         Self {
@@ -50,11 +73,3 @@ impl<Owner> Default for IdFilters<'_, Owner> {
         }
     }
 }
-
-impl<Owner> Clone for IdFilters<'_, Owner> {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-
-impl<Owner> Copy for IdFilters<'_, Owner> {}

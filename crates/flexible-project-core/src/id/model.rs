@@ -1,10 +1,16 @@
 use std::{
+    borrow::Borrow,
     fmt::{Debug, Display},
     hash::Hash,
     marker::PhantomData,
+    ops::Deref,
 };
 
-use derive_more::Display;
+/// Erased (or unknown) owner of the identifier.
+pub enum ErasedOwner {}
+
+/// Type of identifier with erased (or unknown) owner.
+pub type ErasedId = Id<ErasedOwner>;
 
 /// Type of identifier which are used to identify objects of the owner type.
 pub struct Id<Owner> {
@@ -23,8 +29,7 @@ impl<Owner> Id<Owner> {
 
     /// Extracts a string slice from the entire identifier.
     pub fn as_str(&self) -> &str {
-        let Self { inner, .. } = self;
-        inner.as_str()
+        self
     }
 
     /// Converts an identifier into a [`String`].
@@ -43,6 +48,14 @@ impl<Owner> Id<Owner> {
     pub fn erase(self) -> ErasedId {
         let Self { inner, .. } = self;
         ErasedId::new(inner)
+    }
+}
+
+impl ErasedId {
+    /// Sets the owner type for an identifier, turning it into [`Id`].
+    pub fn with_owner<Owner>(self) -> Id<Owner> {
+        let Self { inner, .. } = self;
+        Id::new(inner)
     }
 }
 
@@ -101,32 +114,23 @@ impl<Owner> Display for Id<Owner> {
     }
 }
 
-/// Type of identifier with erased (unknown) owner.
-#[derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ErasedId(String);
+impl<Owner> Deref for Id<Owner> {
+    type Target = str;
 
-impl ErasedId {
-    /// Creates new erased identifier from the string.
-    pub fn new(id: impl Into<String>) -> Self {
-        let id = id.into();
-        Self(id)
+    fn deref(&self) -> &Self::Target {
+        let Self { inner, .. } = self;
+        inner
     }
+}
 
-    /// Extracts a string slice from the entire identifier.
-    pub fn as_str(&self) -> &str {
-        let Self(id) = self;
-        id.as_str()
+impl<Owner> AsRef<str> for Id<Owner> {
+    fn as_ref(&self) -> &str {
+        self
     }
+}
 
-    /// Converts an identifier into a [`String`].
-    pub fn into_inner(self) -> String {
-        let Self(id) = self;
-        id
-    }
-
-    /// Sets the owner type for an identifier, turning it into [`Id`].
-    pub fn with_owner<Owner>(self) -> Id<Owner> {
-        let Self(id) = self;
-        Id::new(id)
+impl<Owner> Borrow<str> for Id<Owner> {
+    fn borrow(&self) -> &str {
+        self
     }
 }

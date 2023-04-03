@@ -1,8 +1,8 @@
 //! Data model of identifier of the backend.
 
 pub use self::{
-    filter::IdFilters,
-    model::{ErasedId, Id},
+    filter::{ErasedIdFilters, IdFilters},
+    model::{ErasedId, ErasedOwner, Id},
 };
 
 mod filter;
