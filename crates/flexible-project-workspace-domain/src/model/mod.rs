@@ -10,7 +10,10 @@ pub use self::{
         RoleNameFilters, RoleUpdateOperation, RoleUpdateOperationFilters, RoleUpdateOperations,
     },
     visibility::{Visibility, VisibilityFilters},
-    workspace::{Workspace, WorkspaceData, WorkspaceDataFilters, WorkspaceFilters},
+    workspace::{
+        Members, MembersFilters, Roles, RolesFilters, Workspace, WorkspaceData,
+        WorkspaceDataFilters, WorkspaceFilters,
+    },
 };
 
 mod description;
