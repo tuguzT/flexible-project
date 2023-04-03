@@ -5,5 +5,5 @@
 #![forbid(unsafe_code)]
 
 pub mod model;
-
-// TODO use case, repository modules
+pub mod repository;
+pub mod use_case;
