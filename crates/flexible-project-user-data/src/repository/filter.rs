@@ -1,5 +1,6 @@
 use std::convert::identity;
 
+use fp_filter::{Equal, In, NotEqual, NotIn, Regex};
 use fp_user_domain::model::{
     DisplayName, DisplayNameFilters, Email, Name, NameFilters, OptionEmailFilters, Role,
     RoleFilters, UserDataFilters, UserFilters, UserId, UserIdFilters,
@@ -77,23 +78,21 @@ impl IntoDocument for UserIdFilters<'_> {
         }
 
         let mut document = Document::new();
-        if let Some(eq) = eq {
-            let id = eq.0.clone();
+        if let Some(Equal(id)) = eq {
+            let id = id.clone();
             let id = LocalUserId::try_from(id)?;
             document.insert("$eq", to_bson(&id)?);
         }
-        if let Some(ne) = ne {
-            let id = ne.0.clone();
+        if let Some(NotEqual(id)) = ne {
+            let id = id.clone();
             let id = LocalUserId::try_from(id)?;
             document.insert("$ne", to_bson(&id)?);
         }
-        if let Some(r#in) = r#in {
-            let ids = r#in.0;
+        if let Some(In(ids)) = r#in {
             let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", ids);
         }
-        if let Some(nin) = nin {
-            let ids = nin.0;
+        if let Some(NotIn(ids)) = nin {
             let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", ids);
         }
@@ -112,26 +111,21 @@ impl IntoDocument for NameFilters<'_> {
         } = self;
 
         let mut document = Document::new();
-        if let Some(eq) = eq {
-            let name = eq.0;
+        if let Some(Equal(name)) = eq {
             document.insert("$eq", name.as_str());
         }
-        if let Some(ne) = ne {
-            let name = ne.0;
+        if let Some(NotEqual(name)) = ne {
             document.insert("$ne", name.as_str());
         }
-        if let Some(r#in) = r#in {
-            let ids = r#in.0;
+        if let Some(In(ids)) = r#in {
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$in", ids);
         }
-        if let Some(nin) = nin {
-            let ids = nin.0;
+        if let Some(NotIn(ids)) = nin {
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$nin", ids);
         }
-        if let Some(regex) = regex {
-            let regex = regex.0;
+        if let Some(Regex(regex)) = regex {
             document.insert("$regex", regex);
         }
         Ok(document)
@@ -149,26 +143,21 @@ impl IntoDocument for DisplayNameFilters<'_> {
         } = self;
 
         let mut document = Document::new();
-        if let Some(eq) = eq {
-            let name = eq.0;
+        if let Some(Equal(name)) = eq {
             document.insert("$eq", name.as_str());
         }
-        if let Some(ne) = ne {
-            let name = ne.0;
+        if let Some(NotEqual(name)) = ne {
             document.insert("$ne", name.as_str());
         }
-        if let Some(r#in) = r#in {
-            let ids = r#in.0;
+        if let Some(In(ids)) = r#in {
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$in", ids);
         }
-        if let Some(nin) = nin {
-            let ids = nin.0;
+        if let Some(NotIn(ids)) = nin {
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$nin", ids);
         }
-        if let Some(regex) = regex {
-            let regex = regex.0;
+        if let Some(Regex(regex)) = regex {
             document.insert("$regex", regex);
         }
         Ok(document)
@@ -188,23 +177,19 @@ impl IntoDocument for RoleFilters<'_> {
         }
 
         let mut document = Document::new();
-        if let Some(eq) = eq {
-            let role = *eq.0;
+        if let Some(Equal(&role)) = eq {
             let role = LocalRole::from(role);
             document.insert("$eq", to_bson(&role)?);
         }
-        if let Some(ne) = ne {
-            let role = *ne.0;
+        if let Some(NotEqual(&role)) = ne {
             let role = LocalRole::from(role);
             document.insert("$ne", to_bson(&role)?);
         }
-        if let Some(r#in) = r#in {
-            let roles = r#in.0;
+        if let Some(In(roles)) = r#in {
             let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", roles);
         }
-        if let Some(nin) = nin {
-            let roles = nin.0;
+        if let Some(NotIn(roles)) = nin {
             let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", roles);
         }
@@ -223,32 +208,27 @@ impl IntoDocument for OptionEmailFilters<'_> {
         } = self;
 
         let mut document = Document::new();
-        if let Some(eq) = eq {
-            let email = eq.0;
+        if let Some(Equal(email)) = eq {
             document.insert("$eq", email.as_ref().map(Email::as_str));
         }
-        if let Some(ne) = ne {
-            let email = ne.0;
+        if let Some(NotEqual(email)) = ne {
             document.insert("$ne", email.as_ref().map(Email::as_str));
         }
-        if let Some(r#in) = r#in {
-            let emails = r#in.0;
+        if let Some(In(emails)) = r#in {
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
                 .collect();
             document.insert("$in", emails);
         }
-        if let Some(nin) = nin {
-            let emails = nin.0;
+        if let Some(NotIn(emails)) = nin {
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
                 .collect();
             document.insert("$nin", emails);
         }
-        if let Some(regex) = regex {
-            let regex = regex.0;
+        if let Some(Regex(regex)) = regex {
             document.insert("$regex", regex);
         }
         Ok(document)

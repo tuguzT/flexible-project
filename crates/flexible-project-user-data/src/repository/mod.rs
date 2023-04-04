@@ -1,7 +1,7 @@
 //! Implementation of local user repository.
 
 pub use self::{
-    id::LocalIdGenerator,
+    id::LocalGenerateUserId,
     user::{LocalError, LocalUserDatabase, LocalUsers},
 };
 

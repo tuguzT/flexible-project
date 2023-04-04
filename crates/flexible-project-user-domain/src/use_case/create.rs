@@ -2,7 +2,7 @@ use derive_more::{Display, Error};
 
 use crate::{
     model::{User, UserData},
-    repository::{IdGenerator, UserDatabase},
+    repository::{GenerateUserId, UserDatabase},
 };
 
 use super::find_one::{find_one_by_email, find_one_by_name};
@@ -28,7 +28,7 @@ pub enum CreateUserError<DbError, IdGenError> {
 pub struct CreateUser<Db, IdGen>
 where
     Db: UserDatabase,
-    IdGen: IdGenerator,
+    IdGen: GenerateUserId,
 {
     database: Db,
     id_generator: IdGen,
@@ -37,7 +37,7 @@ where
 impl<Db, IdGen> CreateUser<Db, IdGen>
 where
     Db: UserDatabase,
-    IdGen: IdGenerator,
+    IdGen: GenerateUserId,
 {
     /// Creates new create user interactor.
     pub fn new(database: Db, id_generator: IdGen) -> Self {

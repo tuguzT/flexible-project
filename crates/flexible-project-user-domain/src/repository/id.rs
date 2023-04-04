@@ -1,13 +1,7 @@
-use auto_impl::auto_impl;
+use fp_core::id::GenerateId;
 
-use crate::model::UserId;
+use crate::model::User;
 
 /// Generator of unique user identifiers.
-#[auto_impl(&, Box, Rc, Arc)]
-pub trait IdGenerator {
-    /// Type of error which is returned when a repository fails to generate new identifier.
-    type Error;
-
-    /// Generates unique user identifier.
-    fn generate_id(&self) -> Result<UserId, Self::Error>;
-}
+pub trait GenerateUserId: GenerateId<User> {}
+impl<T> GenerateUserId for T where T: GenerateId<User> + ?Sized {}

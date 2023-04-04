@@ -38,8 +38,8 @@ impl<Owner> Id<Owner> {
         inner
     }
 
-    /// Changes the owner of an identifier explicitly.
-    pub fn change_owner<Other>(self) -> Id<Other> {
+    /// Sets the owner type for an identifier explicitly.
+    pub fn with_owner<Other>(self) -> Id<Other> {
         let Self { inner, .. } = self;
         Id::new(inner)
     }
@@ -48,14 +48,6 @@ impl<Owner> Id<Owner> {
     pub fn erase(self) -> ErasedId {
         let Self { inner, .. } = self;
         ErasedId::new(inner)
-    }
-}
-
-impl ErasedId {
-    /// Sets the owner type for an identifier, turning it into [`Id`].
-    pub fn with_owner<Owner>(self) -> Id<Owner> {
-        let Self { inner, .. } = self;
-        Id::new(inner)
     }
 }
 
