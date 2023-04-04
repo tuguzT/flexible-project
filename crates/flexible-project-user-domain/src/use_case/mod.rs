@@ -4,13 +4,7 @@ pub use self::{
     create::{CreateUser, CreateUserError},
     delete::{DeleteUser, DeleteUserError},
     read::FilterUsers,
-    update::{
-        display_name::{UpdateDisplayName, UpdateDisplayNameError},
-        email::{UpdateEmail, UpdateEmailError},
-        name::{UpdateName, UpdateNameError},
-        role::{UpdateRole, UpdateRoleError},
-        user::{UpdateUser, UpdateUserError},
-    },
+    update::*,
 };
 
 mod create;

@@ -1,5 +1,11 @@
-pub mod display_name;
-pub mod email;
-pub mod name;
-pub mod role;
-pub mod user;
+pub use self::{
+    display_name::{UpdateDisplayName, UpdateDisplayNameError},
+    email::{UpdateEmail, UpdateEmailError},
+    name::{UpdateName, UpdateNameError},
+    user::{UpdateUser, UpdateUserError},
+};
+
+mod display_name;
+mod email;
+mod name;
+mod user;

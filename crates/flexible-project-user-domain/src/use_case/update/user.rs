@@ -1,7 +1,7 @@
 use derive_more::{Display, Error, From};
 
 use crate::{
-    model::{Email, Name, User, UserData, UserId},
+    model::{DisplayName, Email, Name, User, UserData, UserId},
     repository::UserDatabase,
     use_case::find_one::{find_one_by_email, find_one_by_id, find_one_by_name},
 };
@@ -43,37 +43,45 @@ where
         Self { database }
     }
 
-    /// Updates user by its identifier with provided data.
+    /// Updates user by its identifier with provided name, display name and email.
     pub async fn update_user(
         &self,
         id: UserId,
-        data: UserData,
+        name: Option<Name>,
+        display_name: Option<DisplayName>,
+        email: Option<Option<Email>>,
     ) -> Result<User, UpdateUserError<Database::Error>> {
         let Self { database } = self;
 
-        let UserData { ref name, .. } = data;
-        let user_by_name = find_one_by_name(database, name).await?;
-        if let Some(user_by_name) = user_by_name {
-            let User { data, .. } = user_by_name;
-            let UserData { name, .. } = data;
-            return Err(UpdateUserError::NameAlreadyTaken(name));
-        }
-
-        let UserData { ref email, .. } = data;
-        if email.is_some() {
-            let user_by_email = find_one_by_email(database, email).await?;
-            if let Some(user_by_email) = user_by_email {
-                let User { data, .. } = user_by_email;
-                let UserData { email, .. } = data;
-                let email = email.expect("user was found by email which is `Some`");
-                return Err(UpdateUserError::EmailAlreadyTaken(email));
-            }
-        }
-
-        let User { id, .. } = {
+        let User { id, mut data } = {
             let user_by_id = find_one_by_id(database, &id).await?;
             user_by_id.ok_or_else(|| UpdateUserError::NoUser(id))?
         };
+        if let Some(name) = name {
+            let user_by_name = find_one_by_name(database, &name).await?;
+            if let Some(user_by_name) = user_by_name {
+                let User { data, .. } = user_by_name;
+                let UserData { name, .. } = data;
+                return Err(UpdateUserError::NameAlreadyTaken(name));
+            }
+            data.name = name;
+        }
+        if let Some(display_name) = display_name {
+            data.display_name = display_name;
+        }
+        if let Some(email) = email {
+            if email.is_some() {
+                let user_by_email = find_one_by_email(database, &email).await?;
+                if let Some(user_by_email) = user_by_email {
+                    let User { data, .. } = user_by_email;
+                    let UserData { email, .. } = data;
+                    let email = email.expect("user was found by email which is `Some`");
+                    return Err(UpdateUserError::EmailAlreadyTaken(email));
+                }
+            }
+            data.email = email;
+        }
+
         let user = database.update(id, data).await?;
         Ok(user)
     }
