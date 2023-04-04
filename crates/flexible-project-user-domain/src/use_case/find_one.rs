@@ -10,10 +10,13 @@ use crate::{
     repository::UserDatabase,
 };
 
-pub async fn find_one_by_id<Id, Db>(database: &Db, id: Id) -> Result<Option<User>, Db::Error>
+pub async fn find_one_by_id<Id, Database>(
+    database: Database,
+    id: Id,
+) -> Result<Option<User>, Database::Error>
 where
     Id: Borrow<UserId>,
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     let id = id.borrow();
     let filter = {
@@ -30,10 +33,13 @@ where
     Ok(user)
 }
 
-pub async fn find_one_by_name<N, Db>(database: &Db, name: N) -> Result<Option<User>, Db::Error>
+pub async fn find_one_by_name<N, Database>(
+    database: Database,
+    name: N,
+) -> Result<Option<User>, Database::Error>
 where
     N: Borrow<Name>,
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     let name = name.borrow();
     let filter = {
@@ -51,10 +57,13 @@ where
     Ok(user)
 }
 
-pub async fn find_one_by_email<E, Db>(database: &Db, email: E) -> Result<Option<User>, Db::Error>
+pub async fn find_one_by_email<E, Database>(
+    database: Database,
+    email: E,
+) -> Result<Option<User>, Database::Error>
 where
     E: Borrow<Option<Email>>,
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     let email = email.borrow();
     let filter = {

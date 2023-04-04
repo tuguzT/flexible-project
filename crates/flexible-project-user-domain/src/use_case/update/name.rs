@@ -10,30 +10,32 @@ use crate::{
 #[derive(Debug, Display, From, Error)]
 pub enum UpdateNameError<Error> {
     /// No user was found by provided identifier.
-    #[display(fmt = "no user exists by identifier")]
-    NoUser,
+    #[display(fmt = r#"no user exists by identifier "{}""#, _0)]
+    #[from(ignore)]
+    NoUser(#[error(not(source))] UserId),
     /// User with provided name already exists.
-    #[display(fmt = "user name is already taken")]
-    AlreadyTaken,
+    #[display(fmt = r#"user name "{}" is already taken"#, _0)]
+    #[from(ignore)]
+    AlreadyTaken(#[error(not(source))] Name),
     /// Database error.
     #[display(fmt = "database error: {}", _0)]
     Database(Error),
 }
 
 /// Update name interactor.
-pub struct UpdateName<Db>
+pub struct UpdateName<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
-    database: Db,
+    database: Database,
 }
 
-impl<Db> UpdateName<Db>
+impl<Database> UpdateName<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     /// Creates new update name interactor.
-    pub fn new(database: Db) -> Self {
+    pub fn new(database: Database) -> Self {
         Self { database }
     }
 
@@ -42,20 +44,19 @@ where
         &self,
         id: UserId,
         name: Name,
-    ) -> Result<User, UpdateNameError<Db::Error>> {
+    ) -> Result<User, UpdateNameError<Database::Error>> {
         let Self { database } = self;
 
-        let is_name_unique = {
-            let user_by_name = find_one_by_name(database, &name).await?;
-            user_by_name.is_none()
-        };
-        if !is_name_unique {
-            return Err(UpdateNameError::AlreadyTaken);
+        let user_by_name = find_one_by_name(database, &name).await?;
+        if let Some(user_by_name) = user_by_name {
+            let User { data, .. } = user_by_name;
+            let UserData { name, .. } = data;
+            return Err(UpdateNameError::AlreadyTaken(name));
         }
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, id).await?;
-            user_by_id.ok_or(UpdateNameError::NoUser)?
+            let user_by_id = find_one_by_id(database, &id).await?;
+            user_by_id.ok_or_else(|| UpdateNameError::NoUser(id))?
         };
         let data = UserData { name, ..data };
         let user = database.update(id, data).await?;

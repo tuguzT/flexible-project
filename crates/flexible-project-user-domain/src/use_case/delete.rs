@@ -11,33 +11,33 @@ use super::find_one::find_one_by_id;
 #[derive(Debug, Display, From, Error)]
 pub enum DeleteUserError<Error> {
     /// No user was found by provided identifier.
-    #[display(fmt = "no user exists by identifier")]
+    #[display(fmt = r#"no user exists by identifier "{}""#, _0)]
     #[from(ignore)]
-    NoUser,
+    NoUser(#[error(not(source))] UserId),
     /// Database error.
     #[display(fmt = "database error: {}", _0)]
     Database(Error),
 }
 
 /// Delete user interactor.
-pub struct DeleteUser<Db>
+pub struct DeleteUser<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
-    database: Db,
+    database: Database,
 }
 
-impl<Db> DeleteUser<Db>
+impl<Database> DeleteUser<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     /// Creates new delete user interactor.
-    pub fn new(database: Db) -> Self {
+    pub fn new(database: Database) -> Self {
         Self { database }
     }
 
     /// Deletes user by provided identifier.
-    pub async fn delete_user(&self, id: UserId) -> Result<User, DeleteUserError<Db::Error>> {
+    pub async fn delete_user(&self, id: UserId) -> Result<User, DeleteUserError<Database::Error>> {
         let Self { database } = self;
 
         let id_exists = {
@@ -45,7 +45,7 @@ where
             user_by_id.is_some()
         };
         if !id_exists {
-            return Err(DeleteUserError::NoUser);
+            return Err(DeleteUserError::NoUser(id));
         }
 
         let user = database.delete(id).await?;

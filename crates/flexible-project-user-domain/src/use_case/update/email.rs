@@ -10,30 +10,32 @@ use crate::{
 #[derive(Debug, Display, From, Error)]
 pub enum UpdateEmailError<Error> {
     /// No user was found by provided identifier.
-    #[display(fmt = "no user exists by identifier")]
-    NoUser,
+    #[display(fmt = r#"no user exists by identifier "{}""#, _0)]
+    #[from(ignore)]
+    NoUser(#[error(not(source))] UserId),
     /// User with provided email already exists.
-    #[display(fmt = "user email is already taken")]
-    AlreadyTaken,
+    #[display(fmt = r#"user email "{}" is already taken"#, _0)]
+    #[from(ignore)]
+    AlreadyTaken(#[error(not(source))] Email),
     /// Database error.
     #[display(fmt = "database error: {}", _0)]
     Database(Error),
 }
 
 /// Update email interactor.
-pub struct UpdateEmail<Db>
+pub struct UpdateEmail<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
-    database: Db,
+    database: Database,
 }
 
-impl<Db> UpdateEmail<Db>
+impl<Database> UpdateEmail<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     /// Creates new update email interactor.
-    pub fn new(database: Db) -> Self {
+    pub fn new(database: Database) -> Self {
         Self { database }
     }
 
@@ -42,22 +44,22 @@ where
         &self,
         id: UserId,
         email: Option<Email>,
-    ) -> Result<User, UpdateEmailError<Db::Error>> {
+    ) -> Result<User, UpdateEmailError<Database::Error>> {
         let Self { database } = self;
 
         if email.is_some() {
-            let is_email_unique = {
-                let user_by_email = find_one_by_email(database, &email).await?;
-                user_by_email.is_none()
-            };
-            if !is_email_unique {
-                return Err(UpdateEmailError::AlreadyTaken);
+            let user_by_email = find_one_by_email(database, &email).await?;
+            if let Some(user_by_email) = user_by_email {
+                let User { data, .. } = user_by_email;
+                let UserData { email, .. } = data;
+                let email = email.expect("user was found by email which is `Some`");
+                return Err(UpdateEmailError::AlreadyTaken(email));
             }
         }
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, id).await?;
-            user_by_id.ok_or(UpdateEmailError::NoUser)?
+            let user_by_id = find_one_by_id(database, &id).await?;
+            user_by_id.ok_or_else(|| UpdateEmailError::NoUser(id))?
         };
         let data = UserData { email, ..data };
         let user = database.update(id, data).await?;

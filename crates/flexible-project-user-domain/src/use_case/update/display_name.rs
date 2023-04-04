@@ -10,28 +10,28 @@ use crate::{
 #[derive(Debug, Display, From, Error)]
 pub enum UpdateDisplayNameError<Error> {
     /// No user was found by provided identifier.
-    #[display(fmt = "no user exists by identifier")]
+    #[display(fmt = r#"no user exists by identifier "{}""#, _0)]
     #[from(ignore)]
-    NoUser,
+    NoUser(#[error(not(source))] UserId),
     /// Database error.
     #[display(fmt = "database error: {}", _0)]
     Database(Error),
 }
 
 /// Update display name interactor.
-pub struct UpdateDisplayName<Db>
+pub struct UpdateDisplayName<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
-    database: Db,
+    database: Database,
 }
 
-impl<Db> UpdateDisplayName<Db>
+impl<Database> UpdateDisplayName<Database>
 where
-    Db: UserDatabase,
+    Database: UserDatabase,
 {
     /// Creates new update display name interactor.
-    pub fn new(database: Db) -> Self {
+    pub fn new(database: Database) -> Self {
         Self { database }
     }
 
@@ -40,12 +40,12 @@ where
         &self,
         id: UserId,
         display_name: DisplayName,
-    ) -> Result<User, UpdateDisplayNameError<Db::Error>> {
+    ) -> Result<User, UpdateDisplayNameError<Database::Error>> {
         let Self { database } = self;
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, id).await?;
-            user_by_id.ok_or(UpdateDisplayNameError::NoUser)?
+            let user_by_id = find_one_by_id(database, &id).await?;
+            user_by_id.ok_or_else(|| UpdateDisplayNameError::NoUser(id))?
         };
         let data = UserData {
             display_name,

@@ -1,90 +1,81 @@
 use derive_more::{Display, Error};
 
 use crate::{
-    model::{User, UserData},
+    model::{DisplayName, Name, Role, User, UserData},
     repository::{GenerateUserId, UserDatabase},
 };
 
-use super::find_one::{find_one_by_email, find_one_by_name};
+use super::find_one::find_one_by_name;
 
 /// Error type of create user use case.
 #[derive(Debug, Display, Error)]
-pub enum CreateUserError<DbError, IdGenError> {
-    /// Identifier generation error.
-    #[display(fmt = "identifier generation error: {}", _0)]
-    IdGeneration(IdGenError),
+pub enum CreateUserError<DatabaseError, GenerateIdError> {
     /// User with provided name already exists.
-    #[display(fmt = "user name is already taken")]
-    NameAlreadyTaken,
-    /// User with provided email already exists.
-    #[display(fmt = "user email is already taken")]
-    EmailAlreadyTaken,
+    #[display(fmt = r#"user name "{}" is already taken"#, _0)]
+    NameAlreadyTaken(#[error(not(source))] Name),
     /// Database error.
     #[display(fmt = "database error: {}", _0)]
-    Database(DbError),
+    Database(DatabaseError),
+    /// Identifier generation error.
+    #[display(fmt = "identifier generation error: {}", _0)]
+    GenerateId(GenerateIdError),
 }
 
 /// Create user interactor.
-pub struct CreateUser<Db, IdGen>
+pub struct CreateUser<Database, GenerateId>
 where
-    Db: UserDatabase,
-    IdGen: GenerateUserId,
+    Database: UserDatabase,
+    GenerateId: GenerateUserId,
 {
-    database: Db,
-    id_generator: IdGen,
+    database: Database,
+    generate_id: GenerateId,
 }
 
-impl<Db, IdGen> CreateUser<Db, IdGen>
+impl<Database, GenerateId> CreateUser<Database, GenerateId>
 where
-    Db: UserDatabase,
-    IdGen: GenerateUserId,
+    Database: UserDatabase,
+    GenerateId: GenerateUserId,
 {
     /// Creates new create user interactor.
-    pub fn new(database: Db, id_generator: IdGen) -> Self {
+    pub fn new(database: Database, generate_id: GenerateId) -> Self {
         Self {
             database,
-            id_generator,
+            generate_id,
         }
     }
 
-    /// Creates new user from provided identifier and user data.
+    /// Creates new user from provided unique user name.
     pub async fn create_user(
         &self,
-        data: UserData,
-    ) -> Result<User, CreateUserError<Db::Error, IdGen::Error>> {
+        name: Name,
+    ) -> Result<User, CreateUserError<Database::Error, GenerateId::Error>> {
         let Self {
             database,
-            id_generator,
+            generate_id,
         } = self;
 
-        let id = id_generator
+        let id = generate_id
             .generate_id()
-            .map_err(CreateUserError::IdGeneration)?;
+            .map_err(CreateUserError::GenerateId)?;
 
-        let UserData { ref name, .. } = data;
         let is_name_unique = {
-            let user_by_name = find_one_by_name(database, name)
+            let user_by_name = find_one_by_name(database, &name)
                 .await
                 .map_err(CreateUserError::Database)?;
             user_by_name.is_none()
         };
         if !is_name_unique {
-            return Err(CreateUserError::NameAlreadyTaken);
+            return Err(CreateUserError::NameAlreadyTaken(name));
         }
 
-        let UserData { ref email, .. } = data;
-        if email.is_some() {
-            let is_email_unique = {
-                let user_by_email = find_one_by_email(database, email)
-                    .await
-                    .map_err(CreateUserError::Database)?;
-                user_by_email.is_none()
-            };
-            if !is_email_unique {
-                return Err(CreateUserError::EmailAlreadyTaken);
-            }
-        }
-
+        let display_name = DisplayName::new(name.as_str())
+            .expect("provided name should match display name requirements");
+        let data = UserData {
+            display_name,
+            name,
+            role: Role::User,
+            email: None,
+        };
         let user = database
             .create(id, data)
             .await
