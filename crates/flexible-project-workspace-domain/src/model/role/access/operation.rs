@@ -1,10 +1,9 @@
 use std::borrow::Borrow;
 
-use fp_core::id::ErasedId;
 use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
-use crate::model::{MemberId, RoleName};
+use crate::model::{MemberId, ProjectId, RoleName};
 
 use super::RoleUpdateOperationScope as Scope;
 
@@ -17,8 +16,7 @@ pub enum RoleUpdateOperation {
     /// Member can create new project in the workspace.
     CreateProject,
     /// Member can delete existing project of the workspace.
-    // FIXME maybe change to ProjectId, but it is not defined yet
-    DeleteProject(Scope<ErasedId>),
+    DeleteProject(Scope<ProjectId>),
     /// Member can add another user (as a new member) into the workspace.
     AddMember,
     /// Member can remove another member from the workspace.

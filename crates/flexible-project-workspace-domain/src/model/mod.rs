@@ -5,6 +5,7 @@ pub use self::{
     id::{WorkspaceId, WorkspaceIdFilters},
     member::*,
     name::{Name, NameError, NameFilters},
+    project::{ProjectId, ProjectIdFilters},
     role::*,
     visibility::{Visibility, VisibilityFilters},
     workspace::{
@@ -17,6 +18,7 @@ mod description;
 mod id;
 mod member;
 mod name;
+mod project;
 mod role;
 mod visibility;
 mod workspace;

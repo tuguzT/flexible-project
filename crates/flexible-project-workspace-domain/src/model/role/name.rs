@@ -1,15 +1,16 @@
 use std::borrow::Borrow;
 
 use derive_more::{Display, Error};
+use fancy_regex::Regex as FancyRegex;
 use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
-use fp_user_domain::model::Name as UserName;
+use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
 /// Name of workspace role with strong requirements about its content.
 ///
 /// This requirements are the same as for user names.
 #[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub struct RoleName(UserName);
+pub struct RoleName(String);
 
 impl RoleName {
     /// Creates new workspace role name from input string.
@@ -19,7 +20,18 @@ impl RoleName {
     /// This function will return an error
     /// if input string does not match workspace role name requirements.
     pub fn new(name: impl Into<String>) -> Result<Self, RoleNameError> {
-        let name = UserName::new(name).map_err(|_| RoleNameError::Invalid)?;
+        static REGEX: Lazy<FancyRegex> = Lazy::new(|| {
+            FancyRegex::new(r"^(?=.{4,32}$)(?![-_.])(?!.*[-_.]{2})[a-zA-Z\d\-_.]+(?<![-_.])$")
+                .expect("regex pattern should be parsed")
+        });
+
+        let name = name.into();
+        let is_valid = REGEX
+            .is_match(&name)
+            .expect("input name matching should be successful");
+        if !is_valid {
+            return Err(RoleNameError::Invalid);
+        }
         Ok(Self(name))
     }
 
@@ -32,7 +44,7 @@ impl RoleName {
     /// Converts workspace role name into a string.
     pub fn into_inner(self) -> String {
         let Self(name) = self;
-        name.into_inner()
+        name
     }
 }
 
