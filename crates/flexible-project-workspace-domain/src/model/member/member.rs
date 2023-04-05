@@ -1,26 +1,30 @@
+#![allow(clippy::module_inception)]
+
 use std::{
     borrow::Borrow,
     hash::{Hash, Hasher},
 };
 
 use fp_filter::Filter;
-use fp_user_domain::model::{UserId, UserIdFilters};
 use typed_builder::TypedBuilder;
 
-use super::{role::RoleName, RoleNameFilters};
+use super::{
+    super::role::{RoleName, RoleNameFilters},
+    MemberId, MemberIdFilters,
+};
 
 /// Member of the workspace in the system.
 #[derive(Debug, Clone)]
 pub struct Member {
-    /// Identifier of the user which is a member of the workspace.
-    pub user_id: UserId,
+    /// Identifier of member of the workspace.
+    pub id: MemberId,
     /// Name of role of the workspace.
     pub role_name: RoleName,
 }
 
 impl PartialEq for Member {
     fn eq(&self, other: &Self) -> bool {
-        self.user_id == other.user_id
+        self.id == other.id
     }
 }
 
@@ -28,7 +32,7 @@ impl Eq for Member {}
 
 impl Hash for Member {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.user_id.hash(state);
+        self.id.hash(state);
     }
 }
 
@@ -36,8 +40,8 @@ impl Hash for Member {
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct MemberFilters<'a> {
-    /// Member user identifier filters.
-    pub user_id: Option<UserIdFilters<'a>>,
+    /// Member identifier filters.
+    pub id: Option<MemberIdFilters<'a>>,
     /// Member role name filters.
     pub role_name: Option<RoleNameFilters<'a>>,
 }
@@ -48,10 +52,10 @@ where
 {
     fn satisfies(&self, input: Input) -> bool {
         let Self {
-            user_id: user_id_filter,
+            id: id_filter,
             role_name: role_name_filter,
         } = self;
-        let Member { user_id, role_name } = input.borrow();
-        user_id_filter.satisfies(user_id) && role_name_filter.satisfies(role_name)
+        let Member { id, role_name } = input.borrow();
+        id_filter.satisfies(id) && role_name_filter.satisfies(role_name)
     }
 }

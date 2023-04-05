@@ -3,12 +3,9 @@
 pub use self::{
     description::{Description, DescriptionFilters},
     id::{WorkspaceId, WorkspaceIdFilters},
-    member::{Member, MemberFilters},
+    member::*,
     name::{Name, NameError, NameFilters},
-    role::{
-        Role, RoleAccessLevel, RoleAccessLevelFilters, RoleFilters, RoleName, RoleNameError,
-        RoleNameFilters, RoleUpdateOperation, RoleUpdateOperationFilters, RoleUpdateOperations,
-    },
+    role::*,
     visibility::{Visibility, VisibilityFilters},
     workspace::{
         Members, MembersFilters, Roles, RolesFilters, Workspace, WorkspaceData,
