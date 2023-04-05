@@ -46,7 +46,7 @@ where
     /// Updates user by its identifier with provided name, display name and email.
     pub async fn update_user(
         &self,
-        id: UserId,
+        current_id: UserId,
         name: Option<Name>,
         display_name: Option<DisplayName>,
         email: Option<Option<Email>>,
@@ -54,8 +54,8 @@ where
         let Self { database } = self;
 
         let User { id, mut data } = {
-            let user_by_id = find_one_by_id(database, &id).await?;
-            user_by_id.ok_or_else(|| UpdateUserError::NoUser(id))?
+            let user_by_id = find_one_by_id(database, &current_id).await?;
+            user_by_id.ok_or_else(|| UpdateUserError::NoUser(current_id))?
         };
         if let Some(name) = name {
             let user_by_name = find_one_by_name(database, &name).await?;

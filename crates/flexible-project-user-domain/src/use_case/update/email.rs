@@ -42,7 +42,7 @@ where
     /// Updates email of the user by its identifier with provided email.
     pub async fn update_email(
         &self,
-        id: UserId,
+        current_id: UserId,
         email: Option<Email>,
     ) -> Result<User, UpdateEmailError<Database::Error>> {
         let Self { database } = self;
@@ -58,8 +58,8 @@ where
         }
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, &id).await?;
-            user_by_id.ok_or_else(|| UpdateEmailError::NoUser(id))?
+            let user_by_id = find_one_by_id(database, &current_id).await?;
+            user_by_id.ok_or_else(|| UpdateEmailError::NoUser(current_id))?
         };
         let data = UserData { email, ..data };
         let user = database.update(id, data).await?;

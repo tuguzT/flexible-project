@@ -38,14 +38,14 @@ where
     /// Updates display name of the user by its identifier with provided display name.
     pub async fn update_display_name(
         &self,
-        id: UserId,
+        current_id: UserId,
         display_name: DisplayName,
     ) -> Result<User, UpdateDisplayNameError<Database::Error>> {
         let Self { database } = self;
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, &id).await?;
-            user_by_id.ok_or_else(|| UpdateDisplayNameError::NoUser(id))?
+            let user_by_id = find_one_by_id(database, &current_id).await?;
+            user_by_id.ok_or_else(|| UpdateDisplayNameError::NoUser(current_id))?
         };
         let data = UserData {
             display_name,

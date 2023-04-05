@@ -42,7 +42,7 @@ where
     /// Updates name of the user by its identifier with provided name.
     pub async fn update_name(
         &self,
-        id: UserId,
+        current_id: UserId,
         name: Name,
     ) -> Result<User, UpdateNameError<Database::Error>> {
         let Self { database } = self;
@@ -55,8 +55,8 @@ where
         }
 
         let User { id, data } = {
-            let user_by_id = find_one_by_id(database, &id).await?;
-            user_by_id.ok_or_else(|| UpdateNameError::NoUser(id))?
+            let user_by_id = find_one_by_id(database, &current_id).await?;
+            user_by_id.ok_or_else(|| UpdateNameError::NoUser(current_id))?
         };
         let data = UserData { name, ..data };
         let user = database.update(id, data).await?;

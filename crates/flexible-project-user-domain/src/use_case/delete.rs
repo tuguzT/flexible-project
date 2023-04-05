@@ -37,18 +37,21 @@ where
     }
 
     /// Deletes user by provided identifier.
-    pub async fn delete_user(&self, id: UserId) -> Result<User, DeleteUserError<Database::Error>> {
+    pub async fn delete_user(
+        &self,
+        current_id: UserId,
+    ) -> Result<User, DeleteUserError<Database::Error>> {
         let Self { database } = self;
 
         let id_exists = {
-            let user_by_id = find_one_by_id(database, &id).await?;
+            let user_by_id = find_one_by_id(database, &current_id).await?;
             user_by_id.is_some()
         };
         if !id_exists {
-            return Err(DeleteUserError::NoUser(id));
+            return Err(DeleteUserError::NoUser(current_id));
         }
 
-        let user = database.delete(id).await?;
+        let user = database.delete(current_id).await?;
         Ok(user)
     }
 }
