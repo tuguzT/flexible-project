@@ -3,10 +3,10 @@ pub use self::{
         RoleAccessLevel, RoleAccessLevelFilters, RoleUpdateOperation, RoleUpdateOperationFilters,
         RoleUpdateOperations,
     },
-    impls::{Role, RoleFilters},
     name::{RoleName, RoleNameError, RoleNameFilters},
+    role::{Role, RoleFilters},
 };
 
 mod access;
-mod impls;
 mod name;
+mod role;
