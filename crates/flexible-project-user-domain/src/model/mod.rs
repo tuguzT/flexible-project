@@ -2,11 +2,11 @@
 
 pub use self::{
     display_name::{DisplayName, DisplayNameError, DisplayNameFilters},
-    email::{Email, EmailError, EmailFilters},
+    email::{Email, EmailError, EmailFilters, OptionEmailFilters},
     id::{UserId, UserIdFilters},
     name::{Name, NameError, NameFilters},
     role::{Role, RoleFilters},
-    user::{OptionEmailFilters, User, UserData, UserDataFilters, UserFilters},
+    user::{User, UserData, UserDataFilters, UserFilters},
 };
 
 mod display_name;

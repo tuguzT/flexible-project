@@ -83,6 +83,46 @@ where
     }
 }
 
+/// Filters for optional user email of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct OptionEmailFilters<'a> {
+    /// Equality user email filter.
+    pub eq: Option<Equal<&'a Option<Email>>>,
+    /// Inequality user email filter.
+    pub ne: Option<NotEqual<&'a Option<Email>>>,
+    /// In user email filter.
+    pub r#in: Option<In<&'a [Option<Email>]>>,
+    /// Not in user email filter.
+    pub nin: Option<NotIn<&'a [Option<Email>]>>,
+    /// Regex user email filter.
+    pub regex: Option<Regex<&'a str>>,
+}
+
+impl<Input> Filter<Input> for OptionEmailFilters<'_>
+where
+    Input: Borrow<Option<Email>>,
+{
+    fn satisfies(&self, input: Input) -> bool {
+        let Self {
+            eq,
+            ne,
+            r#in,
+            nin,
+            regex,
+        } = self;
+        let input = input.borrow();
+        eq.satisfies(input)
+            && ne.satisfies(input)
+            && r#in.satisfies(input)
+            && nin.satisfies(input)
+            && input
+                .as_ref()
+                .map(|input| regex.satisfies(input.as_str()))
+                .unwrap_or(true)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::{Email, EmailError};
