@@ -3,7 +3,7 @@ use std::borrow::Borrow;
 use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
-use crate::model::{MemberId, ProjectId, RoleName};
+use crate::model::{MemberId, ProjectId, RoleId};
 
 use super::RoleUpdateOperationScope as Scope;
 
@@ -25,9 +25,9 @@ pub enum RoleUpdateOperation {
     CreateRole,
     /// Member can update data of existing role in the workspace,
     /// such as name and access level.
-    UpdateRole(Scope<RoleName>),
+    UpdateRole(Scope<RoleId>),
     /// Member can delete existing role in the workspace.
-    DeleteRole(Scope<RoleName>),
+    DeleteRole(Scope<RoleId>),
     /// Member can grant an existing role to another member of the workspace.
     GrantRole(Scope<MemberId>),
     /// Member can revoke an existing role from another member of the workspace.

@@ -10,12 +10,15 @@ use typed_builder::TypedBuilder;
 
 use super::{
     access::{RoleAccessLevel, RoleAccessLevelFilters},
+    id::{RoleId, RoleIdFilters},
     name::{RoleName, RoleNameFilters},
 };
 
 /// Role of a member of the workspace in the system.
 #[derive(Debug, Clone)]
 pub struct Role {
+    /// Unique identifier of the workspace role.
+    pub id: RoleId,
     /// Name of the workspace role.
     ///
     /// Name **must** be unique in the scope of one workspace.
@@ -26,7 +29,7 @@ pub struct Role {
 
 impl PartialEq for Role {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.id == other.id
     }
 }
 
@@ -34,7 +37,7 @@ impl Eq for Role {}
 
 impl Hash for Role {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name.hash(state);
+        self.id.hash(state);
     }
 }
 
@@ -42,6 +45,8 @@ impl Hash for Role {
 #[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleFilters<'a> {
+    /// Workspace role identifier filters.
+    pub id: Option<RoleIdFilters<'a>>,
     /// Workspace role name filters.
     pub name: Option<RoleNameFilters<'a>>,
     /// Workspace role access level filters.
@@ -54,10 +59,17 @@ where
 {
     fn satisfies(&self, input: Input) -> bool {
         let Self {
+            id: id_filter,
             name: name_filter,
             access_level: access_level_filter,
         } = self;
-        let Role { name, access_level } = input.borrow();
-        name_filter.satisfies(name) && access_level_filter.satisfies(access_level)
+        let Role {
+            id,
+            name,
+            access_level,
+        } = input.borrow();
+        id_filter.satisfies(id)
+            && name_filter.satisfies(name)
+            && access_level_filter.satisfies(access_level)
     }
 }

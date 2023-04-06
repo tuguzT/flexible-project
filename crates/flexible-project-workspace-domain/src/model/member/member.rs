@@ -8,18 +8,17 @@ use std::{
 use fp_filter::Filter;
 use typed_builder::TypedBuilder;
 
-use super::{
-    super::role::{RoleName, RoleNameFilters},
-    MemberId, MemberIdFilters,
-};
+use crate::model::{RoleId, RoleIdFilters};
+
+use super::{MemberId, MemberIdFilters};
 
 /// Member of the workspace in the system.
 #[derive(Debug, Clone)]
 pub struct Member {
     /// Identifier of member of the workspace.
     pub id: MemberId,
-    /// Name of role of the workspace.
-    pub role_name: RoleName,
+    /// Identifier of role of the workspace.
+    pub role: RoleId,
 }
 
 impl PartialEq for Member {
@@ -42,8 +41,8 @@ impl Hash for Member {
 pub struct MemberFilters<'a> {
     /// Member identifier filters.
     pub id: Option<MemberIdFilters<'a>>,
-    /// Member role name filters.
-    pub role_name: Option<RoleNameFilters<'a>>,
+    /// Member role identifier filters.
+    pub role: Option<RoleIdFilters<'a>>,
 }
 
 impl<Input> Filter<Input> for MemberFilters<'_>
@@ -53,9 +52,9 @@ where
     fn satisfies(&self, input: Input) -> bool {
         let Self {
             id: id_filter,
-            role_name: role_name_filter,
+            role: role_filter,
         } = self;
-        let Member { id, role_name } = input.borrow();
-        id_filter.satisfies(id) && role_name_filter.satisfies(role_name)
+        let Member { id, role } = input.borrow();
+        id_filter.satisfies(id) && role_filter.satisfies(role)
     }
 }
