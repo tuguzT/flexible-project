@@ -9,62 +9,44 @@ pub struct UserQuery;
 #[Object]
 impl UserQuery {
     /// Filters all users of the system.
-    pub async fn filter(&self, filters: UserFilters) -> Vec<User> {
+    pub async fn users(&self, filters: UserFilters) -> Vec<User> {
         let _ = filters;
         None.unwrap()
     }
 
     /// Creates new user with provided name in the system.
-    pub async fn create(&self, name: String) -> User {
+    pub async fn create_user(&self, name: String) -> User {
         let _ = name;
         None.unwrap()
     }
 
-    /// Updates name of the user by provided identifier.
-    pub async fn update_name(&self, id: ID, name: String) -> User {
-        let _ = (id, name);
-        None.unwrap()
-    }
-
-    /// Updates display name of the user by provided identifier.
-    pub async fn update_display_name(&self, id: ID, display_name: String) -> User {
-        let _ = (id, display_name);
-        None.unwrap()
-    }
-
-    /// Updates email of the user by provided identifier.
-    pub async fn update_email(&self, id: ID, email: Option<String>) -> User {
-        let _ = (id, email);
-        None.unwrap()
-    }
-
-    /// Updates avatar of the user by provided identifier.
-    pub async fn update_avatar(&self, id: ID, avatar_url: Option<String>) -> User {
-        let _ = (id, avatar_url);
+    /// Update properties of the user by provided identifier with provided data.
+    pub async fn update_user(&self, id: ID, update: UpdateUser) -> User {
+        let _ = (id, update);
         None.unwrap()
     }
 
     /// Deletes user from the system by provided identifier.
-    pub async fn delete(&self, id: ID) -> User {
+    pub async fn delete_user(&self, id: ID) -> User {
         let _ = id;
         None.unwrap()
     }
 }
 
-/// User of the Flexible Project system.
+/// User properties of the Flexible Project system.
 #[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct User {
-    /// Identifier of the user.
+    /// Unique identifier of the user.
     pub id: ID,
     /// Unique name of the user.
     pub name: String,
     /// Display name of the user.
     pub display_name: String,
     /// Role of the user.
-    pub role: Role,
+    pub role: UserRole,
     /// Optional email of the user.
     pub email: Option<String>,
-    /// Optional avatar URL of the user.
+    /// Optional avatar of the user.
     pub avatar_url: Option<String>,
 }
 
@@ -75,9 +57,22 @@ pub struct UserFilters {
     pub id: Option<ID>,
 }
 
+/// Data of the user to update.
+#[derive(Debug, InputObject)]
+pub struct UpdateUser {
+    /// Name of the user to update, if present.
+    pub name: Option<String>,
+    /// Display name of the user to update, if present.
+    pub display_name: Option<String>,
+    /// Email of the user to update, if present.
+    pub email: Option<Option<String>>,
+    /// Avatar of the user to update, if present.
+    pub avatar_url: Option<Option<String>>,
+}
+
 /// Role of the user in the Flexible Project system.
 #[derive(Debug, Enum, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Role {
+pub enum UserRole {
     /// An ordinary user with no special rights.
     User,
     /// A moderator of the system which is responsible
