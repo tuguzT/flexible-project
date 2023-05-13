@@ -5,14 +5,19 @@
 #![forbid(unsafe_code)]
 
 use anyhow::{Context, Result};
-use axum::{Router, Server};
+use async_graphql::extensions::Tracing;
+use axum::{Extension, Router, Server};
 use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use self::routes::health;
+use self::{
+    routes::{graphql, health},
+    schema::{Mutation, Query, Schema, Subscription},
+};
 
 pub mod routes;
+pub mod schema;
 
 /// Entry point of the server.
 #[tokio::main]
@@ -22,7 +27,18 @@ pub async fn main() -> Result<()> {
         .try_init()
         .with_context(|| "failed to init tracing subscriber")?;
 
+    let query = Query::default();
+    let mutation = Mutation::default();
+    let subscription = Subscription::default();
+    let schema = Schema::build(query, mutation, subscription)
+        .extension(Tracing)
+        .finish();
+    tracing::debug!("GraphQL schema SDL:\n{}", schema.sdl());
+
     let app = Router::new()
+        .merge(graphql::graphiql())
+        .merge(graphql::graphql())
+        .layer(Extension(schema))
         .merge(health::health())
         .layer(TraceLayer::new_for_http());
 

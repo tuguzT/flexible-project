@@ -13,4 +13,6 @@ tower-http = { workspace = true, features = ["trace"] }
 tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+async-graphql = { workspace = true, features = ["tracing"] }
+async-graphql-axum = { workspace = true }
 anyhow = { workspace = true }
