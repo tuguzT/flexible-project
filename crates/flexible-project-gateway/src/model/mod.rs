@@ -1,9 +1,14 @@
 //! Data model of the gateway service.
 
-use async_graphql::{EmptyMutation, EmptySubscription, MergedObject};
+use async_graphql::{EmptyMutation, MergedObject, MergedSubscription};
 
-use self::{user::UserQuery, workspace::WorkspaceQuery};
+use self::{
+    notification::{NotificationQuery, NotificationSubscription},
+    user::UserQuery,
+    workspace::WorkspaceQuery,
+};
 
+pub mod notification;
 pub mod user;
 pub mod workspace;
 
@@ -15,10 +20,11 @@ pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, Subscript
 
 /// Root query object of the service.
 #[derive(Debug, MergedObject, Default)]
-pub struct Query(UserQuery, WorkspaceQuery);
+pub struct Query(UserQuery, WorkspaceQuery, NotificationQuery);
 
 /// Root mutation object of the service.
 pub type Mutation = EmptyMutation;
 
 /// Root subscription object of the service.
-pub type Subscription = EmptySubscription;
+#[derive(Debug, MergedSubscription, Default)]
+pub struct Subscription(NotificationSubscription);
