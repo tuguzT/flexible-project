@@ -15,7 +15,14 @@ impl NotificationQuery {
         let _ = user_id;
         None.unwrap()
     }
+}
 
+/// Mutation object of notifications of the Flexible Project system.
+#[derive(Debug, Default)]
+pub struct NotificationMutation;
+
+#[Object]
+impl NotificationMutation {
     /// Mark notification from the input notification stream as received by the user.
     pub async fn receive_notification(&self, user_id: ID, notification_id: ID) -> Notification {
         let _ = (user_id, notification_id);
@@ -40,10 +47,7 @@ pub struct NotificationSubscription;
 #[Subscription]
 impl NotificationSubscription {
     /// Subscribe for all incoming notifications of the user by provided identifier.
-    pub async fn subscribe_for_notifications(
-        &self,
-        user_id: ID,
-    ) -> impl Stream<Item = Notification> {
+    pub async fn incoming_notifications(&self, user_id: ID) -> impl Stream<Item = Notification> {
         let _ = user_id;
         None::<Repeat<_>>.unwrap()
     }

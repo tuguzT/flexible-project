@@ -13,7 +13,14 @@ impl WorkspaceQuery {
         let _ = filters;
         None.unwrap()
     }
+}
 
+/// Mutation object of workspaces of the Flexible Project system.
+#[derive(Debug, Default)]
+pub struct WorkspaceMutation;
+
+#[Object]
+impl WorkspaceMutation {
     /// Creates new workspace with provided name in the system.
     /// Newly created workspace will be owned by the user that created it.
     pub async fn create_workspace(&self, user_id: ID, name: String) -> Workspace {

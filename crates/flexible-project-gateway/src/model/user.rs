@@ -13,7 +13,14 @@ impl UserQuery {
         let _ = filters;
         None.unwrap()
     }
+}
 
+/// Mutation object of users of the Flexible Project system.
+#[derive(Debug, Default)]
+pub struct UserMutation;
+
+#[Object]
+impl UserMutation {
     /// Creates new user with provided name in the system.
     pub async fn create_user(&self, name: String) -> User {
         let _ = name;
