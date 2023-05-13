@@ -12,12 +12,12 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use self::{
+    model::{Mutation, Query, Schema, Subscription},
     routes::{graphql, health},
-    schema::{Mutation, Query, Schema, Subscription},
 };
 
+pub mod model;
 pub mod routes;
-pub mod schema;
 
 /// Entry point of the server.
 #[tokio::main]

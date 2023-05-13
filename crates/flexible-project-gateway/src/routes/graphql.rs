@@ -8,7 +8,7 @@ use axum::{
     Extension, Router,
 };
 
-use crate::schema::Schema;
+use crate::model::Schema;
 
 /// The main GraphQL endpoint which handles all input requests
 /// with path of `/graphql`.

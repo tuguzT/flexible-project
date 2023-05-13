@@ -1,6 +1,10 @@
-//! Definition of the service schema and its components.
+//! Data model of the gateway service.
 
-use async_graphql::{EmptyMutation, EmptySubscription, Object};
+use async_graphql::{EmptyMutation, EmptySubscription, MergedObject};
+
+use self::user::UserQuery;
+
+pub mod user;
 
 /// GraphQL schema of the service.
 pub type Schema = async_graphql::Schema<Query, Mutation, Subscription>;
@@ -9,16 +13,8 @@ pub type Schema = async_graphql::Schema<Query, Mutation, Subscription>;
 pub type SchemaBuilder = async_graphql::SchemaBuilder<Query, Mutation, Subscription>;
 
 /// Root query object of the service.
-#[derive(Debug, Default)]
-pub struct Query;
-
-#[Object]
-impl Query {
-    /// Answer to the Ultimate Question of Life, the Universe, and Everything
-    async fn answer(&self) -> i32 {
-        42
-    }
-}
+#[derive(Debug, MergedObject, Default)]
+pub struct Query(UserQuery);
 
 /// Root mutation object of the service.
 pub type Mutation = EmptyMutation;
