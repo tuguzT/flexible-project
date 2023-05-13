@@ -10,14 +10,21 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use self::routes::health;
+
+pub mod routes;
+
+/// Entry point of the server.
 #[tokio::main]
-async fn main() -> Result<()> {
+pub async fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .try_init()
         .with_context(|| "failed to init tracing subscriber")?;
 
-    let app = Router::new().layer(TraceLayer::new_for_http());
+    let app = Router::new()
+        .merge(health::health())
+        .layer(TraceLayer::new_for_http());
 
     let addr = &SocketAddr::from(([0, 0, 0, 0], 8080));
     tracing::info!("listening on {}", addr);
