@@ -47,6 +47,10 @@ pub struct Workspace {
     pub visibility: WorkspaceVisibility,
     /// Optional image of the workspace.
     pub image_url: Option<String>,
+    /// Members of the workspace.
+    pub members: Vec<WorkspaceMember>,
+    /// Roles of the workspace.
+    pub roles: Vec<WorkspaceRole>,
 }
 
 /// Filters of workspaces of the Flexible Project system.
@@ -76,4 +80,51 @@ pub enum WorkspaceVisibility {
     Public,
     /// Workspace is only visible for members of this workspace.
     Private,
+}
+
+/// Workspace member properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct WorkspaceMember {
+    /// Identifier of user which is a member of the workspace.
+    pub user_id: ID,
+    /// Identifier of role of the workspace.
+    pub role_id: ID,
+}
+
+/// Workspace role properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct WorkspaceRole {
+    /// Unique identifier of the role.
+    pub id: ID,
+    /// Unique name of the role in the workspace.
+    pub name: String,
+    /// Set of available operations which modify workspace data.
+    pub operations: Vec<WorkspaceUpdateOperation>,
+}
+
+/// Operation of update role access level which can modify different workspace aspects.
+#[derive(Debug, Enum, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum WorkspaceUpdateOperation {
+    /// Member can update general information of the workspace,
+    /// such as name and description.
+    UpdateWorkspace,
+    /// Member can create new project in the workspace.
+    CreateProject,
+    /// Member can delete existing project of the workspace.
+    DeleteProject, // TODO (Scope<ProjectId>)
+    /// Member can add another user (as a new member) into the workspace.
+    AddMember,
+    /// Member can remove another member from the workspace.
+    RemoveMember, // TODO (Scope<MemberId>)
+    /// Member can create new role in the workspace.
+    CreateRole,
+    /// Member can update data of existing role in the workspace,
+    /// such as name and access level.
+    UpdateRole, // TODO (Scope<RoleId>)
+    /// Member can delete existing role in the workspace.
+    DeleteRole, // TODO (Scope<RoleId>)
+    /// Member can grant an existing role to another member of the workspace.
+    GrantRole, // TODO (Scope<MemberId>)
+    /// Member can revoke an existing role from another member of the workspace.
+    RevokeRole, // TODO (Scope<MemberId>)
 }
