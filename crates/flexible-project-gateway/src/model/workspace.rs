@@ -2,7 +2,7 @@
 
 use async_graphql::{Enum, InputObject, Object, SimpleObject, ID};
 
-use super::user::User;
+use super::{project::Project, user::User};
 
 /// Query object of workspaces of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -60,6 +60,8 @@ pub struct Workspace {
     pub members: Vec<WorkspaceMember>,
     /// Roles of the workspace.
     pub roles: Vec<WorkspaceRole>,
+    /// Projects of the workspace.
+    pub projects: Vec<Project>,
 }
 
 /// Filters of workspaces of the Flexible Project system.
