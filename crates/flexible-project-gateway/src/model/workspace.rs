@@ -30,7 +30,7 @@ impl WorkspaceMutation {
         None.unwrap()
     }
 
-    /// Update properties of the workspace by provided identifier with provided data.
+    /// Updates properties of the workspace by provided identifier with provided data.
     pub async fn update_workspace(&self, id: ID, update: UpdateWorkspace) -> Workspace {
         let _ = (id, update);
         None.unwrap()

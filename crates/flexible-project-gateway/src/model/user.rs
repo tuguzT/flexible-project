@@ -27,7 +27,7 @@ impl UserMutation {
         None.unwrap()
     }
 
-    /// Update properties of the user by provided identifier with provided data.
+    /// Updates properties of the user by provided identifier with provided data.
     pub async fn update_user(&self, id: ID, update: UpdateUser) -> User {
         let _ = (id, update);
         None.unwrap()
