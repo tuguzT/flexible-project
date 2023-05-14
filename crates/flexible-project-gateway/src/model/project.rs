@@ -1,8 +1,12 @@
 //! Project data model of the gateway service.
 
 use async_graphql::{ComplexObject, Enum, InputObject, Object, SimpleObject, ID};
+use chrono::{DateTime, Utc};
 
-use super::methodology::{Methodology, MethodologyStage};
+use super::{
+    methodology::{Methodology, MethodologyStage},
+    user::User,
+};
 
 /// Query object of projects of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -56,7 +60,12 @@ pub struct Project {
     pub visibility: ProjectVisibility,
     /// Current stage of methodology used in the project.
     pub current_stage: MethodologyStage,
-    // TODO add members, roles, operations and tasks
+    /// Members of the project.
+    pub members: Vec<ProjectMember>,
+    /// Roles of the project.
+    pub roles: Vec<ProjectRole>,
+    /// Tasks of the project.
+    pub tasks: Vec<ProjectTask>,
 }
 
 #[ComplexObject]
@@ -92,4 +101,56 @@ pub enum ProjectVisibility {
     Public,
     /// Workspace is only visible for members of this project.
     Private,
+}
+
+/// Project member properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ProjectMember {
+    /// User which is a member of the project.
+    pub user: User,
+    /// Role of member in the project.
+    pub roles: Vec<ProjectRole>,
+}
+
+/// Project role properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ProjectRole {
+    /// Unique identifier of the role.
+    pub id: ID,
+    /// Name of the role.
+    pub name: String,
+    /// Description of the role.
+    pub description: String,
+    /// Color of the role.
+    pub color: i32,
+    /// Set of operations of the role.
+    pub operations: Vec<ProjectOperation>,
+}
+
+/// Project operation properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ProjectOperation {
+    /// Unique identifier of the operation.
+    pub id: ID,
+    /// Name of the operation.
+    pub name: String,
+    /// Targets of the operation.
+    pub targets: Vec<ID>, // TODO target interface
+}
+
+/// Project task properties of the Flexible Project system.
+#[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ProjectTask {
+    /// Unique identifier of the task.
+    pub id: ID,
+    /// Name of the task.
+    pub name: String,
+    /// Description of the task.
+    pub description: String,
+    /// Start date of the task.
+    pub start_date: Option<DateTime<Utc>>,
+    /// End date of the task.
+    pub end_date: Option<DateTime<Utc>>,
+    /// If the task is completed.
+    pub completed: bool,
 }
