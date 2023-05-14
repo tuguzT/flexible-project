@@ -6,7 +6,7 @@ use async_graphql::{InputObject, Interface, Object, SimpleObject, Subscription, 
 use chrono::{DateTime, Utc};
 use futures::{stream::Repeat, Stream};
 
-use super::{user::User, workspace::Workspace};
+use super::{project::Project, user::User, workspace::Workspace};
 
 /// Query object of notifications of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -95,7 +95,8 @@ pub enum NotificationSource {
     User(User),
     /// Source of the notification is workspace.
     Workspace(Workspace),
-    // TODO Project(Project),
+    /// Source of the notification is project.
+    Project(Project),
 }
 
 /// Notification preferences properties of the Flexible Project system.

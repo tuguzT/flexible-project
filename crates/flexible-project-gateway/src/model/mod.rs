@@ -14,6 +14,7 @@ use self::{
 
 pub mod methodology;
 pub mod notification;
+pub mod project;
 pub mod user;
 pub mod workspace;
 

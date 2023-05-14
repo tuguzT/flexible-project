@@ -7,7 +7,7 @@ use async_graphql::{
 };
 use chrono::Duration;
 
-use super::{user::User, workspace::Workspace};
+use super::{project::Project, user::User, workspace::Workspace};
 
 /// Query object of methodologies of the Flexible Project system.
 #[derive(Debug, Default)]
@@ -109,7 +109,8 @@ pub enum MethodologyOwner {
     User(User),
     /// Methodology is owned by the workspace.
     Workspace(Workspace),
-    // TODO Project(Project),
+    /// Methodology is owned by the project.
+    Project(Project),
 }
 
 /// Owner of the methodology: either user, workspace of specific project.
