@@ -2,6 +2,8 @@
 
 use async_graphql::{Enum, InputObject, Object, SimpleObject, ID};
 
+use super::user::User;
+
 /// Query object of workspaces of the Flexible Project system.
 #[derive(Debug, Default)]
 pub struct WorkspaceQuery;
@@ -92,10 +94,10 @@ pub enum WorkspaceVisibility {
 /// Workspace member properties of the Flexible Project system.
 #[derive(Debug, SimpleObject, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct WorkspaceMember {
-    /// Identifier of user which is a member of the workspace.
-    pub user_id: ID,
-    /// Identifier of role of the workspace.
-    pub role_id: ID,
+    /// User which is a member of the workspace.
+    pub user: User,
+    /// Role of member in the workspace.
+    pub role: WorkspaceRole,
 }
 
 /// Workspace role properties of the Flexible Project system.
