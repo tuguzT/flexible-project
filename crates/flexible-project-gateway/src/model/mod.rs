@@ -8,6 +8,7 @@ use async_graphql::{
 use self::{
     methodology::{MethodologyMutation, MethodologyQuery},
     notification::{NotificationMutation, NotificationQuery, NotificationSubscription},
+    project::{ProjectMutation, ProjectQuery},
     user::{UserMutation, UserQuery},
     workspace::{WorkspaceMutation, WorkspaceQuery},
 };
@@ -30,6 +31,7 @@ pub struct Query(
     UserQuery,
     WorkspaceQuery,
     MethodologyQuery,
+    ProjectQuery,
     NotificationQuery,
 );
 
@@ -39,6 +41,7 @@ pub struct Mutation(
     UserMutation,
     WorkspaceMutation,
     MethodologyMutation,
+    ProjectMutation,
     NotificationMutation,
 );
 
