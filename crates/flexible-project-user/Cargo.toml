@@ -10,3 +10,11 @@ repository.workspace = true
 [dependencies]
 fp-user-domain = { workspace = true }
 fp-user-data = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+lapin = { workspace = true }
+tokio-executor-trait = { workspace = true }
+tokio-reactor-trait = { workspace = true }
+dotenv = { workspace = true }
