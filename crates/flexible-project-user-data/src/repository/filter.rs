@@ -2,8 +2,8 @@ use std::convert::identity;
 
 use fp_filter::{Equal, In, NotEqual, NotIn, Regex};
 use fp_user_domain::model::{
-    DisplayName, DisplayNameFilters, Email, Name, NameFilters, OptionEmailFilters, Role,
-    RoleFilters, UserDataFilters, UserFilters, UserId, UserIdFilters,
+    Avatar, DisplayName, DisplayNameFilters, Email, Name, NameFilters, OptionAvatarFilters,
+    OptionEmailFilters, Role, RoleFilters, UserDataFilters, UserFilters, UserId, UserIdFilters,
 };
 use mongodb::bson::{to_bson, Bson, Document};
 
@@ -37,6 +37,7 @@ impl IntoDocument for UserDataFilters<'_> {
             display_name,
             role,
             email,
+            avatar,
         } = self;
 
         let mut document = Document::new();
@@ -51,6 +52,9 @@ impl IntoDocument for UserDataFilters<'_> {
         }
         if let Some(email) = email {
             document.insert("email", email.into_document()?);
+        }
+        if let Some(avatar) = avatar {
+            document.insert("avatar", avatar.into_document()?);
         }
         Ok(document)
     }
@@ -227,6 +231,44 @@ impl IntoDocument for OptionEmailFilters<'_> {
                 .map(|email| email.as_ref().map(Email::as_str))
                 .collect();
             document.insert("$nin", emails);
+        }
+        if let Some(Regex(regex)) = regex {
+            document.insert("$regex", regex);
+        }
+        Ok(document)
+    }
+}
+
+impl IntoDocument for OptionAvatarFilters<'_> {
+    fn into_document(self) -> Result<Document, LocalError> {
+        let Self {
+            eq,
+            ne,
+            r#in,
+            nin,
+            regex,
+        } = self;
+
+        let mut document = Document::new();
+        if let Some(Equal(avatar)) = eq {
+            document.insert("$eq", avatar.as_ref().map(Avatar::as_str));
+        }
+        if let Some(NotEqual(avatar)) = ne {
+            document.insert("$ne", avatar.as_ref().map(Avatar::as_str));
+        }
+        if let Some(In(avatars)) = r#in {
+            let avatars: Vec<_> = avatars
+                .iter()
+                .map(|avatar| avatar.as_ref().map(Avatar::as_str))
+                .collect();
+            document.insert("$in", avatars);
+        }
+        if let Some(NotIn(avatars)) = nin {
+            let avatars: Vec<_> = avatars
+                .iter()
+                .map(|avatar| avatar.as_ref().map(Avatar::as_str))
+                .collect();
+            document.insert("$nin", avatars);
         }
         if let Some(Regex(regex)) = regex {
             document.insert("$regex", regex);

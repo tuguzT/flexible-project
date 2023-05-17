@@ -2,7 +2,8 @@ use std::hash::{Hash, Hasher};
 
 use derive_more::{Display, Error, From};
 use fp_user_domain::model::{
-    DisplayName, DisplayNameError, Email, EmailError, Name, NameError, User, UserData,
+    Avatar, AvatarError, DisplayName, DisplayNameError, Email, EmailError, Name, NameError, User,
+    UserData,
 };
 use serde::{Deserialize, Serialize};
 
@@ -62,6 +63,7 @@ pub struct LocalUserData {
     pub display_name: String,
     pub role: LocalRole,
     pub email: Option<String>,
+    pub avatar: Option<String>,
 }
 
 impl From<UserData> for LocalUserData {
@@ -71,12 +73,14 @@ impl From<UserData> for LocalUserData {
             display_name,
             role,
             email,
+            avatar,
         } = value;
         Self {
             name: name.into_inner(),
             display_name: display_name.into_inner(),
             role: role.into(),
             email: email.map(Email::into_inner),
+            avatar: avatar.map(Avatar::into_inner),
         }
     }
 }
@@ -90,12 +94,14 @@ impl TryFrom<LocalUserData> for UserData {
             display_name,
             role,
             email,
+            avatar,
         } = value;
         let user_data = Self {
             name: Name::new(name)?,
             display_name: DisplayName::new(display_name)?,
             role: role.into(),
             email: email.map(Email::new).transpose()?,
+            avatar: avatar.map(Avatar::new).transpose()?,
         };
         Ok(user_data)
     }
@@ -106,4 +112,5 @@ pub enum LocalUserDataError {
     Name(NameError),
     DisplayName(DisplayNameError),
     Email(EmailError),
+    Avatar(AvatarError),
 }

@@ -7,6 +7,7 @@ use fp_filter::Filter;
 use typed_builder::TypedBuilder;
 
 use super::{
+    avatar::{Avatar, OptionAvatarFilters},
     display_name::{DisplayName, DisplayNameFilters},
     email::{Email, OptionEmailFilters},
     id::{UserId, UserIdFilters},
@@ -48,6 +49,8 @@ pub struct UserData {
     pub role: Role,
     /// Unique email of the user, if present.
     pub email: Option<Email>,
+    /// Avatar URL of the user, if present.
+    pub avatar: Option<Avatar>,
 }
 
 /// Filters for user of the backend.
@@ -86,6 +89,8 @@ pub struct UserDataFilters<'a> {
     pub role: Option<RoleFilters<'a>>,
     /// User email filters.
     pub email: Option<OptionEmailFilters<'a>>,
+    /// User avatar filters.
+    pub avatar: Option<OptionAvatarFilters<'a>>,
 }
 
 impl<Input> Filter<Input> for UserDataFilters<'_>
@@ -98,16 +103,19 @@ where
             display_name: display_name_filter,
             role: role_filter,
             email: email_filter,
+            avatar: avatar_filter,
         } = self;
         let UserData {
             name,
             display_name,
             role,
             email,
+            avatar,
         } = input.borrow();
         name_filter.satisfies(name)
             && display_name_filter.satisfies(display_name)
             && role_filter.satisfies(role)
             && email_filter.satisfies(email)
+            && avatar_filter.satisfies(avatar)
     }
 }

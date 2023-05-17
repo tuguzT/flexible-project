@@ -75,6 +75,7 @@ where
             name,
             role: Role::User,
             email: None,
+            avatar: None,
         };
         let user = database
             .create(id, data)

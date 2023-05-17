@@ -94,6 +94,7 @@ impl UserDatabase for LocalUserDatabase {
             display_name,
             role,
             email,
+            avatar,
         } = data.into();
 
         let filter = doc! { "_id": to_bson(&id)? };
@@ -102,6 +103,7 @@ impl UserDatabase for LocalUserDatabase {
             "display_name": display_name,
             "role": to_bson(&role)?,
             "email": email,
+            "avatar": avatar,
         };
         let options = FindOneAndUpdateOptions::builder()
             .return_document(ReturnDocument::After)

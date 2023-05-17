@@ -674,6 +674,7 @@ dependencies = [
  "futures",
  "once_cell",
  "typed-builder 0.14.0",
+ "url",
 ]
 
 [[package]]
