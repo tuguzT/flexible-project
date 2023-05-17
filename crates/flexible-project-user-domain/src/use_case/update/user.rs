@@ -1,7 +1,7 @@
 use derive_more::{Display, Error, From};
 
 use crate::{
-    model::{DisplayName, Email, Name, User, UserData, UserId},
+    model::{Avatar, DisplayName, Email, Name, User, UserData, UserId},
     repository::UserDatabase,
     use_case::find_one::{find_one_by_email, find_one_by_id, find_one_by_name},
 };
@@ -50,6 +50,7 @@ where
         name: Option<Name>,
         display_name: Option<DisplayName>,
         email: Option<Option<Email>>,
+        avatar: Option<Option<Avatar>>,
     ) -> Result<User, UpdateUserError<Database::Error>> {
         let Self { database } = self;
 
@@ -80,6 +81,9 @@ where
                 }
             }
             data.email = email;
+        }
+        if let Some(avatar) = avatar {
+            data.avatar = avatar;
         }
 
         let user = database.update(id, data).await?;
