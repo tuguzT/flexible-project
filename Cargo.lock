@@ -864,6 +864,7 @@ dependencies = [
  "dotenv",
  "flexible-project-user-data",
  "flexible-project-user-domain",
+ "futures",
  "lapin",
  "tokio",
  "tokio-executor-trait",
