@@ -1,6 +1,6 @@
 use core::borrow::Borrow;
 
-use super::Filter;
+use super::{CowSlice, Filter};
 
 /// Not in filter of the backend.
 ///
@@ -25,6 +25,19 @@ where
         let mut iter = value.clone().into_iter();
         let input = input.borrow();
         !iter.any(|item| &item == input)
+    }
+}
+
+impl<'a, T, Input> Filter<Input> for NotIn<CowSlice<'a, T>>
+where
+    T: PartialEq + Clone + 'a,
+    Input: Borrow<T>,
+{
+    fn satisfies(&self, input: Input) -> bool {
+        let Self(CowSlice(cow)) = self;
+        let slice: &[_] = cow.borrow();
+        let input = input.borrow();
+        !slice.contains(input)
     }
 }
 

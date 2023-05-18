@@ -1,4 +1,7 @@
-use std::{borrow::Borrow, pin::pin};
+use std::{
+    borrow::{Borrow, Cow},
+    pin::pin,
+};
 
 use futures::{StreamExt, TryStreamExt};
 
@@ -20,6 +23,7 @@ where
 {
     let id = id.borrow();
     let filter = {
+        let id = Cow::Borrowed(id);
         let id = UserIdFilters::builder().eq(id).build();
         UserFilters::builder().id(id).build()
     };
@@ -43,6 +47,7 @@ where
 {
     let name = name.borrow();
     let filter = {
+        let name = Cow::Borrowed(name);
         let name = NameFilters::builder().eq(name).build();
         let data = UserDataFilters::builder().name(name).build();
         UserFilters::builder().data(data).build()
@@ -67,6 +72,7 @@ where
 {
     let email = email.borrow();
     let filter = {
+        let email = Cow::Borrowed(email);
         let email = OptionEmailFilters::builder().eq(email).build();
         let data = UserDataFilters::builder().email(email).build();
         UserFilters::builder().data(data).build()

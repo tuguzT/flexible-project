@@ -1,5 +1,7 @@
+use std::borrow::Cow;
+
 use derive_more::Display;
-use fp_user_domain::model::Role as DomainRole;
+use fp_user_domain::model::{Role as DomainRole, RoleFilters as DomainRoleFilters};
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
@@ -51,4 +53,40 @@ pub struct RoleFilters {
     pub r#in: Option<In<Vec<Role>>>,
     /// Not in user role filter.
     pub nin: Option<NotIn<Vec<Role>>>,
+}
+
+impl From<DomainRoleFilters<'_>> for RoleFilters {
+    fn from(filters: DomainRoleFilters<'_>) -> Self {
+        let DomainRoleFilters { eq, ne, r#in, nin } = filters;
+        Self {
+            eq: eq.map(|role| Equal(role.0.into_owned().into())),
+            ne: ne.map(|role| NotEqual(role.0.into_owned().into())),
+            r#in: r#in.map(|r#in| {
+                let cow_slice = r#in.0;
+                In(cow_slice.0.iter().cloned().map(Into::into).collect())
+            }),
+            nin: nin.map(|r#in| {
+                let cow_slice = r#in.0;
+                NotIn(cow_slice.0.iter().cloned().map(Into::into).collect())
+            }),
+        }
+    }
+}
+
+impl From<RoleFilters> for DomainRoleFilters<'_> {
+    fn from(filters: RoleFilters) -> Self {
+        let RoleFilters { eq, ne, r#in, nin } = filters;
+        Self {
+            eq: eq.map(|Equal(role)| Equal(Cow::Owned(role.into())).into()),
+            ne: ne.map(|NotEqual(role)| NotEqual(Cow::Owned(role.into())).into()),
+            r#in: r#in.map(|In(roles)| {
+                let roles: Vec<_> = roles.into_iter().map(Into::into).collect();
+                In(roles.into()).into()
+            }),
+            nin: nin.map(|NotIn(roles)| {
+                let roles: Vec<_> = roles.into_iter().map(Into::into).collect();
+                NotIn(roles.into()).into()
+            }),
+        }
+    }
 }

@@ -1,8 +1,8 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
 use email_address::EmailAddress;
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 
 /// Email of the user in the system with strong requirements about its content.
@@ -51,15 +51,15 @@ pub enum EmailError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct EmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<&'a Email>>,
+    pub eq: Option<Equal<Cow<'a, Email>>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<&'a Email>>,
+    pub ne: Option<NotEqual<Cow<'a, Email>>>,
     /// In user email filter.
-    pub r#in: Option<In<&'a [Email]>>,
+    pub r#in: Option<In<CowSlice<'a, Email>>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<&'a [Email]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Email>>>,
     /// Regex user email filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for EmailFilters<'_>
@@ -75,8 +75,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && regex.satisfies(input.as_str())
@@ -88,15 +88,15 @@ where
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct OptionEmailFilters<'a> {
     /// Equality user email filter.
-    pub eq: Option<Equal<&'a Option<Email>>>,
+    pub eq: Option<Equal<Cow<'a, Option<Email>>>>,
     /// Inequality user email filter.
-    pub ne: Option<NotEqual<&'a Option<Email>>>,
+    pub ne: Option<NotEqual<Cow<'a, Option<Email>>>>,
     /// In user email filter.
-    pub r#in: Option<In<&'a [Option<Email>]>>,
+    pub r#in: Option<In<CowSlice<'a, Option<Email>>>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<&'a [Option<Email>]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Option<Email>>>>,
     /// Regex user email filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for OptionEmailFilters<'_>
@@ -112,8 +112,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && input

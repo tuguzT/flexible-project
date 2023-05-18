@@ -1,5 +1,7 @@
+use std::borrow::Cow;
+
 use derive_more::Display;
-use fp_user_domain::model::{Name as DomainName, NameError};
+use fp_user_domain::model::{Name as DomainName, NameError, NameFilters as DomainNameFilters};
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
@@ -40,4 +42,86 @@ pub struct NameFilters {
     pub nin: Option<NotIn<Vec<Name>>>,
     /// Regex user name filter.
     pub regex: Option<Regex<String>>,
+}
+
+impl From<DomainNameFilters<'_>> for NameFilters {
+    fn from(filters: DomainNameFilters<'_>) -> Self {
+        let DomainNameFilters {
+            eq,
+            ne,
+            r#in,
+            nin,
+            regex,
+        } = filters;
+        Self {
+            eq: eq.map(|name| Equal(name.0.into_owned().into())),
+            ne: ne.map(|name| NotEqual(name.0.into_owned().into())),
+            r#in: r#in.map(|r#in| {
+                let cow_slice = r#in.0;
+                In(cow_slice.0.iter().cloned().map(Into::into).collect())
+            }),
+            nin: nin.map(|r#in| {
+                let cow_slice = r#in.0;
+                NotIn(cow_slice.0.iter().cloned().map(Into::into).collect())
+            }),
+            regex: regex.map(|regex| Regex(regex.0.into_owned())),
+        }
+    }
+}
+
+impl TryFrom<NameFilters> for DomainNameFilters<'_> {
+    type Error = NameError;
+
+    fn try_from(filters: NameFilters) -> Result<Self, Self::Error> {
+        let NameFilters {
+            eq,
+            ne,
+            r#in,
+            nin,
+            regex,
+        } = filters;
+        let eq = eq
+            .map(|Equal(name)| {
+                let name = name.try_into()?;
+                let filter = Equal(Cow::Owned(name)).into();
+                Ok(filter)
+            })
+            .transpose()?;
+        let ne = ne
+            .map(|NotEqual(name)| {
+                let name = name.try_into()?;
+                let filter = NotEqual(Cow::Owned(name)).into();
+                Ok(filter)
+            })
+            .transpose()?;
+        let r#in = r#in
+            .map(|In(names)| {
+                let names = names
+                    .into_iter()
+                    .map(TryInto::try_into)
+                    .collect::<Result<Vec<_>, _>>()?;
+                let filter = In(names.into()).into();
+                Ok(filter)
+            })
+            .transpose()?;
+        let nin = nin
+            .map(|NotIn(names)| {
+                let names = names
+                    .into_iter()
+                    .map(TryInto::try_into)
+                    .collect::<Result<Vec<_>, _>>()?;
+                let filter = NotIn(names.into()).into();
+                Ok(filter)
+            })
+            .transpose()?;
+        let regex = regex.map(|Regex(regex)| Regex(Cow::Owned(regex)).into());
+        let filters = Self {
+            eq,
+            ne,
+            r#in,
+            nin,
+            regex,
+        };
+        Ok(filters)
+    }
 }

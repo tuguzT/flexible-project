@@ -1,10 +1,11 @@
 use std::hash::{Hash, Hasher};
 
 use derive_more::{Display, Error, From};
-use fp_core::id::ErasedId as CoreErasedId;
+use fp_core::id::{ErasedId as CoreErasedId, ErasedIdFilters as CoreErasedIdFilters};
 use fp_user_domain::model::{
     AvatarError, DisplayNameError, EmailError, NameError, User as DomainUser,
-    UserData as DomainUserData,
+    UserData as DomainUserData, UserDataFilters as DomainUserDataFilters,
+    UserFilters as DomainUserFilters,
 };
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
@@ -69,6 +70,29 @@ pub struct UserFilters {
     pub id: Option<ErasedIdFilters>,
     /// User data filters.
     pub data: Option<UserDataFilters>,
+}
+
+impl From<DomainUserFilters<'_>> for UserFilters {
+    fn from(filters: DomainUserFilters<'_>) -> Self {
+        let DomainUserFilters { id, data } = filters;
+        Self {
+            id: id.map(|id| id.erase().into()),
+            data: data.map(Into::into),
+        }
+    }
+}
+
+impl TryFrom<UserFilters> for DomainUserFilters<'_> {
+    type Error = TryFromUserDataError;
+
+    fn try_from(filters: UserFilters) -> Result<Self, Self::Error> {
+        let UserFilters { id, data } = filters;
+        let filters = Self {
+            id: id.map(|id| CoreErasedIdFilters::from(id).with_owner()),
+            data: data.map(TryInto::try_into).transpose()?,
+        };
+        Ok(filters)
+    }
 }
 
 /// Serializable [user data](DomainUserData) of the system.
@@ -141,6 +165,47 @@ pub struct UserDataFilters {
     pub email: Option<OptionEmailFilters>,
     /// User avatar filters.
     pub avatar: Option<OptionAvatarFilters>,
+}
+
+impl From<DomainUserDataFilters<'_>> for UserDataFilters {
+    fn from(filters: DomainUserDataFilters<'_>) -> Self {
+        let DomainUserDataFilters {
+            name,
+            display_name,
+            role,
+            email,
+            avatar,
+        } = filters;
+        Self {
+            name: name.map(Into::into),
+            display_name: display_name.map(Into::into),
+            role: role.map(Into::into),
+            email: email.map(Into::into),
+            avatar: avatar.map(Into::into),
+        }
+    }
+}
+
+impl TryFrom<UserDataFilters> for DomainUserDataFilters<'_> {
+    type Error = TryFromUserDataError;
+
+    fn try_from(filters: UserDataFilters) -> Result<Self, Self::Error> {
+        let UserDataFilters {
+            name,
+            display_name,
+            role,
+            email,
+            avatar,
+        } = filters;
+        let filters = Self {
+            name: name.map(TryInto::try_into).transpose()?,
+            display_name: display_name.map(TryInto::try_into).transpose()?,
+            role: role.map(Into::into),
+            email: email.map(TryInto::try_into).transpose()?,
+            avatar: avatar.map(TryInto::try_into).transpose()?,
+        };
+        Ok(filters)
+    }
 }
 
 /// Type of error which is returned when serializable user data

@@ -1,6 +1,6 @@
-use std::convert::identity;
+use std::{borrow::Borrow, convert::identity};
 
-use fp_filter::{Equal, In, NotEqual, NotIn, Regex};
+use fp_filter::{CowSlice, Equal, In, NotEqual, NotIn, Regex};
 use fp_user_domain::model::{
     Avatar, DisplayName, DisplayNameFilters, Email, Name, NameFilters, OptionAvatarFilters,
     OptionEmailFilters, Role, RoleFilters, UserDataFilters, UserFilters, UserId, UserIdFilters,
@@ -83,21 +83,21 @@ impl IntoDocument for UserIdFilters<'_> {
 
         let mut document = Document::new();
         if let Some(Equal(id)) = eq {
-            let id = id.clone();
+            let id = id.into_owned();
             let id = LocalUserId::try_from(id)?;
             document.insert("$eq", to_bson(&id)?);
         }
         if let Some(NotEqual(id)) = ne {
-            let id = id.clone();
+            let id = id.into_owned();
             let id = LocalUserId::try_from(id)?;
             document.insert("$ne", to_bson(&id)?);
         }
-        if let Some(In(ids)) = r#in {
-            let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
+        if let Some(In(CowSlice(ids))) = r#in {
+            let ids = ids_to_bson(ids.borrow()).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", ids);
         }
-        if let Some(NotIn(ids)) = nin {
-            let ids = ids_to_bson(ids).collect::<Result<Vec<_>, _>>()?;
+        if let Some(NotIn(CowSlice(ids))) = nin {
+            let ids = ids_to_bson(ids.borrow()).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", ids);
         }
         Ok(document)
@@ -121,16 +121,16 @@ impl IntoDocument for NameFilters<'_> {
         if let Some(NotEqual(name)) = ne {
             document.insert("$ne", name.as_str());
         }
-        if let Some(In(ids)) = r#in {
+        if let Some(In(CowSlice(ids))) = r#in {
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$in", ids);
         }
-        if let Some(NotIn(ids)) = nin {
+        if let Some(NotIn(CowSlice(ids))) = nin {
             let ids: Vec<_> = ids.iter().map(Name::as_str).collect();
             document.insert("$nin", ids);
         }
         if let Some(Regex(regex)) = regex {
-            document.insert("$regex", regex);
+            document.insert("$regex", &*regex);
         }
         Ok(document)
     }
@@ -153,16 +153,16 @@ impl IntoDocument for DisplayNameFilters<'_> {
         if let Some(NotEqual(name)) = ne {
             document.insert("$ne", name.as_str());
         }
-        if let Some(In(ids)) = r#in {
+        if let Some(In(CowSlice(ids))) = r#in {
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$in", ids);
         }
-        if let Some(NotIn(ids)) = nin {
+        if let Some(NotIn(CowSlice(ids))) = nin {
             let ids: Vec<_> = ids.iter().map(DisplayName::as_str).collect();
             document.insert("$nin", ids);
         }
         if let Some(Regex(regex)) = regex {
-            document.insert("$regex", regex);
+            document.insert("$regex", &*regex);
         }
         Ok(document)
     }
@@ -181,20 +181,22 @@ impl IntoDocument for RoleFilters<'_> {
         }
 
         let mut document = Document::new();
-        if let Some(Equal(&role)) = eq {
+        if let Some(Equal(role)) = eq {
+            let role = role.into_owned();
             let role = LocalRole::from(role);
             document.insert("$eq", to_bson(&role)?);
         }
-        if let Some(NotEqual(&role)) = ne {
+        if let Some(NotEqual(role)) = ne {
+            let role = role.into_owned();
             let role = LocalRole::from(role);
             document.insert("$ne", to_bson(&role)?);
         }
-        if let Some(In(roles)) = r#in {
-            let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
+        if let Some(In(CowSlice(roles))) = r#in {
+            let roles = roles_to_bson(roles.borrow()).collect::<Result<Vec<_>, _>>()?;
             document.insert("$in", roles);
         }
-        if let Some(NotIn(roles)) = nin {
-            let roles = roles_to_bson(roles).collect::<Result<Vec<_>, _>>()?;
+        if let Some(NotIn(CowSlice(roles))) = nin {
+            let roles = roles_to_bson(roles.borrow()).collect::<Result<Vec<_>, _>>()?;
             document.insert("$nin", roles);
         }
         Ok(document)
@@ -213,19 +215,21 @@ impl IntoDocument for OptionEmailFilters<'_> {
 
         let mut document = Document::new();
         if let Some(Equal(email)) = eq {
+            let email = email.into_owned();
             document.insert("$eq", email.as_ref().map(Email::as_str));
         }
         if let Some(NotEqual(email)) = ne {
+            let email = email.into_owned();
             document.insert("$ne", email.as_ref().map(Email::as_str));
         }
-        if let Some(In(emails)) = r#in {
+        if let Some(In(CowSlice(emails))) = r#in {
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
                 .collect();
             document.insert("$in", emails);
         }
-        if let Some(NotIn(emails)) = nin {
+        if let Some(NotIn(CowSlice(emails))) = nin {
             let emails: Vec<_> = emails
                 .iter()
                 .map(|email| email.as_ref().map(Email::as_str))
@@ -233,7 +237,7 @@ impl IntoDocument for OptionEmailFilters<'_> {
             document.insert("$nin", emails);
         }
         if let Some(Regex(regex)) = regex {
-            document.insert("$regex", regex);
+            document.insert("$regex", &*regex);
         }
         Ok(document)
     }
@@ -251,19 +255,21 @@ impl IntoDocument for OptionAvatarFilters<'_> {
 
         let mut document = Document::new();
         if let Some(Equal(avatar)) = eq {
+            let avatar = avatar.into_owned();
             document.insert("$eq", avatar.as_ref().map(Avatar::as_str));
         }
         if let Some(NotEqual(avatar)) = ne {
+            let avatar = avatar.into_owned();
             document.insert("$ne", avatar.as_ref().map(Avatar::as_str));
         }
-        if let Some(In(avatars)) = r#in {
+        if let Some(In(CowSlice(avatars))) = r#in {
             let avatars: Vec<_> = avatars
                 .iter()
                 .map(|avatar| avatar.as_ref().map(Avatar::as_str))
                 .collect();
             document.insert("$in", avatars);
         }
-        if let Some(NotIn(avatars)) = nin {
+        if let Some(NotIn(CowSlice(avatars))) = nin {
             let avatars: Vec<_> = avatars
                 .iter()
                 .map(|avatar| avatar.as_ref().map(Avatar::as_str))
@@ -271,7 +277,7 @@ impl IntoDocument for OptionAvatarFilters<'_> {
             document.insert("$nin", avatars);
         }
         if let Some(Regex(regex)) = regex {
-            document.insert("$regex", regex);
+            document.insert("$regex", &*regex);
         }
         Ok(document)
     }

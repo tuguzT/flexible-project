@@ -1,7 +1,7 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
 use derive_more::Display;
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
 /// Role of the user in the system.
@@ -18,17 +18,17 @@ pub enum Role {
 }
 
 /// Filters for user role of the backend.
-#[derive(Debug, Clone, Copy, Default, TypedBuilder)]
+#[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct RoleFilters<'a> {
     /// Equality user role filter.
-    pub eq: Option<Equal<&'a Role>>,
+    pub eq: Option<Equal<Cow<'a, Role>>>,
     /// Inequality user role filter.
-    pub ne: Option<NotEqual<&'a Role>>,
+    pub ne: Option<NotEqual<Cow<'a, Role>>>,
     /// In user role filter.
-    pub r#in: Option<In<&'a [Role]>>,
+    pub r#in: Option<In<CowSlice<'a, Role>>>,
     /// Not in user role filter.
-    pub nin: Option<NotIn<&'a [Role]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Role>>>,
 }
 
 impl<Input> Filter<Input> for RoleFilters<'_>
@@ -38,6 +38,9 @@ where
     fn satisfies(&self, input: Input) -> bool {
         let Self { eq, ne, r#in, nin } = self;
         let input = input.borrow();
-        eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
+            && r#in.satisfies(input)
+            && nin.satisfies(input)
     }
 }

@@ -1,7 +1,7 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 use url::Url;
 
@@ -50,15 +50,15 @@ pub enum AvatarError {
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct AvatarFilters<'a> {
     /// Equality user avatar filter.
-    pub eq: Option<Equal<&'a Avatar>>,
+    pub eq: Option<Equal<Cow<'a, Avatar>>>,
     /// Inequality user avatar filter.
-    pub ne: Option<NotEqual<&'a Avatar>>,
+    pub ne: Option<NotEqual<Cow<'a, Avatar>>>,
     /// In user avatar filter.
-    pub r#in: Option<In<&'a [Avatar]>>,
+    pub r#in: Option<In<CowSlice<'a, Avatar>>>,
     /// Not in user avatar filter.
-    pub nin: Option<NotIn<&'a [Avatar]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Avatar>>>,
     /// Regex user avatar filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for AvatarFilters<'_>
@@ -74,8 +74,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && regex.satisfies(input.as_str())
@@ -87,15 +87,15 @@ where
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct OptionAvatarFilters<'a> {
     /// Equality user avatar filter.
-    pub eq: Option<Equal<&'a Option<Avatar>>>,
+    pub eq: Option<Equal<Cow<'a, Option<Avatar>>>>,
     /// Inequality user avatar filter.
-    pub ne: Option<NotEqual<&'a Option<Avatar>>>,
+    pub ne: Option<NotEqual<Cow<'a, Option<Avatar>>>>,
     /// In user avatar filter.
-    pub r#in: Option<In<&'a [Option<Avatar>]>>,
+    pub r#in: Option<In<CowSlice<'a, Option<Avatar>>>>,
     /// Not in user avatar filter.
-    pub nin: Option<NotIn<&'a [Option<Avatar>]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Option<Avatar>>>>,
     /// Regex user avatar filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for OptionAvatarFilters<'_>
@@ -111,8 +111,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && input

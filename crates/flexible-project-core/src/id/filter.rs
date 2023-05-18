@@ -1,6 +1,10 @@
-use std::{borrow::Borrow, fmt::Debug, marker::PhantomData};
+use std::{
+    borrow::{Borrow, Cow},
+    fmt::Debug,
+    marker::PhantomData,
+};
 
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
 use super::model::{ErasedOwner, Id};
@@ -16,13 +20,50 @@ pub struct IdFilters<'a, Owner: 'a> {
     #[builder(setter(skip))]
     pub owner: PhantomData<fn() -> Owner>,
     /// Equality identifier filter.
-    pub eq: Option<Equal<&'a Id<Owner>>>,
+    pub eq: Option<Equal<Cow<'a, Id<Owner>>>>,
     /// Inequality identifier filter.
-    pub ne: Option<NotEqual<&'a Id<Owner>>>,
+    pub ne: Option<NotEqual<Cow<'a, Id<Owner>>>>,
     /// In identifier filter.
-    pub r#in: Option<In<&'a [Id<Owner>]>>,
+    pub r#in: Option<In<CowSlice<'a, Id<Owner>>>>,
     /// Not in identifier filter.
-    pub nin: Option<NotIn<&'a [Id<Owner>]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Id<Owner>>>>,
+}
+
+impl<'a, Owner: 'a> IdFilters<'a, Owner> {
+    /// Sets the owner type for an identifier filters explicitly.
+    pub fn with_owner<Other: 'a>(self) -> IdFilters<'a, Other> {
+        let Self {
+            owner: _,
+            eq,
+            ne,
+            r#in,
+            nin,
+        } = self;
+        IdFilters {
+            owner: PhantomData,
+            eq: eq.map(|Equal(id)| {
+                let id = id.into_owned().with_owner();
+                Equal(Cow::Owned(id))
+            }),
+            ne: ne.map(|NotEqual(id)| {
+                let id = id.into_owned().with_owner();
+                NotEqual(Cow::Owned(id))
+            }),
+            r#in: r#in.map(|In(CowSlice(ids))| {
+                let ids = ids.iter().cloned().map(Id::with_owner).collect();
+                In(CowSlice(Cow::Owned(ids)))
+            }),
+            nin: nin.map(|NotIn(CowSlice(ids))| {
+                let ids = ids.iter().cloned().map(Id::with_owner).collect();
+                NotIn(CowSlice(Cow::Owned(ids)))
+            }),
+        }
+    }
+
+    /// Erases the owner of an identifier filters explicitly, turning it into [`ErasedIdFilters`].
+    pub fn erase(self) -> ErasedIdFilters<'a> {
+        IdFilters::with_owner(self)
+    }
 }
 
 impl<Owner, Input> Filter<Input> for IdFilters<'_, Owner>
@@ -38,7 +79,10 @@ where
             nin,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input) && ne.satisfies(input) && r#in.satisfies(input) && nin.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
+            && r#in.satisfies(input)
+            && nin.satisfies(input)
     }
 }
 
@@ -56,11 +100,22 @@ impl<Owner> Debug for IdFilters<'_, Owner> {
 
 impl<Owner> Clone for IdFilters<'_, Owner> {
     fn clone(&self) -> Self {
-        *self
+        let Self {
+            owner,
+            eq,
+            ne,
+            r#in,
+            nin,
+        } = self;
+        Self {
+            owner: *owner,
+            eq: eq.clone(),
+            ne: ne.clone(),
+            r#in: r#in.clone(),
+            nin: nin.clone(),
+        }
     }
 }
-
-impl<Owner> Copy for IdFilters<'_, Owner> {}
 
 impl<Owner> Default for IdFilters<'_, Owner> {
     fn default() -> Self {

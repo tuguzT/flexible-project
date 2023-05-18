@@ -1,8 +1,8 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
 use fancy_regex::Regex as FancyRegex;
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
 use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
@@ -59,19 +59,19 @@ pub enum DisplayNameError {
 }
 
 /// Filters for user display name of the backend.
-#[derive(Debug, Clone, Copy, Default, TypedBuilder)]
+#[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct DisplayNameFilters<'a> {
     /// Equality user display name filter.
-    pub eq: Option<Equal<&'a DisplayName>>,
+    pub eq: Option<Equal<Cow<'a, DisplayName>>>,
     /// Inequality user display name filter.
-    pub ne: Option<NotEqual<&'a DisplayName>>,
+    pub ne: Option<NotEqual<Cow<'a, DisplayName>>>,
     /// In user display name filter.
-    pub r#in: Option<In<&'a [DisplayName]>>,
+    pub r#in: Option<In<CowSlice<'a, DisplayName>>>,
     /// Not in user display name filter.
-    pub nin: Option<NotIn<&'a [DisplayName]>>,
+    pub nin: Option<NotIn<CowSlice<'a, DisplayName>>>,
     /// Regex user display name filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for DisplayNameFilters<'_>
@@ -87,8 +87,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && regex.satisfies(input.as_str())

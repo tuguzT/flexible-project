@@ -1,8 +1,8 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
 use fancy_regex::Regex as FancyRegex;
-use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
 use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
@@ -62,19 +62,19 @@ pub enum NameError {
 }
 
 /// Filters for user name of the backend.
-#[derive(Debug, Clone, Copy, Default, TypedBuilder)]
+#[derive(Debug, Clone, Default, TypedBuilder)]
 #[builder(field_defaults(default, setter(into, strip_option)))]
 pub struct NameFilters<'a> {
     /// Equality user name filter.
-    pub eq: Option<Equal<&'a Name>>,
+    pub eq: Option<Equal<Cow<'a, Name>>>,
     /// Inequality user name filter.
-    pub ne: Option<NotEqual<&'a Name>>,
+    pub ne: Option<NotEqual<Cow<'a, Name>>>,
     /// In user name filter.
-    pub r#in: Option<In<&'a [Name]>>,
+    pub r#in: Option<In<CowSlice<'a, Name>>>,
     /// Not in user name filter.
-    pub nin: Option<NotIn<&'a [Name]>>,
+    pub nin: Option<NotIn<CowSlice<'a, Name>>>,
     /// Regex user name filter.
-    pub regex: Option<Regex<&'a str>>,
+    pub regex: Option<Regex<Cow<'a, str>>>,
 }
 
 impl<Input> Filter<Input> for NameFilters<'_>
@@ -90,8 +90,8 @@ where
             regex,
         } = self;
         let input = input.borrow();
-        eq.satisfies(input)
-            && ne.satisfies(input)
+        eq.satisfies(Cow::Borrowed(input))
+            && ne.satisfies(Cow::Borrowed(input))
             && r#in.satisfies(input)
             && nin.satisfies(input)
             && regex.satisfies(input.as_str())
