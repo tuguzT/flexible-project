@@ -3,7 +3,7 @@ pub use self::{
     display_name::{UpdateDisplayName, UpdateDisplayNameError},
     email::{UpdateEmail, UpdateEmailError},
     name::{UpdateName, UpdateNameError},
-    user::{UpdateUser, UpdateUserError},
+    user::{UpdateUser, UpdateUserError, UpdateUserInput},
 };
 
 mod avatar;

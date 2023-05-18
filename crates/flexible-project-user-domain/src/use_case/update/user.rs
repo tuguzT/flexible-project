@@ -1,4 +1,5 @@
 use derive_more::{Display, Error, From};
+use typed_builder::TypedBuilder;
 
 use crate::{
     model::{Avatar, DisplayName, Email, Name, User, UserData, UserId},
@@ -26,6 +27,20 @@ pub enum UpdateUserError<Error> {
     Database(Error),
 }
 
+/// Input of the update user interactor.
+#[derive(Debug, Clone, Default, TypedBuilder)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct UpdateUserInput {
+    /// Name of the user to update, if present.
+    pub name: Option<Name>,
+    /// Display name of the user to update, if present.
+    pub display_name: Option<DisplayName>,
+    /// Email of the user to update, if present.
+    pub email: Option<Option<Email>>,
+    /// Avatar of the user to update, if present.
+    pub avatar: Option<Option<Avatar>>,
+}
+
 /// Update user interactor.
 pub struct UpdateUser<Database>
 where
@@ -47,12 +62,15 @@ where
     pub async fn update_user(
         &self,
         current_id: UserId,
-        name: Option<Name>,
-        display_name: Option<DisplayName>,
-        email: Option<Option<Email>>,
-        avatar: Option<Option<Avatar>>,
+        update: UpdateUserInput,
     ) -> Result<User, UpdateUserError<Database::Error>> {
         let Self { database } = self;
+        let UpdateUserInput {
+            name,
+            display_name,
+            email,
+            avatar,
+        } = update;
 
         let User { id, mut data } = {
             let user_by_id = find_one_by_id(database, &current_id).await?;
