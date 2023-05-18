@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::model::{ErasedId, Name};
+use crate::model::{ErasedId, Name, UserFilters};
 
 pub use self::update::UpdateUserInput;
 
@@ -16,7 +16,11 @@ pub enum Request {
         /// Name of the new user.
         name: Name,
     },
-    FilterUsers, // TODO filters: UserFilters
+    /// Filter users of the system.
+    FilterUsers {
+        /// User filters of the system.
+        filters: Box<UserFilters>,
+    },
     /// Update data of existing user of the system.
     UpdateUser {
         /// Identifier of the user to update.

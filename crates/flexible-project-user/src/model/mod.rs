@@ -1,13 +1,13 @@
 //! Data model of the user service.
 
 pub use self::{
-    avatar::Avatar,
-    display_name::DisplayName,
-    email::Email,
-    id::ErasedId,
-    name::Name,
-    role::Role,
-    user::{TryFromUserDataError, User, UserData},
+    avatar::{Avatar, AvatarFilters, OptionAvatarFilters},
+    display_name::{DisplayName, DisplayNameFilters},
+    email::{Email, EmailFilters, OptionEmailFilters},
+    id::{ErasedId, ErasedIdFilters},
+    name::{Name, NameFilters},
+    role::{Role, RoleFilters},
+    user::{TryFromUserDataError, User, UserData, UserDataFilters, UserFilters},
 };
 
 pub mod filter;

@@ -1,6 +1,9 @@
 use derive_more::Display;
 use fp_user_domain::model::Role as DomainRole;
 use serde::{Deserialize, Serialize};
+use typed_builder::TypedBuilder;
+
+use super::filter::{Equal, In, NotEqual, NotIn};
 
 /// Serializable [role](DomainRole) of the user.
 #[derive(
@@ -34,4 +37,18 @@ impl From<Role> for DomainRole {
             Role::Administrator => Self::Administrator,
         }
     }
+}
+
+/// Filters for user role of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder, Serialize, Deserialize)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct RoleFilters {
+    /// Equality user role filter.
+    pub eq: Option<Equal<Role>>,
+    /// Inequality user role filter.
+    pub ne: Option<NotEqual<Role>>,
+    /// In user role filter.
+    pub r#in: Option<In<Vec<Role>>>,
+    /// Not in user role filter.
+    pub nin: Option<NotIn<Vec<Role>>>,
 }

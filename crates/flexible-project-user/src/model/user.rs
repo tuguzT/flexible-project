@@ -7,8 +7,12 @@ use fp_user_domain::model::{
     UserData as DomainUserData,
 };
 use serde::{Deserialize, Serialize};
+use typed_builder::TypedBuilder;
 
-use super::{Avatar, DisplayName, Email, ErasedId, Name, Role};
+use super::{
+    Avatar, DisplayName, DisplayNameFilters, Email, ErasedId, ErasedIdFilters, Name, NameFilters,
+    OptionAvatarFilters, OptionEmailFilters, Role, RoleFilters,
+};
 
 /// Serializable [user](DomainUser) of the system.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -55,6 +59,16 @@ impl TryFrom<User> for DomainUser {
         };
         Ok(user)
     }
+}
+
+/// Filters for user of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder, Serialize, Deserialize)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct UserFilters {
+    /// User identifier filters.
+    pub id: Option<ErasedIdFilters>,
+    /// User data filters.
+    pub data: Option<UserDataFilters>,
 }
 
 /// Serializable [user data](DomainUserData) of the system.
@@ -111,6 +125,22 @@ impl TryFrom<UserData> for DomainUserData {
         };
         Ok(data)
     }
+}
+
+/// Filters for user data of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder, Serialize, Deserialize)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct UserDataFilters {
+    /// User name filters.
+    pub name: Option<NameFilters>,
+    /// User display name filters.
+    pub display_name: Option<DisplayNameFilters>,
+    /// User role filters.
+    pub role: Option<RoleFilters>,
+    /// User email filters.
+    pub email: Option<OptionEmailFilters>,
+    /// User avatar filters.
+    pub avatar: Option<OptionAvatarFilters>,
 }
 
 /// Type of error which is returned when serializable user data

@@ -1,6 +1,9 @@
 use derive_more::Display;
 use fp_user_domain::model::{Email as DomainEmail, EmailError};
 use serde::{Deserialize, Serialize};
+use typed_builder::TypedBuilder;
+
+use super::filter::{Equal, In, NotEqual, NotIn, Regex};
 
 /// Serializable [email](DomainEmail) of the user.
 #[derive(Debug, Display, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -21,4 +24,36 @@ impl TryFrom<Email> for DomainEmail {
         let Email(email) = email;
         DomainEmail::new(email)
     }
+}
+
+/// Filters for user email of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder, Serialize, Deserialize)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct EmailFilters {
+    /// Equality user email filter.
+    pub eq: Option<Equal<Email>>,
+    /// Inequality user email filter.
+    pub ne: Option<NotEqual<Email>>,
+    /// In user email filter.
+    pub r#in: Option<In<Vec<Email>>>,
+    /// Not in user email filter.
+    pub nin: Option<NotIn<Vec<Email>>>,
+    /// Regex user email filter.
+    pub regex: Option<Regex<String>>,
+}
+
+/// Filters for optional user email of the backend.
+#[derive(Debug, Clone, Default, TypedBuilder, Serialize, Deserialize)]
+#[builder(field_defaults(default, setter(into, strip_option)))]
+pub struct OptionEmailFilters {
+    /// Equality user email filter.
+    pub eq: Option<Equal<Option<Email>>>,
+    /// Inequality user email filter.
+    pub ne: Option<NotEqual<Option<Email>>>,
+    /// In user email filter.
+    pub r#in: Option<In<Vec<Option<Email>>>>,
+    /// Not in user email filter.
+    pub nin: Option<NotIn<Vec<Option<Email>>>>,
+    /// Regex user email filter.
+    pub regex: Option<Regex<String>>,
 }
