@@ -16,6 +16,9 @@ use lapin::{
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+pub mod model;
+pub mod request;
+
 /// Entry point of the user backend microservice binary.
 #[tokio::main]
 pub async fn main() -> Result<()> {

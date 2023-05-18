@@ -6,7 +6,7 @@ use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
-/// Name of the in the system with strong requirements about its content.
+/// Name of the user in the system with strong requirements about its content.
 ///
 /// These requirements are:
 /// - must be from 4 to 32 characters in length;

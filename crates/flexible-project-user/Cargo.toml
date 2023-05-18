@@ -8,6 +8,7 @@ edition.workspace = true
 repository.workspace = true
 
 [dependencies]
+fp-core = { workspace = true }
 fp-user-domain = { workspace = true }
 fp-user-data = { workspace = true }
 tokio = { workspace = true }
@@ -19,3 +20,7 @@ tokio-executor-trait = { workspace = true }
 tokio-reactor-trait = { workspace = true }
 dotenv = { workspace = true }
 futures = { workspace = true }
+serde = { workspace = true }
+serde_with = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
