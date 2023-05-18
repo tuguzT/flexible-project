@@ -1,9 +1,11 @@
 use fp_user_domain::use_case::UpdateUserInput as DomainUpdateUserInput;
 use serde::{Deserialize, Serialize};
+use serde_with::{rust::double_option, skip_serializing_none};
 
 use crate::model::{Avatar, DisplayName, Email, Name, TryFromUserDataError};
 
 /// Serializable [input](DomainUpdateUserInput) of the update user interactor.
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateUserInput {
     /// Name of the user to update, if present.
@@ -11,18 +13,10 @@ pub struct UpdateUserInput {
     /// Display name of the user to update, if present.
     pub display_name: Option<DisplayName>,
     /// Email of the user to update, if present.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "::serde_with::rust::double_option"
-    )]
+    #[serde(with = "double_option")]
     pub email: Option<Option<Email>>,
     /// Avatar of the user to update, if present.
-    #[serde(
-        default,
-        skip_serializing_if = "Option::is_none",
-        with = "::serde_with::rust::double_option"
-    )]
+    #[serde(with = "double_option")]
     pub avatar: Option<Option<Avatar>>,
 }
 

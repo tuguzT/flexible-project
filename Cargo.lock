@@ -900,6 +900,7 @@ dependencies = [
  "derive_more",
  "dotenv",
  "flexible-project-core",
+ "flexible-project-filter",
  "flexible-project-user-data",
  "flexible-project-user-domain",
  "futures",
@@ -912,6 +913,7 @@ dependencies = [
  "tokio-reactor-trait",
  "tracing",
  "tracing-subscriber",
+ "typed-builder 0.14.0",
 ]
 
 [[package]]

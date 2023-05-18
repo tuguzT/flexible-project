@@ -10,6 +10,8 @@ pub use self::{
     user::{TryFromUserDataError, User, UserData},
 };
 
+pub mod filter;
+
 mod avatar;
 mod display_name;
 mod email;
