@@ -6,14 +6,9 @@ use super::Filter;
 ///
 /// Checks if a set of values contains an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub struct In<T>(pub T)
-where
-    T: IntoIterator;
+pub struct In<T>(pub T);
 
-impl<T> From<T> for In<T>
-where
-    T: IntoIterator,
-{
+impl<T> From<T> for In<T> {
     fn from(value: T) -> Self {
         Self(value)
     }

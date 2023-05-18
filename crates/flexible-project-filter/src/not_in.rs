@@ -6,14 +6,9 @@ use super::Filter;
 ///
 /// Checks if a set of values does not contain an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
-pub struct NotIn<T>(pub T)
-where
-    T: IntoIterator;
+pub struct NotIn<T>(pub T);
 
-impl<T> From<T> for NotIn<T>
-where
-    T: IntoIterator,
-{
+impl<T> From<T> for NotIn<T> {
     fn from(value: T) -> Self {
         Self(value)
     }
