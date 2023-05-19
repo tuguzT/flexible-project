@@ -12,7 +12,7 @@ fp-core = { workspace = true }
 fp-filter = { workspace = true }
 fp-user-domain = { workspace = true }
 fp-user-data = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }

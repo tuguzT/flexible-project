@@ -4,10 +4,10 @@
 #![warn(clippy::all)]
 #![forbid(unsafe_code)]
 
-use std::str;
+use std::{pin::pin, str};
 
 use anyhow::{Context, Result};
-use futures::StreamExt;
+use futures::{FutureExt, StreamExt};
 use lapin::{
     options::{BasicConsumeOptions, BasicQosOptions, QueueDeclareOptions},
     types::FieldTable,
@@ -69,34 +69,41 @@ pub async fn main() -> Result<()> {
         .with_context(|| "failed to create incoming requests consumer")?;
     tracing::info!("Listening for incoming requests...");
 
-    consumer
-        .for_each_concurrent(1, |delivery| async move {
-            let delivery = match delivery {
-                Ok(delivery) => delivery,
-                Err(error) => {
-                    tracing::error!(%error, "message cannot be received");
-                    return;
-                }
-            };
-            let data = delivery.data.as_slice();
-            if let Ok(data) = str::from_utf8(data) {
-                tracing::info!(%data, "received data from the message");
+    let request_handler = consumer.for_each_concurrent(1, |delivery| async move {
+        let delivery = match delivery {
+            Ok(delivery) => delivery,
+            Err(error) => {
+                tracing::error!(%error, "message cannot be received");
+                return;
             }
-            let request: Request = match serde_json::from_slice(data) {
-                Ok(request) => request,
-                Err(error) => {
-                    tracing::error!(%error, "message is not a valid request");
-                    return;
-                }
-            };
-            tracing::info!(?request, "received request from the message");
-            // TODO handle request and answer on it
-        })
-        .await;
+        };
+        let data = delivery.data.as_slice();
+        if let Ok(data) = str::from_utf8(data) {
+            tracing::info!(%data, "received data from the message");
+        }
+        let request: Request = match serde_json::from_slice(data) {
+            Ok(request) => request,
+            Err(error) => {
+                tracing::error!(%error, "message is not a valid request");
+                return;
+            }
+        };
+        tracing::info!(?request, "received request from the message");
+        // TODO handle request and answer on it
+    });
+    let graceful_shutdown = shutdown_signal();
+
+    let mut request_handler = pin!(request_handler.fuse());
+    let mut graceful_shutdown = pin!(graceful_shutdown.fuse());
+    futures::select! {
+        () = request_handler => unreachable!("should listen for incoming requests endlessly"),
+        () = graceful_shutdown => tracing::info!("gracefully shutdown the server"),
+    }
 
     Ok(())
 }
 
+/// Declare Tokio-specific connection properties.
 #[cfg(unix)]
 fn connection_properties() -> ConnectionProperties {
     ConnectionProperties::default()
@@ -104,7 +111,15 @@ fn connection_properties() -> ConnectionProperties {
         .with_reactor(tokio_reactor_trait::Tokio)
 }
 
+/// Declare Tokio-specific connection properties.
 #[cfg(not(unix))]
 fn connection_properties() -> ConnectionProperties {
     ConnectionProperties::default().with_executor(tokio_executor_trait::Tokio::current())
+}
+
+/// Catches a signal to shut down the server.
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("expect tokio signal ctrl-c")
 }
