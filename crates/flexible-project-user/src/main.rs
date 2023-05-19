@@ -9,9 +9,12 @@ use std::{pin::pin, str};
 use anyhow::{Context, Result};
 use futures::{FutureExt, StreamExt};
 use lapin::{
-    options::{BasicConsumeOptions, BasicQosOptions, QueueDeclareOptions},
+    options::{
+        BasicAckOptions, BasicConsumeOptions, BasicPublishOptions, BasicQosOptions,
+        BasicRejectOptions, QueueDeclareOptions,
+    },
     types::FieldTable,
-    Connection, ConnectionProperties,
+    BasicProperties, Connection, ConnectionProperties,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -69,7 +72,7 @@ pub async fn main() -> Result<()> {
         .with_context(|| "failed to create incoming requests consumer")?;
     tracing::info!("Listening for incoming requests...");
 
-    let request_handler = consumer.for_each_concurrent(1, |delivery| async move {
+    let request_handler = consumer.for_each_concurrent(1, |delivery| async {
         let delivery = match delivery {
             Ok(delivery) => delivery,
             Err(error) => {
@@ -77,6 +80,33 @@ pub async fn main() -> Result<()> {
                 return;
             }
         };
+        let delivery_tag = delivery.delivery_tag;
+
+        let routing_key = match delivery.properties.reply_to() {
+            Some(reply_to) => reply_to.as_str(),
+            None => {
+                tracing::error!("missing `reply_to` property");
+                tracing::debug!(%delivery_tag, "rejecting invalid request");
+                let reject = channel.basic_reject(delivery_tag, BasicRejectOptions::default());
+                if let Err(error) = reject.await {
+                    tracing::error!(%error, "failed to reject invalid request");
+                }
+                return;
+            }
+        };
+        let correlation_id = match delivery.properties.correlation_id() {
+            Some(correlation_id) => correlation_id.clone(),
+            None => {
+                tracing::error!("missing `correlation_id` property");
+                tracing::debug!(%delivery_tag, "rejecting invalid request");
+                let reject = channel.basic_reject(delivery_tag, BasicRejectOptions::default());
+                if let Err(error) = reject.await {
+                    tracing::error!(%error, "failed to reject invalid request");
+                }
+                return;
+            }
+        };
+
         let data = delivery.data.as_slice();
         if let Ok(data) = str::from_utf8(data) {
             tracing::info!(%data, "received data from the message");
@@ -85,11 +115,34 @@ pub async fn main() -> Result<()> {
             Ok(request) => request,
             Err(error) => {
                 tracing::error!(%error, "message is not a valid request");
+                tracing::debug!(%delivery_tag, "rejecting invalid request");
+                let reject = channel.basic_reject(delivery_tag, BasicRejectOptions::default());
+                if let Err(error) = reject.await {
+                    tracing::error!(%error, "failed to reject invalid request");
+                }
                 return;
             }
         };
         tracing::info!(?request, "received request from the message");
+
         // TODO handle request and answer on it
+        let payload = b"";
+
+        let publish = channel.basic_publish(
+            "",
+            routing_key,
+            BasicPublishOptions::default(),
+            payload,
+            BasicProperties::default().with_correlation_id(correlation_id),
+        );
+        if let Err(error) = publish.await {
+            tracing::error!(%error, "failed to publish response into reply queue");
+            return;
+        }
+        let ack = channel.basic_ack(delivery_tag, BasicAckOptions::default());
+        if let Err(error) = ack.await {
+            tracing::error!(%error, "failed to ack incoming response");
+        }
     });
     let graceful_shutdown = shutdown_signal();
 
