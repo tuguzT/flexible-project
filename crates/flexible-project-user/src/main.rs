@@ -50,7 +50,10 @@ pub async fn main() -> Result<()> {
     let _queue = channel
         .queue_declare(
             "user",
-            QueueDeclareOptions::default(),
+            QueueDeclareOptions {
+                durable: true,
+                ..Default::default()
+            },
             FieldTable::default(),
         )
         .await
