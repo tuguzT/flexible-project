@@ -23,6 +23,7 @@ use crate::{
 use super::filter::IntoDocument;
 
 /// Local database of user data.
+#[derive(Debug, Clone)]
 pub struct LocalUserDatabase {
     collection: Collection<LocalUser>,
 }
