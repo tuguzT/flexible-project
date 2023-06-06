@@ -1,7 +1,7 @@
 use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
-use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 use url::Url;
 
@@ -54,9 +54,9 @@ pub struct AvatarFilters<'a> {
     /// Inequality user avatar filter.
     pub ne: Option<NotEqual<Cow<'a, Avatar>>>,
     /// In user avatar filter.
-    pub r#in: Option<In<CowSlice<'a, Avatar>>>,
+    pub r#in: Option<In<Cow<'a, [Avatar]>>>,
     /// Not in user avatar filter.
-    pub nin: Option<NotIn<CowSlice<'a, Avatar>>>,
+    pub nin: Option<NotIn<Cow<'a, [Avatar]>>>,
     /// Regex user avatar filter.
     pub regex: Option<Regex<Cow<'a, str>>>,
 }
@@ -76,8 +76,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
             && regex.satisfies(input.as_str())
     }
 }
@@ -91,9 +91,9 @@ pub struct OptionAvatarFilters<'a> {
     /// Inequality user avatar filter.
     pub ne: Option<NotEqual<Cow<'a, Option<Avatar>>>>,
     /// In user avatar filter.
-    pub r#in: Option<In<CowSlice<'a, Option<Avatar>>>>,
+    pub r#in: Option<In<Cow<'a, [Option<Avatar>]>>>,
     /// Not in user avatar filter.
-    pub nin: Option<NotIn<CowSlice<'a, Option<Avatar>>>>,
+    pub nin: Option<NotIn<Cow<'a, [Option<Avatar>]>>>,
     /// Regex user avatar filter.
     pub regex: Option<Regex<Cow<'a, str>>>,
 }
@@ -113,8 +113,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
             && input
                 .as_ref()
                 .map(|input| regex.satisfies(input.as_str()))

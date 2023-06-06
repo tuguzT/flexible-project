@@ -1,7 +1,7 @@
 use std::borrow::{Borrow, Cow};
 
 use derive_more::Display;
-use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
 /// Role of the user in the system.
@@ -26,9 +26,9 @@ pub struct RoleFilters<'a> {
     /// Inequality user role filter.
     pub ne: Option<NotEqual<Cow<'a, Role>>>,
     /// In user role filter.
-    pub r#in: Option<In<CowSlice<'a, Role>>>,
+    pub r#in: Option<In<Cow<'a, [Role]>>>,
     /// Not in user role filter.
-    pub nin: Option<NotIn<CowSlice<'a, Role>>>,
+    pub nin: Option<NotIn<Cow<'a, [Role]>>>,
 }
 
 impl<Input> Filter<Input> for RoleFilters<'_>
@@ -40,7 +40,7 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
     }
 }

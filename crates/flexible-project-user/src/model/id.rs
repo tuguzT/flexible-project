@@ -52,14 +52,8 @@ impl From<DomainErasedIdFilters<'_>> for ErasedIdFilters {
         Self {
             eq: eq.map(|id| Equal(id.0.into_owned().into())),
             ne: ne.map(|id| NotEqual(id.0.into_owned().into())),
-            r#in: r#in.map(|ids| {
-                let cow_slice = ids.0;
-                In(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
-            nin: nin.map(|ids| {
-                let cow_slice = ids.0;
-                NotIn(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
+            r#in: r#in.map(|ids| In(ids.0.iter().cloned().map(Into::into).collect())),
+            nin: nin.map(|ids| NotIn(ids.0.iter().cloned().map(Into::into).collect())),
         }
     }
 }

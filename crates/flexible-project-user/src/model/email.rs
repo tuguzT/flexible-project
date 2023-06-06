@@ -59,14 +59,8 @@ impl From<DomainEmailFilters<'_>> for EmailFilters {
         Self {
             eq: eq.map(|email| Equal(email.0.into_owned().into())),
             ne: ne.map(|email| NotEqual(email.0.into_owned().into())),
-            r#in: r#in.map(|r#in| {
-                let cow_slice = r#in.0;
-                In(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
-            nin: nin.map(|r#in| {
-                let cow_slice = r#in.0;
-                NotIn(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
+            r#in: r#in.map(|r#in| In(r#in.0.iter().cloned().map(Into::into).collect())),
+            nin: nin.map(|r#in| NotIn(r#in.0.iter().cloned().map(Into::into).collect())),
             regex: regex.map(|regex| Regex(regex.0.into_owned())),
         }
     }
@@ -158,13 +152,11 @@ impl From<DomainOptionEmailFilters<'_>> for OptionEmailFilters {
             eq: eq.map(|email| Equal(email.0.into_owned().map(Into::into))),
             ne: ne.map(|email| NotEqual(email.0.into_owned().map(Into::into))),
             r#in: r#in.map(|r#in| {
-                let cow_slice = r#in.0;
-                let iter = cow_slice.0.iter();
+                let iter = r#in.0.iter();
                 In(iter.cloned().map(|email| email.map(Into::into)).collect())
             }),
             nin: nin.map(|r#in| {
-                let cow_slice = r#in.0;
-                let iter = cow_slice.0.iter();
+                let iter = r#in.0.iter();
                 NotIn(iter.cloned().map(|email| email.map(Into::into)).collect())
             }),
             regex: regex.map(|regex| Regex(regex.0.into_owned())),

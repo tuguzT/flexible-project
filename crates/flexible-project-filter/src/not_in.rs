@@ -1,12 +1,23 @@
-use core::borrow::Borrow;
+use core::{borrow::Borrow, ops::Deref};
 
-use super::{CowSlice, Filter};
+use super::Filter;
 
 /// Not in filter of the backend.
 ///
 /// Checks if a set of values does not contain an input.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct NotIn<T>(pub T);
+
+impl<T> NotIn<T>
+where
+    T: Deref,
+{
+    /// Converts from `NotIn<T>` (or `&NotIn<T>`) to `NotIn<&T::Target>`.
+    pub fn as_deref(&self) -> NotIn<&T::Target> {
+        let NotIn(values) = self;
+        NotIn(values)
+    }
+}
 
 impl<T> From<T> for NotIn<T> {
     fn from(value: T) -> Self {
@@ -25,19 +36,6 @@ where
         let mut iter = value.clone().into_iter();
         let input = input.borrow();
         !iter.any(|item| &item == input)
-    }
-}
-
-impl<'a, T, Input> Filter<Input> for NotIn<CowSlice<'a, T>>
-where
-    T: PartialEq + Clone + 'a,
-    Input: Borrow<T>,
-{
-    fn satisfies(&self, input: Input) -> bool {
-        let Self(CowSlice(cow)) = self;
-        let slice: &[_] = cow.borrow();
-        let input = input.borrow();
-        !slice.contains(input)
     }
 }
 

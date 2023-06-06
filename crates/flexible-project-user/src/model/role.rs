@@ -61,14 +61,8 @@ impl From<DomainRoleFilters<'_>> for RoleFilters {
         Self {
             eq: eq.map(|role| Equal(role.0.into_owned().into())),
             ne: ne.map(|role| NotEqual(role.0.into_owned().into())),
-            r#in: r#in.map(|r#in| {
-                let cow_slice = r#in.0;
-                In(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
-            nin: nin.map(|r#in| {
-                let cow_slice = r#in.0;
-                NotIn(cow_slice.0.iter().cloned().map(Into::into).collect())
-            }),
+            r#in: r#in.map(|r#in| In(r#in.0.iter().cloned().map(Into::into).collect())),
+            nin: nin.map(|r#in| NotIn(r#in.0.iter().cloned().map(Into::into).collect())),
         }
     }
 }

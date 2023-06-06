@@ -2,7 +2,7 @@ use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
 use email_address::EmailAddress;
-use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use typed_builder::TypedBuilder;
 
 /// Email of the user in the system with strong requirements about its content.
@@ -55,9 +55,9 @@ pub struct EmailFilters<'a> {
     /// Inequality user email filter.
     pub ne: Option<NotEqual<Cow<'a, Email>>>,
     /// In user email filter.
-    pub r#in: Option<In<CowSlice<'a, Email>>>,
+    pub r#in: Option<In<Cow<'a, [Email]>>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<CowSlice<'a, Email>>>,
+    pub nin: Option<NotIn<Cow<'a, [Email]>>>,
     /// Regex user email filter.
     pub regex: Option<Regex<Cow<'a, str>>>,
 }
@@ -77,8 +77,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
             && regex.satisfies(input.as_str())
     }
 }
@@ -92,9 +92,9 @@ pub struct OptionEmailFilters<'a> {
     /// Inequality user email filter.
     pub ne: Option<NotEqual<Cow<'a, Option<Email>>>>,
     /// In user email filter.
-    pub r#in: Option<In<CowSlice<'a, Option<Email>>>>,
+    pub r#in: Option<In<Cow<'a, [Option<Email>]>>>,
     /// Not in user email filter.
-    pub nin: Option<NotIn<CowSlice<'a, Option<Email>>>>,
+    pub nin: Option<NotIn<Cow<'a, [Option<Email>]>>>,
     /// Regex user email filter.
     pub regex: Option<Regex<Cow<'a, str>>>,
 }
@@ -114,8 +114,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
             && input
                 .as_ref()
                 .map(|input| regex.satisfies(input.as_str()))

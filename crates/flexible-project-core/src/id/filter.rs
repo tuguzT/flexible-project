@@ -4,7 +4,7 @@ use std::{
     marker::PhantomData,
 };
 
-use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn};
 use typed_builder::TypedBuilder;
 
 use super::model::{ErasedOwner, Id};
@@ -24,9 +24,9 @@ pub struct IdFilters<'a, Owner: 'a> {
     /// Inequality identifier filter.
     pub ne: Option<NotEqual<Cow<'a, Id<Owner>>>>,
     /// In identifier filter.
-    pub r#in: Option<In<CowSlice<'a, Id<Owner>>>>,
+    pub r#in: Option<In<Cow<'a, [Id<Owner>]>>>,
     /// Not in identifier filter.
-    pub nin: Option<NotIn<CowSlice<'a, Id<Owner>>>>,
+    pub nin: Option<NotIn<Cow<'a, [Id<Owner>]>>>,
 }
 
 impl<'a, Owner: 'a> IdFilters<'a, Owner> {
@@ -49,13 +49,13 @@ impl<'a, Owner: 'a> IdFilters<'a, Owner> {
                 let id = id.into_owned().with_owner();
                 NotEqual(Cow::Owned(id))
             }),
-            r#in: r#in.map(|In(CowSlice(ids))| {
+            r#in: r#in.map(|In(ids)| {
                 let ids = ids.iter().cloned().map(Id::with_owner).collect();
-                In(CowSlice(Cow::Owned(ids)))
+                In(Cow::Owned(ids))
             }),
-            nin: nin.map(|NotIn(CowSlice(ids))| {
+            nin: nin.map(|NotIn(ids)| {
                 let ids = ids.iter().cloned().map(Id::with_owner).collect();
-                NotIn(CowSlice(Cow::Owned(ids)))
+                NotIn(Cow::Owned(ids))
             }),
         }
     }
@@ -81,8 +81,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
     }
 }
 

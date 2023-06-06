@@ -5,16 +5,15 @@
 #![forbid(unsafe_code)]
 
 pub use self::{
-    between::Between, between_eq::BetweenEqual, contains::Contains, cow::CowSlice, eq::Equal,
-    ge::GreaterEqual, gt::GreaterThan, le::LessEqual, lt::LessThan, ne::NotEqual, not::Not,
-    not_between::NotBetween, not_between_eq::NotBetweenEqual, not_contains::NotContains,
-    not_in::NotIn, r#in::In, regex::Regex,
+    between::Between, between_eq::BetweenEqual, contains::Contains, eq::Equal, ge::GreaterEqual,
+    gt::GreaterThan, le::LessEqual, lt::LessThan, ne::NotEqual, not::Not, not_between::NotBetween,
+    not_between_eq::NotBetweenEqual, not_contains::NotContains, not_in::NotIn, r#in::In,
+    regex::Regex,
 };
 
 mod between;
 mod between_eq;
 mod contains;
-mod cow;
 mod eq;
 mod ge;
 mod gt;

@@ -2,7 +2,7 @@ use std::borrow::{Borrow, Cow};
 
 use derive_more::{Display, Error};
 use fancy_regex::Regex as FancyRegex;
-use fp_filter::{CowSlice, Equal, Filter, In, NotEqual, NotIn, Regex};
+use fp_filter::{Equal, Filter, In, NotEqual, NotIn, Regex};
 use once_cell::sync::Lazy;
 use typed_builder::TypedBuilder;
 
@@ -67,9 +67,9 @@ pub struct DisplayNameFilters<'a> {
     /// Inequality user display name filter.
     pub ne: Option<NotEqual<Cow<'a, DisplayName>>>,
     /// In user display name filter.
-    pub r#in: Option<In<CowSlice<'a, DisplayName>>>,
+    pub r#in: Option<In<Cow<'a, [DisplayName]>>>,
     /// Not in user display name filter.
-    pub nin: Option<NotIn<CowSlice<'a, DisplayName>>>,
+    pub nin: Option<NotIn<Cow<'a, [DisplayName]>>>,
     /// Regex user display name filter.
     pub regex: Option<Regex<Cow<'a, str>>>,
 }
@@ -89,8 +89,8 @@ where
         let input = input.borrow();
         eq.satisfies(Cow::Borrowed(input))
             && ne.satisfies(Cow::Borrowed(input))
-            && r#in.satisfies(input)
-            && nin.satisfies(input)
+            && r#in.as_ref().map(In::as_deref).satisfies(input)
+            && nin.as_ref().map(NotIn::as_deref).satisfies(input)
             && regex.satisfies(input.as_str())
     }
 }
